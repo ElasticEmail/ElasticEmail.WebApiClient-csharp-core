@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <Description>C# client library and examples for using ElasticEmail API to send mail, manage contacts and other functions.</Description>
-    <Copyright>Copyright ©  2017</Copyright>
+    <Copyright>Copyright ©  Elastic Email, Inc. 2017</Copyright>
     <AssemblyTitle>ElasticEmail.WebApiClient</AssemblyTitle>
     <VersionPrefix>1.3.100</VersionPrefix>
     <TargetFrameworks>netstandard1.6;net45;net46</TargetFrameworks>
@@ -15,7 +15,7 @@
     <GenerateAssemblyProductAttribute>false</GenerateAssemblyProductAttribute>
 	
 	<PackageId>ElasticEmail.WebApiClient</PackageId>
-	<PackageVersion>1.3.100</PackageVersion>
+	<PackageVersion>1.3.101</PackageVersion>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
     <PackageTags>elasticemail elastic email e-mail mail Web API SMTP transactional</PackageTags>
     <PackageLicenseUrl>https://elasticemail.com/files/license.txt</PackageLicenseUrl>
@@ -23,6 +23,9 @@
 	<PackageIconUrl>https://elasticemail.com/files/ee_int_cs_128x128.png</PackageIconUrl>
 	<Authors>ElasticEmail Dev Team</Authors>
 	<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+	<AssemblyVersion>1.3.101.0</AssemblyVersion>
+	<FileVersion>1.3.101.0</FileVersion>
+	<Version>1.3.101</Version>
   </PropertyGroup>
 
   <ItemGroup>
