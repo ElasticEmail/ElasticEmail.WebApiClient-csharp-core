@@ -77,7 +77,7 @@ namespace ElasticEmail.WebApiClient
         {
             try
             {
-
+                url = Api.ApiUri + url;
                 string boundary = DateTime.Now.Ticks.ToString("x");
                 byte[] boundarybytes = Encoding.ASCII.GetBytes("\r\n--" + boundary + "\r\n");
 
@@ -174,6 +174,7 @@ namespace ElasticEmail.WebApiClient
         {
             try
             {
+                url = Api.ApiUri + url;
                 string queryString = BuildQueryString(parameters);
 
                 if (queryString.Length > 0) url += "?" + queryString.ToString();
@@ -278,6 +279,305 @@ namespace ElasticEmail.WebApiClient
         }
     }
     #endregion
+
+    #region EasyMail - Sending Mails Wrapper 
+    /// <summary>
+    /// Send email wrapper simplifies using our Web API.
+    /// </summary>
+    public class EasyMail
+    {
+        /// <summary>
+        /// Constructor
+        /// </summary>
+        /// <param name="apiKey">API KEY. You have to register in our service to get it (https://elasticemail.com/account/).</param>
+        public EasyMail(string apiKey)
+        {
+            Api.ApiKey = apiKey;
+        }
+
+        /// <summary>
+        /// Send transactional mail(s).
+        /// </summary>
+        /// <returns></returns>
+        public async Task<ApiTypes.EmailSend> SendTransactionalMailAsync(TransactionalRecipient transactionalRecipient, Message message, MessageEncoding encoding = null, CustomHeader customHeader = null, Dictionary<string, string> mergeData = null/*merge*/)
+        {
+            if (transactionalRecipient == null)
+            {
+                throw new Exception("TransactionalRecipient cannot be null.");
+            }
+            if (message == null)
+            {
+                throw new Exception("Message cannot be null.");
+            }
+            StringBuilder sb = new StringBuilder();
+
+            string[] msgTo = new string[transactionalRecipient.To.Count];
+            for (int i = 0; i < transactionalRecipient.To.Count; i++)
+            {
+                sb.Clear();
+                if (!string.IsNullOrWhiteSpace(transactionalRecipient.To[i].Name))
+                {
+                    sb.Append(@"""").Append(transactionalRecipient.To[i].Name).Append(@"""");
+                }
+                sb.Append(" <").Append(transactionalRecipient.To[i].Address).Append(">");
+                msgTo[i] = sb.ToString();
+            }
+            string[] msgCC = null;
+            if (transactionalRecipient.CC != null)
+            {
+                msgCC = new string[transactionalRecipient.CC.Count];
+                for (int i = 0; i < transactionalRecipient.CC.Count; i++)
+                {
+                    sb.Clear();
+                    if (!string.IsNullOrWhiteSpace(transactionalRecipient.CC[i].Name))
+                    {
+                        sb.Append(@"""").Append(transactionalRecipient.CC[i].Name).Append(@"""");
+                    }
+                    sb.Append(" <").Append(transactionalRecipient.CC[i].Address).Append(">");
+                    msgCC[i] = sb.ToString();
+                }
+            }
+            string[] msgBcc = null;
+            if (transactionalRecipient.Bcc != null)
+            {
+                msgBcc = new string[transactionalRecipient.Bcc.Count];
+                for (int i = 0; i < transactionalRecipient.Bcc.Count; i++)
+                {
+                    sb.Clear();
+                    if (!string.IsNullOrWhiteSpace(transactionalRecipient.Bcc[i].Name))
+                    {
+                        sb.Append(@"""").Append(transactionalRecipient.Bcc[i].Name).Append(@"""");
+                    }
+                    sb.Append(" <").Append(transactionalRecipient.Bcc[i].Address).Append(">");
+                    msgBcc[i] = sb.ToString();
+                }
+            }
+            if (encoding == null)
+            {
+                encoding = new MessageEncoding();
+            }
+            if (customHeader == null)
+            {
+                customHeader = new CustomHeader();
+            }
+            bool isTransactional = true;
+            return await Api.Email.SendAsync(message.Subject, message.From.Address, message.From.Name, message.Sender.Address, message.Sender.Name, message.FromMimeHeader.Address, message.FromMimeHeader.Name,
+                message.ReplyTo.Address, message.ReplyTo.Name, null, msgTo, msgCC, msgBcc, null, null, null, message.MessageAdvanced.Channel, message.BodyHtml, message.BodyText, encoding.Charset, encoding.CharsetBodyHtml,
+                encoding.CharsetBodyText, encoding.EncodingType, message.TemplateName, message.Attachments, customHeader.Headers, customHeader.PostBack, mergeData, message.MessageAdvanced.TimeOffSetMinutes,
+                message.MessageAdvanced.PoolName, isTransactional);
+        }
+
+        /// <summary>
+        /// Send bulk, marketing, commercial mail(s).
+        /// </summary>
+        /// <returns></returns>
+        public async Task<ApiTypes.EmailSend> SendMergeMailAsync(MergeRecipient mergeRecipient, Message message, MessageEncoding encoding = null, CustomHeader customHeader = null, string mergeDataFileName = null/*mergeSourceFilename*/)
+        {
+            if (mergeRecipient == null)
+            {
+                throw new Exception("MergeRecipient cannot be null.");
+            }
+            if (message == null)
+            {
+                throw new Exception("Message cannot be null.");
+            }
+            StringBuilder sb = new StringBuilder();
+
+            string[] to = new string[mergeRecipient.To.Count];
+            for (int i = 0; i < mergeRecipient.To.Count; i++)
+            {
+                sb.Clear();
+                if (!string.IsNullOrWhiteSpace(mergeRecipient.To[i].Name))
+                {
+                    sb.Append(@"").Append(mergeRecipient.To[i].Name).Append(@"");
+                }
+                sb.Append(" <").Append(mergeRecipient.To[i].Address).Append(">");
+                to[i] = sb.ToString();
+            }
+
+            if (encoding == null)
+            {
+                encoding = new MessageEncoding();
+            }
+            if (customHeader == null)
+            {
+                customHeader = new CustomHeader();
+            }
+            bool isTransactional = false;
+            return await Api.Email.SendAsync(message.Subject, message.From.Address, message.From.Name, message.Sender.Address, message.Sender.Name, message.FromMimeHeader.Address, message.FromMimeHeader.Name,
+                message.ReplyTo.Address, message.ReplyTo.Name, to, null, null, null, mergeRecipient.ContactsFromLists, mergeRecipient.ContactsFromSegments, mergeDataFileName, message.MessageAdvanced.Channel, message.BodyHtml, message.BodyText, encoding.Charset, encoding.CharsetBodyHtml,
+                encoding.CharsetBodyText, encoding.EncodingType, message.TemplateName, message.Attachments, customHeader.Headers, customHeader.PostBack, null, message.MessageAdvanced.TimeOffSetMinutes,
+                message.MessageAdvanced.PoolName, isTransactional);
+        }
+    }
+
+    /// <summary>
+    /// Merge recipient container.
+    /// </summary>
+    public class MergeRecipient
+    {
+        /// <summary>
+        /// List of email recipients (visible to all other recipients of the message as TO MIME header).
+        /// </summary>
+        public List<Email> To { get; set; }
+        /// <summary>
+        /// List of email recipients (visible to all other recipients of the message as CC MIME header).
+        /// </summary>
+        public List<string> ContactsFromLists { get; set; }
+        /// <summary>
+        /// List of email recipients (each email is treated seperately).
+        /// </summary>
+        public List<string> ContactsFromSegments { get; set; }
+    }
+
+    /// <summary>
+    /// Transactional recipient container.
+    /// </summary>
+    public class TransactionalRecipient
+    {
+        public List<Email> To { get; set; }//msgTo
+        public List<Email> CC { get; set; }//msgCC
+        public List<Email> Bcc { get; set; }//msgBcc
+    }
+
+    /// <summary>
+    /// Message container. Contains common message details for marge and transactional mailing.
+    /// </summary>
+    public class Message
+    {
+        /// <summary>
+        /// From email address and name.
+        /// </summary>
+        public Email From { get; set; }
+        /// <summary>
+        /// Optional parameter. Sets FROM MIME header.
+        /// </summary>
+        public Email FromMimeHeader { get; set; }
+        /// <summary>
+        /// Email address and name of the sender.
+        /// </summary>
+        public Email Sender { get; set; }
+        /// <summary>
+        /// Email address and name to reply to.
+        /// </summary>
+        public Email ReplyTo { get; set; }
+        /// <summary>
+        /// Email subject.
+        /// </summary>
+        public string Subject { get; set; }
+        /// <summary>
+        /// Attachment files. These files should be provided with the POST multipart file upload, not directly in the request's URL. Should also include merge CSV file.
+        /// </summary>
+        public List<ApiTypes.FileData> Attachments { get; set; }
+        /// <summary>
+        /// The name of an email template you have created in your account.
+        /// </summary>
+        public string TemplateName { get; set; }
+        /// <summary>
+        /// Sets charset for body html MIME part (overrides default value from charset parameter).
+        /// </summary>
+        public string BodyHtml { get; set; }
+        /// <summary>
+        /// Sets charset for body text MIME part (overrides default value from charset parameter).
+        /// </summary>
+        public string BodyText { get; set; }//bodyText
+        /// <summary>
+        /// Advanced options of message.
+        /// </summary>
+        public MessageAdvanced MessageAdvanced { get; set; }
+        /// <summary>
+        /// Constructor
+        /// </summary>
+        public Message()
+        {
+            MessageAdvanced = new MessageAdvanced();
+        }
+    }
+
+    /// <summary>
+    /// Advanced options of message.
+    /// </summary>
+    public class MessageAdvanced
+    {
+        /// <summary>
+        /// An ID field (max 191 chars) that can be used for reporting [will default to HTTP API or SMTP API]
+        /// </summary>
+        public string Channel { get; set; }
+        /// <summary>
+        /// Number of minutes in the future this email should be sent
+        /// </summary>
+        public string TimeOffSetMinutes { get; set; }
+        /// <summary>
+        /// Name of your custom IP Pool to be used in the sending process
+        /// </summary>
+        public string PoolName { get; set; }
+    }
+
+    /// <summary>
+    /// Container for message custom headers.
+    /// </summary>
+    public class CustomHeader
+    {
+        /// <summary>
+        /// Optional Custom Headers. Request parameters prefixed by headers_ like headers_customheader1, headers_customheader2. Note: a space is required after the colon before the custom header value. headers_xmailer=xmailer: header-value1
+        /// </summary>
+        public Dictionary<string, string> Headers { get; set; }
+        /// <summary>
+        /// Optional header returned in notifications.
+        /// </summary>
+        public string PostBack { get; set; }
+    }
+
+    /// <summary>
+    /// Message encoding properties.
+    /// </summary>
+    public class MessageEncoding
+    {
+        private ApiTypes.EncodingType encodingType = ApiTypes.EncodingType.None;
+        /// <summary>
+        /// Text value of charset encoding for example: iso-8859-1, windows-1251, utf-8, us-ascii, windows-1250 and more…
+        /// </summary>
+        public string Charset { get; set; }
+        /// <summary>
+        /// Sets charset for body html MIME part (overrides default value from charset parameter)
+        /// </summary>
+        public string CharsetBodyHtml { get; set; }
+        /// <summary>
+        /// Sets charset for body text MIME part (overrides default value from charset parameter)
+        /// </summary>
+        public string CharsetBodyText { get; set; }
+        /// <summary>
+        /// 0 for None, 1 for Raw7Bit, 2 for Raw8Bit, 3 for QuotedPrintable, 4 for Base64 (Default), 5 for Uue  note that you can also provide the text version such as "Raw7Bit" for value 1.  NOTE: Base64 or QuotedPrintable is recommended if you are validating your domain(s) with DKIM.
+        /// </summary>
+        public ApiTypes.EncodingType EncodingType { get { return encodingType; } set { encodingType = value; } }
+    }
+
+    /// <summary>
+    /// Wrapper defining recipient or sender.
+    /// </summary>
+    public class Email
+    {
+        /// <summary>
+        /// Constructor.
+        /// </summary>
+        /// <param name="address">E-mail address of recipient or sender.</param>
+        /// <param name="name">Name of recipient or sender.</param>
+        public Email(string address, string name = null)
+        {
+            Address = address;
+            Name = name;
+        }
+        /// <summary>
+        /// E-mail address of recipient or sender.
+        /// </summary>
+        public string Address { get; set; }
+        /// <summary>
+        /// Name of recipient or sender.
+        /// </summary>
+        public string Name { get; set; }
+    }
+
+    #endregion EasyMail - Sending Mails Wrapper 
 
     public static class Api
     {
