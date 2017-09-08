@@ -1,4 +1,4 @@
-/*
+﻿/*
 The MIT License (MIT)
 
 Copyright (c) 2016-2017 Elastic Email, Inc.
@@ -21,7 +21,7 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
-
+ 
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -50,415 +50,7 @@ namespace ElasticEmail.WebApiClient
     public class VoidApiResponse
     {
     }
-   #region MIME HELPER
-    internal class MimeMapping
-    {
-        private static Dictionary<string, string> mimeMappings = null;
-        private static object locker = new object();
-        private static readonly char[] _pathSeparatorChars = new char[] { Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar, Path.VolumeSeparatorChar }; // from Path.GetFileName()
 
-        public static string GetMimeMapping(string fileName)
-        {
-            if (fileName == null)
-            {
-                throw new ArgumentNullException("fileName");
-            }
-            EnsureMapping();
-        fileName = GetFileName(fileName); // strip off path separators
-
-            // some MIME types have complex extensions (like ".exe.config"), so we need to work left-to-right
-            for (int i = 0; i<fileName.Length; i++)
-            {
-                if (fileName[i] == '.')
-                {
-                    // potential extension - consult dictionary
-                    string mimeType;
-                    if (mimeMappings.TryGetValue(fileName.Substring(i), out mimeType))
-                    {
-                        // found!
-                        return mimeType;
-                    }
-}
-            }
-
-            // If we reached this point, either we couldn't find an extension, or the extension we found
-            // wasn't recognized. In either case, the ".*" mapping is guaranteed to exist as a fallback.
-            return mimeMappings[".*"];
-        }
-        private static string GetFileName(string path)
-{
-    int pathSeparatorIndex = path.LastIndexOfAny(_pathSeparatorChars);
-    return (pathSeparatorIndex >= 0) ? path.Substring(pathSeparatorIndex) : path;
-}
-private static void EnsureMapping()
-{
-    // Ensure initialized only once
-    if (mimeMappings == null)
-    {
-        lock (locker)
-        {
-            if (mimeMappings == null)
-            {
-                PopulateMappings();
-            }
-        }
-    }
-}
-private static void PopulateMappings()
-{
-    mimeMappings = new Dictionary<string, string>()
-            {
-            { ".*", "application/octet-stream" },
-            {".323", "text/h323"},
-            {".aaf", "application/octet-stream"},
-            {".aca", "application/octet-stream"},
-            {".accdb", "application/msaccess"},
-            {".accde", "application/msaccess"},
-            {".accdt", "application/msaccess"},
-            {".acx", "application/internet-property-stream"},
-            {".afm", "application/octet-stream"},
-            {".ai", "application/postscript"},
-            {".aif", "audio/x-aiff"},
-            {".aifc", "audio/aiff"},
-            {".aiff", "audio/aiff"},
-            {".application", "application/x-ms-application"},
-            {".art", "image/x-jg"},
-            {".asd", "application/octet-stream"},
-            {".asf", "video/x-ms-asf"},
-            {".asi", "application/octet-stream"},
-            {".asm", "text/plain"},
-            {".asr", "video/x-ms-asf"},
-            {".asx", "video/x-ms-asf"},
-            {".atom", "application/atom+xml"},
-            {".au", "audio/basic"},
-            {".avi", "video/x-msvideo"},
-            {".axs", "application/olescript"},
-            {".bas", "text/plain"},
-            {".bcpio", "application/x-bcpio"},
-            {".bin", "application/octet-stream"},
-            {".bmp", "image/bmp"},
-            {".c", "text/plain"},
-            {".cab", "application/octet-stream"},
-            {".calx", "application/vnd.ms-office.calx"},
-            {".cat", "application/vnd.ms-pki.seccat"},
-            {".cdf", "application/x-cdf"},
-            {".chm", "application/octet-stream"},
-            {".class", "application/x-java-applet"},
-            {".clp", "application/x-msclip"},
-            {".cmx", "image/x-cmx"},
-            {".cnf", "text/plain"},
-            {".cod", "image/cis-cod"},
-            {".cpio", "application/x-cpio"},
-            {".cpp", "text/plain"},
-            {".crd", "application/x-mscardfile"},
-            {".crl", "application/pkix-crl"},
-            {".crt", "application/x-x509-ca-cert"},
-            {".csh", "application/x-csh"},
-            {".css", "text/css"},
-            {".csv", "application/octet-stream"},
-            {".cur", "application/octet-stream"},
-            {".dcr", "application/x-director"},
-            {".deploy", "application/octet-stream"},
-            {".der", "application/x-x509-ca-cert"},
-            {".dib", "image/bmp"},
-            {".dir", "application/x-director"},
-            {".disco", "text/xml"},
-            {".dll", "application/x-msdownload"},
-            {".dll.config", "text/xml"},
-            {".dlm", "text/dlm"},
-            {".doc", "application/msword"},
-            {".docm", "application/vnd.ms-word.document.macroEnabled.12"},
-            {".docx", "application/vnd.openxmlformats-officedocument.wordprocessingml.document"},
-            {".dot", "application/msword"},
-            {".dotm", "application/vnd.ms-word.template.macroEnabled.12"},
-            {".dotx", "application/vnd.openxmlformats-officedocument.wordprocessingml.template"},
-            {".dsp", "application/octet-stream"},
-            {".dtd", "text/xml"},
-            {".dvi", "application/x-dvi"},
-            {".dwf", "drawing/x-dwf"},
-            {".dwp", "application/octet-stream"},
-            {".dxr", "application/x-director"},
-            {".eml", "message/rfc822"},
-            {".emz", "application/octet-stream"},
-            {".eot", "application/octet-stream"},
-            {".eps", "application/postscript"},
-            {".etx", "text/x-setext"},
-            {".evy", "application/envoy"},
-            {".exe", "application/octet-stream"},
-            {".exe.config", "text/xml"},
-            {".fdf", "application/vnd.fdf"},
-            {".fif", "application/fractals"},
-            {".fla", "application/octet-stream"},
-            {".flr", "x-world/x-vrml"},
-            {".flv", "video/x-flv"},
-            {".gif", "image/gif"},
-            {".gtar", "application/x-gtar"},
-            {".gz", "application/x-gzip"},
-            {".h", "text/plain"},
-            {".hdf", "application/x-hdf"},
-            {".hdml", "text/x-hdml"},
-            {".hhc", "application/x-oleobject"},
-            {".hhk", "application/octet-stream"},
-            {".hhp", "application/octet-stream"},
-            {".hlp", "application/winhlp"},
-            {".hqx", "application/mac-binhex40"},
-            {".hta", "application/hta"},
-            {".htc", "text/x-component"},
-            {".htm", "text/html"},
-            {".html", "text/html"},
-            {".htt", "text/webviewhtml"},
-            {".hxt", "text/html"},
-            {".ico", "image/x-icon"},
-            {".ics", "application/octet-stream"},
-            {".ief", "image/ief"},
-            {".iii", "application/x-iphone"},
-            {".inf", "application/octet-stream"},
-            {".ins", "application/x-internet-signup"},
-            {".isp", "application/x-internet-signup"},
-            {".IVF", "video/x-ivf"},
-            {".jar", "application/java-archive"},
-            {".java", "application/octet-stream"},
-            {".jck", "application/liquidmotion"},
-            {".jcz", "application/liquidmotion"},
-            {".jfif", "image/pjpeg"},
-            {".jpb", "application/octet-stream"},
-            {".jpe", "image/jpeg"},
-            {".jpeg", "image/jpeg"},
-            {".jpg", "image/jpeg"},
-            {".js", "application/x-javascript"},
-            {".jsx", "text/jscript"},
-            {".latex", "application/x-latex"},
-            {".lit", "application/x-ms-reader"},
-            {".lpk", "application/octet-stream"},
-            {".lsf", "video/x-la-asf"},
-            {".lsx", "video/x-la-asf"},
-            {".lzh", "application/octet-stream"},
-            {".m13", "application/x-msmediaview"},
-            {".m14", "application/x-msmediaview"},
-            {".m1v", "video/mpeg"},
-            {".m3u", "audio/x-mpegurl"},
-            {".man", "application/x-troff-man"},
-            {".manifest", "application/x-ms-manifest"},
-            {".map", "text/plain"},
-            {".mdb", "application/x-msaccess"},
-            {".mdp", "application/octet-stream"},
-            {".me", "application/x-troff-me"},
-            {".mht", "message/rfc822"},
-            {".mhtml", "message/rfc822"},
-            {".mid", "audio/mid"},
-            {".midi", "audio/mid"},
-            {".mix", "application/octet-stream"},
-            {".mmf", "application/x-smaf"},
-            {".mno", "text/xml"},
-            {".mny", "application/x-msmoney"},
-            {".mov", "video/quicktime"},
-            {".movie", "video/x-sgi-movie"},
-            {".mp2", "video/mpeg"},
-            {".mp3", "audio/mpeg"},
-            {".mpa", "video/mpeg"},
-            {".mpe", "video/mpeg"},
-            {".mpeg", "video/mpeg"},
-            {".mpg", "video/mpeg"},
-            {".mpp", "application/vnd.ms-project"},
-            {".mpv2", "video/mpeg"},
-            {".ms", "application/x-troff-ms"},
-            {".msi", "application/octet-stream"},
-            {".mso", "application/octet-stream"},
-            {".mvb", "application/x-msmediaview"},
-            {".mvc", "application/x-miva-compiled"},
-            {".nc", "application/x-netcdf"},
-            {".nsc", "video/x-ms-asf"},
-            {".nws", "message/rfc822"},
-            {".ocx", "application/octet-stream"},
-            {".oda", "application/oda"},
-            {".odc", "text/x-ms-odc"},
-            {".ods", "application/oleobject"},
-            {".one", "application/onenote"},
-            {".onea", "application/onenote"},
-            {".onetoc", "application/onenote"},
-            {".onetoc2", "application/onenote"},
-            {".onetmp", "application/onenote"},
-            {".onepkg", "application/onenote"},
-            {".osdx", "application/opensearchdescription+xml"},
-            {".p10", "application/pkcs10"},
-            {".p12", "application/x-pkcs12"},
-            {".p7b", "application/x-pkcs7-certificates"},
-            {".p7c", "application/pkcs7-mime"},
-            {".p7m", "application/pkcs7-mime"},
-            {".p7r", "application/x-pkcs7-certreqresp"},
-            {".p7s", "application/pkcs7-signature"},
-            {".pbm", "image/x-portable-bitmap"},
-            {".pcx", "application/octet-stream"},
-            {".pcz", "application/octet-stream"},
-            {".pdf", "application/pdf"},
-            {".pfb", "application/octet-stream"},
-            {".pfm", "application/octet-stream"},
-            {".pfx", "application/x-pkcs12"},
-            {".pgm", "image/x-portable-graymap"},
-            {".pko", "application/vnd.ms-pki.pko"},
-            {".pma", "application/x-perfmon"},
-            {".pmc", "application/x-perfmon"},
-            {".pml", "application/x-perfmon"},
-            {".pmr", "application/x-perfmon"},
-            {".pmw", "application/x-perfmon"},
-            {".png", "image/png"},
-            {".pnm", "image/x-portable-anymap"},
-            {".pnz", "image/png"},
-            {".pot", "application/vnd.ms-powerpoint"},
-            {".potm", "application/vnd.ms-powerpoint.template.macroEnabled.12"},
-            {".potx", "application/vnd.openxmlformats-officedocument.presentationml.template"},
-            {".ppam", "application/vnd.ms-powerpoint.addin.macroEnabled.12"},
-            {".ppm", "image/x-portable-pixmap"},
-            {".pps", "application/vnd.ms-powerpoint"},
-            {".ppsm", "application/vnd.ms-powerpoint.slideshow.macroEnabled.12"},
-            {".ppsx", "application/vnd.openxmlformats-officedocument.presentationml.slideshow"},
-            {".ppt", "application/vnd.ms-powerpoint"},
-            {".pptm", "application/vnd.ms-powerpoint.presentation.macroEnabled.12"},
-            {".pptx", "application/vnd.openxmlformats-officedocument.presentationml.presentation"},
-            {".prf", "application/pics-rules"},
-            {".prm", "application/octet-stream"},
-            {".prx", "application/octet-stream"},
-            {".ps", "application/postscript"},
-            {".psd", "application/octet-stream"},
-            {".psm", "application/octet-stream"},
-            {".psp", "application/octet-stream"},
-            {".pub", "application/x-mspublisher"},
-            {".qt", "video/quicktime"},
-            {".qtl", "application/x-quicktimeplayer"},
-            {".qxd", "application/octet-stream"},
-            {".ra", "audio/x-pn-realaudio"},
-            {".ram", "audio/x-pn-realaudio"},
-            {".rar", "application/octet-stream"},
-            {".ras", "image/x-cmu-raster"},
-            {".rf", "image/vnd.rn-realflash"},
-            {".rgb", "image/x-rgb"},
-            {".rm", "application/vnd.rn-realmedia"},
-            {".rmi", "audio/mid"},
-            {".roff", "application/x-troff"},
-            {".rpm", "audio/x-pn-realaudio-plugin"},
-            {".rtf", "application/rtf"},
-            {".rtx", "text/richtext"},
-            {".scd", "application/x-msschedule"},
-            {".sct", "text/scriptlet"},
-            {".sea", "application/octet-stream"},
-            {".setpay", "application/set-payment-initiation"},
-            {".setreg", "application/set-registration-initiation"},
-            {".sgml", "text/sgml"},
-            {".sh", "application/x-sh"},
-            {".shar", "application/x-shar"},
-            {".sit", "application/x-stuffit"},
-            {".sldm", "application/vnd.ms-powerpoint.slide.macroEnabled.12"},
-            {".sldx", "application/vnd.openxmlformats-officedocument.presentationml.slide"},
-            {".smd", "audio/x-smd"},
-            {".smi", "application/octet-stream"},
-            {".smx", "audio/x-smd"},
-            {".smz", "audio/x-smd"},
-            {".snd", "audio/basic"},
-            {".snp", "application/octet-stream"},
-            {".spc", "application/x-pkcs7-certificates"},
-            {".spl", "application/futuresplash"},
-            {".src", "application/x-wais-source"},
-            {".ssm", "application/streamingmedia"},
-            {".sst", "application/vnd.ms-pki.certstore"},
-            {".stl", "application/vnd.ms-pki.stl"},
-            {".sv4cpio", "application/x-sv4cpio"},
-            {".sv4crc", "application/x-sv4crc"},
-            {".swf", "application/x-shockwave-flash"},
-            {".t", "application/x-troff"},
-            {".tar", "application/x-tar"},
-            {".tcl", "application/x-tcl"},
-            {".tex", "application/x-tex"},
-            {".texi", "application/x-texinfo"},
-            {".texinfo", "application/x-texinfo"},
-            {".tgz", "application/x-compressed"},
-            {".thmx", "application/vnd.ms-officetheme"},
-            {".thn", "application/octet-stream"},
-            {".tif", "image/tiff"},
-            {".tiff", "image/tiff"},
-            {".toc", "application/octet-stream"},
-            {".tr", "application/x-troff"},
-            {".trm", "application/x-msterminal"},
-            {".tsv", "text/tab-separated-values"},
-            {".ttf", "application/octet-stream"},
-            {".txt", "text/plain"},
-            {".u32", "application/octet-stream"},
-            {".uls", "text/iuls"},
-            {".ustar", "application/x-ustar"},
-            {".vbs", "text/vbscript"},
-            {".vcf", "text/x-vcard"},
-            {".vcs", "text/plain"},
-            {".vdx", "application/vnd.ms-visio.viewer"},
-            {".vml", "text/xml"},
-            {".vsd", "application/vnd.visio"},
-            {".vss", "application/vnd.visio"},
-            {".vst", "application/vnd.visio"},
-            {".vsto", "application/x-ms-vsto"},
-            {".vsw", "application/vnd.visio"},
-            {".vsx", "application/vnd.visio"},
-            {".vtx", "application/vnd.visio"},
-            {".wav", "audio/wav"},
-            {".wax", "audio/x-ms-wax"},
-            {".wbmp", "image/vnd.wap.wbmp"},
-            {".wcm", "application/vnd.ms-works"},
-            {".wdb", "application/vnd.ms-works"},
-            {".wks", "application/vnd.ms-works"},
-            {".wm", "video/x-ms-wm"},
-            {".wma", "audio/x-ms-wma"},
-            {".wmd", "application/x-ms-wmd"},
-            {".wmf", "application/x-msmetafile"},
-            {".wml", "text/vnd.wap.wml"},
-            {".wmlc", "application/vnd.wap.wmlc"},
-            {".wmls", "text/vnd.wap.wmlscript"},
-            {".wmlsc", "application/vnd.wap.wmlscriptc"},
-            {".wmp", "video/x-ms-wmp"},
-            {".wmv", "video/x-ms-wmv"},
-            {".wmx", "video/x-ms-wmx"},
-            {".wmz", "application/x-ms-wmz"},
-            {".wps", "application/vnd.ms-works"},
-            {".wri", "application/x-mswrite"},
-            {".wrl", "x-world/x-vrml"},
-            {".wrz", "x-world/x-vrml"},
-            {".wsdl", "text/xml"},
-            {".wvx", "video/x-ms-wvx"},
-            {".x", "application/directx"},
-            {".xaf", "x-world/x-vrml"},
-            {".xaml", "application/xaml+xml"},
-            {".xap", "application/x-silverlight-app"},
-            {".xbap", "application/x-ms-xbap"},
-            {".xbm", "image/x-xbitmap"},
-            {".xdr", "text/plain"},
-            {".xla", "application/vnd.ms-excel"},
-            {".xlam", "application/vnd.ms-excel.addin.macroEnabled.12"},
-            {".xlc", "application/vnd.ms-excel"},
-            {".xlm", "application/vnd.ms-excel"},
-            {".xls", "application/vnd.ms-excel"},
-            {".xlsb", "application/vnd.ms-excel.sheet.binary.macroEnabled.12"},
-            {".xlsm", "application/vnd.ms-excel.sheet.macroEnabled.12"},
-            {".xlsx", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"},
-            {".xlt", "application/vnd.ms-excel"},
-            {".xltm", "application/vnd.ms-excel.template.macroEnabled.12"},
-            {".xltx", "application/vnd.openxmlformats-officedocument.spreadsheetml.template"},
-            {".xlw", "application/vnd.ms-excel"},
-            {".xml", "text/xml"},
-            {".xof", "x-world/x-vrml"},
-            {".xpm", "image/x-xpixmap"},
-            {".xps", "application/vnd.ms-xpsdocument"},
-            {".xsd", "text/xml"},
-            {".xsf", "text/xml"},
-            {".xsl", "text/xml"},
-            {".xslt", "text/xml"},
-            {".xsn", "application/octet-stream"},
-            {".xtp", "application/octet-stream"},
-            {".xwd", "image/x-xwindowdump"},
-            {".z", "application/x-compress"},
-            {".zip", "application/x-zip-compressed"},
-        };
-    }
-}
-    #endregion MIME HELPER
-
-    
-    
     public static class ApiUtilities
     {
         public static async Task<ApiResponse<T>> PostAsync<T>(string requestAddress, Dictionary<string, string> values)
@@ -480,7 +72,7 @@ private static void PopulateMappings()
                 }
             }
         }
-  
+
         public static async Task<byte[]> HttpPostFileAsync(string url, List<ApiTypes.FileData> fileData, Dictionary<string, string> parameters)
         {
             try
@@ -517,7 +109,6 @@ private static void PopulateMappings()
                         rs.Write(file.Content, 0, file.Content.Length);
                     }
                 }
-
                 byte[] trailer = Encoding.ASCII.GetBytes("\r\n--" + boundary + "--\r\n");
                 rs.Write(trailer, 0, trailer.Length);
 
@@ -526,7 +117,7 @@ private static void PopulateMappings()
                 {
                     MemoryStream response = new MemoryStream();
                     wresp.GetResponseStream().CopyTo(response);
-                            return response.ToArray();
+                    return response.ToArray();
                 }
             }
             catch (WebException webError)
@@ -591,7 +182,7 @@ private static void PopulateMappings()
                 HttpWebRequest wr = (HttpWebRequest)WebRequest.Create(url);
                 wr.ContentType = fileData.ContentType ?? "application/octet-stream";
                 wr.Method = "PUT";
-                
+
                 wr.Credentials = CredentialCache.DefaultCredentials;
                 wr.Headers[HttpRequestHeader.AcceptEncoding] = "gzip, deflate";
                 wr.Headers["Content-Disposition"] = "attachment; filename=\"" + fileData.FileName + "\"; size=" + fileData.Content.Length;
@@ -687,8 +278,325 @@ private static void PopulateMappings()
             return apiRet;
         }
     }
-
     #endregion
+
+    #region EasyMail - Sending Mails Wrapper 
+    /// <summary>
+    /// Send email wrapper simplifies using our Web API.
+    /// </summary>
+    public class EasyMail
+    {
+        /// <summary>
+        /// Constructor
+        /// </summary>
+        /// <param name="apiKey">API KEY. You have to register in our service to get it (https://elasticemail.com/account/).</param>
+        public EasyMail(string apiKey)
+        {
+            Api.ApiKey = apiKey;
+        }
+
+        /// <summary>
+        /// Send transactional mail(s).
+        /// </summary>
+        /// <param name="transactionalRecipient">Recipient.</param>
+        /// <param name="message">Message.</param>
+        /// <param name="encoding">Encoding.</param>
+        /// <param name="customHeader">Custom headers.</param>
+        /// <param name="mergeData">Request parameters prefixed by merge_ like merge_firstname, merge_lastname. If sending to a template you can send merge_ fields to merge data with the template. Template fields are entered with {firstname}, {lastname} etc.</param>
+        /// <returns></returns>
+        public async Task<ApiTypes.EmailSend> SendTransactionalMailAsync(TransactionalRecipient transactionalRecipient, Message message, MessageEncoding encoding = null, CustomHeaderInfo customHeader = null, Dictionary<string, string> mergeData = null)
+        {
+            if (transactionalRecipient == null)
+            {
+                throw new Exception("TransactionalRecipient cannot be null.");
+            }
+            if (message == null)
+            {
+                throw new Exception("Message cannot be null.");
+            }
+            StringBuilder sb = new StringBuilder();
+
+            string[] msgTo = new string[transactionalRecipient.To.Count];
+            for (int i = 0; i < transactionalRecipient.To.Count; i++)
+            {
+                sb.Clear();
+                if (!string.IsNullOrWhiteSpace(transactionalRecipient.To[i].Name))
+                {
+                    sb.Append(@"""").Append(transactionalRecipient.To[i].Name).Append(@"""");
+                }
+                sb.Append(" <").Append(transactionalRecipient.To[i].Address).Append(">");
+                msgTo[i] = sb.ToString();
+            }
+            string[] msgCC = null;
+            if (transactionalRecipient.CC != null)
+            {
+                msgCC = new string[transactionalRecipient.CC.Count];
+                for (int i = 0; i < transactionalRecipient.CC.Count; i++)
+                {
+                    sb.Clear();
+                    if (!string.IsNullOrWhiteSpace(transactionalRecipient.CC[i].Name))
+                    {
+                        sb.Append(@"""").Append(transactionalRecipient.CC[i].Name).Append(@"""");
+                    }
+                    sb.Append(" <").Append(transactionalRecipient.CC[i].Address).Append(">");
+                    msgCC[i] = sb.ToString();
+                }
+            }
+            string[] msgBcc = null;
+            if (transactionalRecipient.Bcc != null)
+            {
+                msgBcc = new string[transactionalRecipient.Bcc.Count];
+                for (int i = 0; i < transactionalRecipient.Bcc.Count; i++)
+                {
+                    sb.Clear();
+                    if (!string.IsNullOrWhiteSpace(transactionalRecipient.Bcc[i].Name))
+                    {
+                        sb.Append(@"""").Append(transactionalRecipient.Bcc[i].Name).Append(@"""");
+                    }
+                    sb.Append(" <").Append(transactionalRecipient.Bcc[i].Address).Append(">");
+                    msgBcc[i] = sb.ToString();
+                }
+            }
+            if (encoding == null)
+            {
+                encoding = new MessageEncoding();
+            }
+            if (customHeader == null)
+            {
+                customHeader = new CustomHeaderInfo();
+            }
+            bool isTransactional = true;
+            return await Api.Email.SendAsync(message.Subject, message.From.Address, message.From.Name, message.Sender.Address, message.Sender.Name, message.FromMimeHeader.Address, message.FromMimeHeader.Name,
+                message.ReplyTo.Address, message.ReplyTo.Name, null, msgTo, msgCC, msgBcc, null, null, null, message.AdvancedOptions.Channel, message.BodyHtml, message.BodyText, encoding.CharsetGlobal, encoding.CharsetBodyHtml,
+                encoding.CharsetBodyText, encoding.EncodingType, message.TemplateName, message.Attachments, customHeader.Headers, customHeader.PostBack, mergeData, message.AdvancedOptions.TimeOffSetMinutes,
+                message.AdvancedOptions.PoolName, isTransactional);
+        }
+
+        /// <summary>
+        /// Send bulk, marketing, commercial mail(s).
+        /// </summary>
+        /// <param name="mergeRecipient">Recipient.</param>
+        /// <param name="message">Message.</param>
+        /// <param name="encoding">Encoding.</param>
+        /// <param name="customHeader">Custom headers.</param>
+        /// <param name="mergeDataFileName">Merge file name pointing to file in Message.Attachments which is a CSV list of Recipients.</param>
+        /// <returns></returns>
+        public async Task<ApiTypes.EmailSend> SendMergeMailAsync(MergeRecipient mergeRecipient, Message message, MessageEncoding encoding = null, CustomHeaderInfo customHeader = null, string mergeDataFileName = null)
+        {
+            if (mergeRecipient == null)
+            {
+                throw new Exception("MergeRecipient cannot be null.");
+            }
+            if (message == null)
+            {
+                throw new Exception("Message cannot be null.");
+            }
+            StringBuilder sb = new StringBuilder();
+
+            string[] to = new string[mergeRecipient.To.Count];
+            for (int i = 0; i < mergeRecipient.To.Count; i++)
+            {
+                sb.Clear();
+                if (!string.IsNullOrWhiteSpace(mergeRecipient.To[i].Name))
+                {
+                    sb.Append(@"").Append(mergeRecipient.To[i].Name).Append(@"");
+                }
+                sb.Append(" <").Append(mergeRecipient.To[i].Address).Append(">");
+                to[i] = sb.ToString();
+            }
+
+            if (encoding == null)
+            {
+                encoding = new MessageEncoding();
+            }
+            if (customHeader == null)
+            {
+                customHeader = new CustomHeaderInfo();
+            }
+            bool isTransactional = false;
+            return await Api.Email.SendAsync(message.Subject, message.From.Address, message.From.Name, message.Sender.Address, message.Sender.Name, message.FromMimeHeader.Address, message.FromMimeHeader.Name,
+                message.ReplyTo.Address, message.ReplyTo.Name, to, null, null, null, mergeRecipient.ContactsFromLists, mergeRecipient.ContactsFromSegments, mergeDataFileName, message.AdvancedOptions.Channel, message.BodyHtml, message.BodyText, encoding.CharsetGlobal, encoding.CharsetBodyHtml,
+                encoding.CharsetBodyText, encoding.EncodingType, message.TemplateName, message.Attachments, customHeader.Headers, customHeader.PostBack, null, message.AdvancedOptions.TimeOffSetMinutes,
+                message.AdvancedOptions.PoolName, isTransactional);
+        }
+    }
+
+    /// <summary>
+    /// Merge recipient container.
+    /// </summary>
+    public class MergeRecipient
+    {
+        /// <summary>
+        /// List of email recipients (visible to all other recipients of the message as TO MIME header).
+        /// </summary>
+        public List<Email> To { get; set; }
+        /// <summary>
+        /// List of email recipients (visible to all other recipients of the message as CC MIME header).
+        /// </summary>
+        public List<string> ContactsFromLists { get; set; }
+        /// <summary>
+        /// List of email recipients (each email is treated seperately).
+        /// </summary>
+        public List<string> ContactsFromSegments { get; set; }
+    }
+
+    /// <summary>
+    /// Transactional recipient container.
+    /// </summary>
+    public class TransactionalRecipient
+    {
+        /// <summary>
+        /// List of email recipients (visible to all other recipients of the message as TO MIME header). 
+        /// </summary>
+        public List<Email> To { get; set; }
+        /// <summary>
+        /// List of email recipients (visible to all other recipients of the message as CC MIME header).
+        /// </summary>
+        public List<Email> CC { get; set; }
+        /// <summary>
+        /// List of email recipients (each email is treated seperately).
+        /// </summary>
+        public List<Email> Bcc { get; set; }//msgBcc
+    }
+
+    /// <summary>
+    /// Message container. Contains common message details for merge and transactional mailing.
+    /// </summary>
+    public class Message
+    {
+        /// <summary>
+        /// From email address and name.
+        /// </summary>
+        public Email From { get; set; }
+        /// <summary>
+        /// Optional parameter. Sets FROM MIME header.
+        /// </summary>
+        public Email FromMimeHeader { get; set; }
+        /// <summary>
+        /// Email address and name of the sender.
+        /// </summary>
+        public Email Sender { get; set; }
+        /// <summary>
+        /// Email address and name to reply to.
+        /// </summary>
+        public Email ReplyTo { get; set; }
+        /// <summary>
+        /// Email subject.
+        /// </summary>
+        public string Subject { get; set; }
+        /// <summary>
+        /// Attachment files. These files should be provided with the POST multipart file upload, not directly in the request's URL. Should also include merge CSV file.
+        /// </summary>
+        public List<ApiTypes.FileData> Attachments { get; set; }
+        /// <summary>
+        /// The name of an email template you have created in your account.
+        /// </summary>
+        public string TemplateName { get; set; }
+        /// <summary>
+        /// Sets charset for body html MIME part (overrides default value from charset parameter).
+        /// </summary>
+        public string BodyHtml { get; set; }
+        /// <summary>
+        /// Sets charset for body text MIME part (overrides default value from charset parameter).
+        /// </summary>
+        public string BodyText { get; set; }
+        /// <summary>
+        /// Advanced options of message.
+        /// </summary>
+        public AdvancedOptions AdvancedOptions { get; set; }
+        /// <summary>
+        /// Indicates when mail should be sent. If null, mail will be sent as soon as possible.
+        /// </summary>
+        public DateTime? StartSend { get; set; }
+        /// <summary>
+        /// Constructor
+        /// </summary>
+        public Message()
+        {
+            AdvancedOptions = new AdvancedOptions();
+        }
+    }
+
+    /// <summary>
+    /// Advanced options of message.
+    /// </summary>
+    public class AdvancedOptions
+    {
+        /// <summary>
+        /// An ID field (max 191 chars) that can be used for reporting [will default to HTTP API or SMTP API]
+        /// </summary>
+        public string Channel { get; set; }        
+        /// <summary>
+        /// Name of your custom IP Pool to be used in the sending process
+        /// </summary>
+        public string PoolName { get; set; }
+    }
+
+    /// <summary>
+    /// Container for message custom headers.
+    /// </summary>
+    public class CustomHeaderInfo
+    {
+        /// <summary>
+        /// Optional Custom Headers. Request parameters prefixed by headers_ like headers_customheader1, headers_customheader2. Note: a space is required after the colon before the custom header value. headers_xmailer=xmailer: header-value1
+        /// </summary>
+        public Dictionary<string, string> Headers { get; set; }
+        /// <summary>
+        /// Optional header returned in notifications.
+        /// </summary>
+        public string PostBack { get; set; }
+    }
+
+    /// <summary>
+    /// Message encoding properties.
+    /// </summary>
+    public class MessageEncoding
+    {
+        private ApiTypes.EncodingType encodingType = ApiTypes.EncodingType.None;
+        /// <summary>
+        /// Text value of charset encoding for example: iso-8859-1, windows-1251, utf-8, us-ascii, windows-1250 and more…
+        /// </summary>
+        public string CharsetGlobal { get; set; }
+        /// <summary>
+        /// Sets charset for body html MIME part (overrides default value from CharsetGlobal property)
+        /// </summary>
+        public string CharsetBodyHtml { get; set; }
+        /// <summary>
+        /// Sets charset for body text MIME part (overrides default value from CharsetGlobal property)
+        /// </summary>
+        public string CharsetBodyText { get; set; }
+        /// <summary>
+        /// 0 for None, 1 for Raw7Bit, 2 for Raw8Bit, 3 for QuotedPrintable, 4 for Base64 (Default), 5 for Uue  note that you can also provide the text version such as "Raw7Bit" for value 1.  NOTE: Base64 or QuotedPrintable is recommended if you are validating your domain(s) with DKIM.
+        /// </summary>
+        public ApiTypes.EncodingType EncodingType { get { return encodingType; } set { encodingType = value; } }
+    }
+
+    /// <summary>
+    /// Wrapper defining recipient or sender.
+    /// </summary>
+    public class Email
+    {
+        /// <summary>
+        /// Constructor.
+        /// </summary>
+        /// <param name="address">E-mail address of recipient or sender.</param>
+        /// <param name="name">Name of recipient or sender.</param>
+        public Email(string address, string name = null)
+        {
+            Address = address;
+            Name = name;
+        }
+        /// <summary>
+        /// E-mail address of recipient or sender.
+        /// </summary>
+        public string Address { get; set; }
+        /// <summary>
+        /// Name of recipient or sender.
+        /// </summary>
+        public string Name { get; set; }
+    }
+
+    #endregion EasyMail - Sending Mails Wrapper 
 
     public static class Api
     {
@@ -719,10 +627,8 @@ private static void PopulateMappings()
             /// <param name="sendingPermission">Sending permission setting for account</param>
             /// <param name="enableContactFeatures">True, if you want to use Advanced Tools.  Otherwise, false</param>
             /// <param name="poolName">Private IP required. Name of the custom IP Pool which Sub Account should use to send its emails. Leave empty for the default one or if no Private IPs have been bought</param>
-            /// <param name="emailSizeLimit">Maximum size of email including attachments in MB's</param>
-            /// <param name="dailySendLimit">Amount of emails account can send daily</param>
             /// <returns>string</returns>
-            public static async Task<string> AddSubAccountAsync(string email, string password, string confirmPassword, bool requiresEmailCredits = false, bool enableLitmusTest = false, bool requiresLitmusCredits = false, int maxContacts = 0, bool enablePrivateIPRequest = true, bool sendActivation = false, string returnUrl = null, ApiTypes.SendingPermission? sendingPermission = null, bool? enableContactFeatures = null, string poolName = null, int emailSizeLimit = 10, int? dailySendLimit = null)
+            public static async Task<string> AddSubAccountAsync(string email, string password, string confirmPassword, bool requiresEmailCredits = false, bool enableLitmusTest = false, bool requiresLitmusCredits = false, int maxContacts = 0, bool enablePrivateIPRequest = true, bool sendActivation = false, string returnUrl = null, ApiTypes.SendingPermission? sendingPermission = null, bool? enableContactFeatures = null, string poolName = null)
             {
                 Dictionary<string, string> values = new Dictionary<string, string>();
                 values.Add("apikey", Api.ApiKey);
@@ -739,8 +645,6 @@ private static void PopulateMappings()
                 if (sendingPermission != null) values.Add("sendingPermission", Newtonsoft.Json.JsonConvert.SerializeObject(sendingPermission));
                 if (enableContactFeatures != null) values.Add("enableContactFeatures", enableContactFeatures.ToString());
                 if (poolName != null) values.Add("poolName", poolName);
-                if (emailSizeLimit != 10) values.Add("emailSizeLimit", emailSizeLimit.ToString());
-                if (dailySendLimit != null) values.Add("dailySendLimit", dailySendLimit.ToString());
                 ApiResponse<string> apiResponse = await ApiUtilities.PostAsync<string>("/account/addsubaccount", values);
                 return apiResponse.Data;
             }
@@ -770,19 +674,17 @@ private static void PopulateMappings()
             /// Change your email address. Remember, that your email address is used as login!
             /// </summary>
             /// <param name="apikey">ApiKey that gives you access to our SMTP and HTTP API's.</param>
+            /// <param name="sourceUrl">URL from which request was sent.</param>
             /// <param name="newEmail">New email address.</param>
             /// <param name="confirmEmail">New email address.</param>
-            /// <param name="sourceUrl">URL from which request was sent.</param>
-            /// <returns>string</returns>
-            public static async Task<string> ChangeEmailAsync(string newEmail, string confirmEmail, string sourceUrl = "https://elasticemail.com/account/")
+            public static async Task ChangeEmailAsync(string sourceUrl, string newEmail, string confirmEmail)
             {
                 Dictionary<string, string> values = new Dictionary<string, string>();
                 values.Add("apikey", Api.ApiKey);
+                values.Add("sourceUrl", sourceUrl);
                 values.Add("newEmail", newEmail);
                 values.Add("confirmEmail", confirmEmail);
-                if (sourceUrl != "https://elasticemail.com/account/") values.Add("sourceUrl", sourceUrl);
-                ApiResponse<string> apiResponse = await ApiUtilities.PostAsync<string>("/account/changeemail", values);
-                return apiResponse.Data;
+                ApiResponse<VoidApiResponse> apiResponse = await ApiUtilities.PostAsync<VoidApiResponse>("/account/changeemail", values);
             }
 
             /// <summary>
@@ -1174,7 +1076,6 @@ private static void PopulateMappings()
             /// <param name="emailNotificationForError">True, if you want bounce notifications returned. Otherwise, false</param>
             /// <param name="emailNotificationEmail">Specific email address to send bounce email notifications to.</param>
             /// <param name="webNotificationUrl">URL address to receive web notifications to parse and process.</param>
-            /// <param name="webNotificationNotifyOncePerEmail">True, if you want to receive notifications for each type only once per email. Otherwise, false</param>
             /// <param name="webNotificationForSent">True, if you want to send web notifications for sent email. Otherwise, false</param>
             /// <param name="webNotificationForOpened">True, if you want to send web notifications for opened email. Otherwise, false</param>
             /// <param name="webNotificationForClicked">True, if you want to send web notifications for clicked email. Otherwise, false</param>
@@ -1193,10 +1094,8 @@ private static void PopulateMappings()
             /// <param name="enableTemplateScripting">True, if you want to use template scripting in your emails {{}}. Otherwise, false</param>
             /// <param name="staleContactScore">(0 means this functionality is NOT enabled) Score, depending on the number of times you have sent to a recipient, at which the given recipient should be moved to the Stale status</param>
             /// <param name="staleContactInactiveDays">(0 means this functionality is NOT enabled) Number of days of inactivity for a contact after which the given recipient should be moved to the Stale status</param>
-            /// <param name="deliveryReason">Why your clients are receiving your emails.</param>
-            /// <param name="tutorialsEnabled"></param>
             /// <returns>ApiTypes.AdvancedOptions</returns>
-            public static async Task<ApiTypes.AdvancedOptions> UpdateAdvancedOptionsAsync(bool? enableClickTracking = null, bool? enableLinkClickTracking = null, bool? manageSubscriptions = null, bool? manageSubscribedOnly = null, bool? transactionalOnUnsubscribe = null, bool? skipListUnsubscribe = null, bool? autoTextFromHtml = null, bool? allowCustomHeaders = null, string bccEmail = null, string contentTransferEncoding = null, bool? emailNotificationForError = null, string emailNotificationEmail = null, string webNotificationUrl = null, bool? webNotificationNotifyOncePerEmail = null, bool? webNotificationForSent = null, bool? webNotificationForOpened = null, bool? webNotificationForClicked = null, bool? webNotificationForUnsubscribed = null, bool? webNotificationForAbuseReport = null, bool? webNotificationForError = null, string hubCallBackUrl = "", string inboundDomain = null, bool? inboundContactsOnly = null, bool? lowCreditNotification = null, bool? enableUITooltips = null, bool? enableContactFeatures = null, string notificationsEmails = null, string unsubscribeNotificationsEmails = null, string logoUrl = null, bool? enableTemplateScripting = true, int? staleContactScore = null, int? staleContactInactiveDays = null, string deliveryReason = null, bool? tutorialsEnabled = null)
+            public static async Task<ApiTypes.AdvancedOptions> UpdateAdvancedOptionsAsync(bool? enableClickTracking = null, bool? enableLinkClickTracking = null, bool? manageSubscriptions = null, bool? manageSubscribedOnly = null, bool? transactionalOnUnsubscribe = null, bool? skipListUnsubscribe = null, bool? autoTextFromHtml = null, bool? allowCustomHeaders = null, string bccEmail = null, string contentTransferEncoding = null, bool? emailNotificationForError = null, string emailNotificationEmail = null, string webNotificationUrl = null, bool? webNotificationForSent = null, bool? webNotificationForOpened = null, bool? webNotificationForClicked = null, bool? webNotificationForUnsubscribed = null, bool? webNotificationForAbuseReport = null, bool? webNotificationForError = null, string hubCallBackUrl = "", string inboundDomain = null, bool? inboundContactsOnly = null, bool? lowCreditNotification = null, bool? enableUITooltips = null, bool? enableContactFeatures = null, string notificationsEmails = null, string unsubscribeNotificationsEmails = null, string logoUrl = null, bool? enableTemplateScripting = true, int? staleContactScore = null, int? staleContactInactiveDays = null)
             {
                 Dictionary<string, string> values = new Dictionary<string, string>();
                 values.Add("apikey", Api.ApiKey);
@@ -1213,7 +1112,6 @@ private static void PopulateMappings()
                 if (emailNotificationForError != null) values.Add("emailNotificationForError", emailNotificationForError.ToString());
                 if (emailNotificationEmail != null) values.Add("emailNotificationEmail", emailNotificationEmail);
                 if (webNotificationUrl != null) values.Add("webNotificationUrl", webNotificationUrl);
-                if (webNotificationNotifyOncePerEmail != null) values.Add("webNotificationNotifyOncePerEmail", webNotificationNotifyOncePerEmail.ToString());
                 if (webNotificationForSent != null) values.Add("webNotificationForSent", webNotificationForSent.ToString());
                 if (webNotificationForOpened != null) values.Add("webNotificationForOpened", webNotificationForOpened.ToString());
                 if (webNotificationForClicked != null) values.Add("webNotificationForClicked", webNotificationForClicked.ToString());
@@ -1232,8 +1130,6 @@ private static void PopulateMappings()
                 if (enableTemplateScripting != true) values.Add("enableTemplateScripting", enableTemplateScripting.ToString());
                 if (staleContactScore != null) values.Add("staleContactScore", staleContactScore.ToString());
                 if (staleContactInactiveDays != null) values.Add("staleContactInactiveDays", staleContactInactiveDays.ToString());
-                if (deliveryReason != null) values.Add("deliveryReason", deliveryReason);
-                if (tutorialsEnabled != null) values.Add("tutorialsEnabled", tutorialsEnabled.ToString());
                 ApiResponse<ApiTypes.AdvancedOptions> apiResponse = await ApiUtilities.PostAsync<ApiTypes.AdvancedOptions>("/account/updateadvancedoptions", values);
                 return apiResponse.Data;
             }
@@ -1268,14 +1164,12 @@ private static void PopulateMappings()
             /// </summary>
             /// <param name="apikey">ApiKey that gives you access to our SMTP and HTTP API's.</param>
             /// <param name="url">URL of notification.</param>
-            /// <param name="notifyOncePerEmail">True, if you want to receive notifications for each type only once per email. Otherwise, false</param>
             /// <param name="settings">Http notification settings serialized to JSON </param>
-            public static async Task UpdateHttpNotificationAsync(string url, bool notifyOncePerEmail = false, string settings = null)
+            public static async Task UpdateHttpNotificationAsync(string url, string settings = null)
             {
                 Dictionary<string, string> values = new Dictionary<string, string>();
                 values.Add("apikey", Api.ApiKey);
                 values.Add("url", url);
-                if (notifyOncePerEmail != false) values.Add("notifyOncePerEmail", notifyOncePerEmail.ToString());
                 if (settings != null) values.Add("settings", settings);
                 ApiResponse<VoidApiResponse> apiResponse = await ApiUtilities.PostAsync<VoidApiResponse>("/account/updatehttpnotification", values);
             }
@@ -1291,14 +1185,15 @@ private static void PopulateMappings()
             /// <param name="state">State or province.</param>
             /// <param name="zip">Zip/postal code.</param>
             /// <param name="countryID">Numeric ID of country. A file with the list of countries is available <a href="http://api.elasticemail.com/public/countries"><b>here</b></a></param>
-            /// <param name="marketingConsent">True if you want to receive newsletters from Elastic Email. Otherwise, false. Empty to leave the current value.</param>
+            /// <param name="deliveryReason">Why your clients are receiving your emails.</param>
+            /// <param name="marketingConsent">True if you want to receive newsletters from Elastic Email. Otherwise, false.</param>
             /// <param name="address2">Second line of address.</param>
             /// <param name="company">Company name.</param>
             /// <param name="website">HTTP address of your website.</param>
             /// <param name="logoUrl">URL to your logo image.</param>
             /// <param name="taxCode">Code used for tax purposes.</param>
             /// <param name="phone">Phone number</param>
-            public static async Task UpdateProfileAsync(string firstName, string lastName, string address1, string city, string state, string zip, int countryID, bool? marketingConsent = null, string address2 = null, string company = null, string website = null, string logoUrl = null, string taxCode = null, string phone = null)
+            public static async Task UpdateProfileAsync(string firstName, string lastName, string address1, string city, string state, string zip, int countryID, string deliveryReason = null, bool marketingConsent = false, string address2 = null, string company = null, string website = null, string logoUrl = null, string taxCode = null, string phone = null)
             {
                 Dictionary<string, string> values = new Dictionary<string, string>();
                 values.Add("apikey", Api.ApiKey);
@@ -1309,7 +1204,8 @@ private static void PopulateMappings()
                 values.Add("state", state);
                 values.Add("zip", zip);
                 values.Add("countryID", countryID.ToString());
-                if (marketingConsent != null) values.Add("marketingConsent", marketingConsent.ToString());
+                if (deliveryReason != null) values.Add("deliveryReason", deliveryReason);
+                if (marketingConsent != false) values.Add("marketingConsent", marketingConsent.ToString());
                 if (address2 != null) values.Add("address2", address2);
                 if (company != null) values.Add("company", company);
                 if (website != null) values.Add("website", website);
@@ -1336,7 +1232,7 @@ private static void PopulateMappings()
             /// <param name="sendingPermission">Sending permission setting for account</param>
             /// <param name="enableContactFeatures">True, if you want to use Advanced Tools.  Otherwise, false</param>
             /// <param name="poolName">Name of your custom IP Pool to be used in the sending process</param>
-            public static async Task UpdateSubAccountSettingsAsync(bool requiresEmailCredits = false, int monthlyRefillCredits = 0, bool requiresLitmusCredits = false, bool enableLitmusTest = false, int? dailySendLimit = null, int emailSizeLimit = 10, bool enablePrivateIPRequest = false, int maxContacts = 0, string subAccountEmail = null, string publicAccountID = null, ApiTypes.SendingPermission? sendingPermission = null, bool? enableContactFeatures = null, string poolName = null)
+            public static async Task UpdateSubAccountSettingsAsync(bool requiresEmailCredits = false, int monthlyRefillCredits = 0, bool requiresLitmusCredits = false, bool enableLitmusTest = false, int dailySendLimit = 50, int emailSizeLimit = 10, bool enablePrivateIPRequest = false, int maxContacts = 0, string subAccountEmail = null, string publicAccountID = null, ApiTypes.SendingPermission? sendingPermission = null, bool? enableContactFeatures = null, string poolName = null)
             {
                 Dictionary<string, string> values = new Dictionary<string, string>();
                 values.Add("apikey", Api.ApiKey);
@@ -1344,7 +1240,7 @@ private static void PopulateMappings()
                 if (monthlyRefillCredits != 0) values.Add("monthlyRefillCredits", monthlyRefillCredits.ToString());
                 if (requiresLitmusCredits != false) values.Add("requiresLitmusCredits", requiresLitmusCredits.ToString());
                 if (enableLitmusTest != false) values.Add("enableLitmusTest", enableLitmusTest.ToString());
-                if (dailySendLimit != null) values.Add("dailySendLimit", dailySendLimit.ToString());
+                if (dailySendLimit != 50) values.Add("dailySendLimit", dailySendLimit.ToString());
                 if (emailSizeLimit != 10) values.Add("emailSizeLimit", emailSizeLimit.ToString());
                 if (enablePrivateIPRequest != false) values.Add("enablePrivateIPRequest", enablePrivateIPRequest.ToString());
                 if (maxContacts != 0) values.Add("maxContacts", maxContacts.ToString());
@@ -1383,12 +1279,14 @@ private static void PopulateMappings()
             /// Gets address of chosen Attachment
             /// </summary>
             /// <param name="apikey">ApiKey that gives you access to our SMTP and HTTP API's.</param>
+            /// <param name="fileName">Name of your file.</param>
             /// <param name="attachmentID">ID number of your attachment.</param>
             /// <returns>ApiTypes.FileData</returns>
-            public static async Task<ApiTypes.FileData> GetAsync(long attachmentID)
+            public static async Task<ApiTypes.FileData> GetAsync(string fileName, long attachmentID)
             {
                 Dictionary<string, string> values = new Dictionary<string, string>();
                 values.Add("apikey", Api.ApiKey);
+                values.Add("fileName", fileName);
                 values.Add("attachmentID", attachmentID.ToString());
                 return await ApiUtilities.HttpGetFileAsync("/attachment/get", values);
             }
@@ -1480,14 +1378,12 @@ private static void PopulateMappings()
             /// </summary>
             /// <param name="apikey">ApiKey that gives you access to our SMTP and HTTP API's.</param>
             /// <param name="channelID">ID number of selected Channel.</param>
-            /// <returns>int</returns>
-            public static async Task<int> CopyAsync(int channelID)
+            public static async Task CopyAsync(int channelID)
             {
                 Dictionary<string, string> values = new Dictionary<string, string>();
                 values.Add("apikey", Api.ApiKey);
                 values.Add("channelID", channelID.ToString());
-                ApiResponse<int> apiResponse = await ApiUtilities.PostAsync<int>("/campaign/copy", values);
-                return apiResponse.Data;
+                ApiResponse<VoidApiResponse> apiResponse = await ApiUtilities.PostAsync<VoidApiResponse>("/campaign/copy", values);
             }
 
             /// <summary>
@@ -1508,7 +1404,7 @@ private static void PopulateMappings()
             /// </summary>
             /// <param name="apikey">ApiKey that gives you access to our SMTP and HTTP API's.</param>
             /// <param name="channelIDs">List of campaign IDs used for processing</param>
-            /// <param name="fileFormat">Format of the exported file</param>
+            /// <param name="fileFormat"></param>
             /// <param name="compressionFormat">FileResponse compression format. None or Zip.</param>
             /// <param name="fileName">Name of your file.</param>
             /// <returns>ApiTypes.ExportLink</returns>
@@ -1691,6 +1587,21 @@ private static void PopulateMappings()
         public static class Contact
         {
             /// <summary>
+            /// Activate contacts that are currently blocked.
+            /// </summary>
+            /// <param name="apikey">ApiKey that gives you access to our SMTP and HTTP API's.</param>
+            /// <param name="activateAllBlocked">Activate all your blocked contacts.  Passing True will override email list and activate all your blocked contacts.</param>
+            /// <param name="emails">Comma delimited list of contact emails</param>
+            public static async Task ActivateBlockedAsync(bool activateAllBlocked = false, IEnumerable<string> emails = null)
+            {
+                Dictionary<string, string> values = new Dictionary<string, string>();
+                values.Add("apikey", Api.ApiKey);
+                if (activateAllBlocked != false) values.Add("activateAllBlocked", activateAllBlocked.ToString());
+                if (emails != null) values.Add("emails", string.Join(",", emails));
+                ApiResponse<VoidApiResponse> apiResponse = await ApiUtilities.PostAsync<VoidApiResponse>("/contact/activateblocked", values);
+            }
+
+            /// <summary>
             /// Add a new contact and optionally to one of your lists.  Note that your API KEY is not required for this call.
             /// </summary>
             /// <param name="publicAccountID">Public key for limited access to your account such as contact/add so you can use it safely on public websites.</param>
@@ -1735,14 +1646,14 @@ private static void PopulateMappings()
                 {
                     foreach (string _item in publicListID)
                     {
-                        values.Add("publicListID", _item);
+                        values.Add("publicListID", _item.ToString());
                     }
                 }
                 if (listName != null)
                 {
                     foreach (string _item in listName)
                     {
-                        values.Add("listName", _item);
+                        values.Add("listName", _item.ToString());
                     }
                 }
                 if (title != null) values.Add("title", title);
@@ -1871,7 +1782,7 @@ private static void PopulateMappings()
             /// Export selected Contacts to JSON.
             /// </summary>
             /// <param name="apikey">ApiKey that gives you access to our SMTP and HTTP API's.</param>
-            /// <param name="fileFormat">Format of the exported file</param>
+            /// <param name="fileFormat"></param>
             /// <param name="rule">Query used for filtering.</param>
             /// <param name="emails">Comma delimited list of contact emails</param>
             /// <param name="allContacts">True: Include every Contact in your Account. Otherwise, false</param>
@@ -1970,8 +1881,8 @@ private static void PopulateMappings()
             /// Load blocked contacts
             /// </summary>
             /// <param name="apikey">ApiKey that gives you access to our SMTP and HTTP API's.</param>
-            /// <param name="statuses">List of blocked statuses: Abuse, Bounced or Unsubscribed</param>
-            /// <param name="search">Text fragment used for searching.</param>
+            /// <param name="statuses">List of comma separated message statuses: 0 or all, 1 for ReadyToSend, 2 for InProgress, 4 for Bounced, 5 for Sent, 6 for Opened, 7 for Clicked, 8 for Unsubscribed, 9 for Abuse Report</param>
+            /// <param name="search">List of blocked statuses: Abuse, Bounced or Unsubscribed</param>
             /// <param name="limit">Maximum of loaded items.</param>
             /// <param name="offset">How many items should be loaded ahead.</param>
             /// <returns>List(ApiTypes.BlockedContact)</returns>
@@ -2064,20 +1975,6 @@ private static void PopulateMappings()
                 if (consentIP != null) values.Add("consentIP", consentIP);
                 if (notifyEmail != null) values.Add("notifyEmail", notifyEmail);
                 ApiResponse<VoidApiResponse> apiResponse = await ApiUtilities.PostAsync<VoidApiResponse>("/contact/quickadd", values);
-            }
-
-            /// <summary>
-            /// Basic double opt-in email subscribe form for your account.  This can be used for contacts that need to re-subscribe as well.
-            /// </summary>
-            /// <param name="publicAccountID">Public key for limited access to your account such as contact/add so you can use it safely on public websites.</param>
-            /// <returns>string</returns>
-            public static async Task<string> SubscribeAsync(string publicAccountID)
-            {
-                Dictionary<string, string> values = new Dictionary<string, string>();
-                values.Add("apikey", Api.ApiKey);
-                values.Add("publicAccountID", publicAccountID);
-                ApiResponse<string> apiResponse = await ApiUtilities.PostAsync<string>("/contact/subscribe", values);
-                return apiResponse.Data;
             }
 
             /// <summary>
@@ -2315,6 +2212,74 @@ private static void PopulateMappings()
         #endregion
 
 
+        #region Eksport functions
+        /// <summary>
+        /// 
+        /// </summary>
+        public static class Eksport
+        {
+            /// <summary>
+            /// Check the current status of the export.
+            /// </summary>
+            /// <param name="apikey">ApiKey that gives you access to our SMTP and HTTP API's.</param>
+            /// <param name="publicExportID"></param>
+            /// <returns>ApiTypes.ExportStatus</returns>
+            public static async Task<ApiTypes.ExportStatus> CheckStatusAsync(Guid publicExportID)
+            {
+                Dictionary<string, string> values = new Dictionary<string, string>();
+                values.Add("apikey", Api.ApiKey);
+                values.Add("publicExportID", publicExportID.ToString());
+                ApiResponse<ApiTypes.ExportStatus> apiResponse = await ApiUtilities.PostAsync<ApiTypes.ExportStatus>("/export/checkstatus", values);
+                return apiResponse.Data;
+            }
+
+            /// <summary>
+            /// Summary of export type counts.
+            /// </summary>
+            /// <param name="apikey">ApiKey that gives you access to our SMTP and HTTP API's.</param>
+            /// <returns>ApiTypes.ExportTypeCounts</returns>
+            public static async Task<ApiTypes.ExportTypeCounts> CountByTypeAsync()
+            {
+                Dictionary<string, string> values = new Dictionary<string, string>();
+                values.Add("apikey", Api.ApiKey);
+                ApiResponse<ApiTypes.ExportTypeCounts> apiResponse = await ApiUtilities.PostAsync<ApiTypes.ExportTypeCounts>("/export/countbytype", values);
+                return apiResponse.Data;
+            }
+
+            /// <summary>
+            /// Delete the specified export.
+            /// </summary>
+            /// <param name="apikey">ApiKey that gives you access to our SMTP and HTTP API's.</param>
+            /// <param name="publicExportID"></param>
+            public static async Task DeleteAsync(Guid publicExportID)
+            {
+                Dictionary<string, string> values = new Dictionary<string, string>();
+                values.Add("apikey", Api.ApiKey);
+                values.Add("publicExportID", publicExportID.ToString());
+                ApiResponse<VoidApiResponse> apiResponse = await ApiUtilities.PostAsync<VoidApiResponse>("/export/delete", values);
+            }
+
+            /// <summary>
+            /// Returns a list of all exported data.
+            /// </summary>
+            /// <param name="apikey">ApiKey that gives you access to our SMTP and HTTP API's.</param>
+            /// <param name="limit">Maximum of loaded items.</param>
+            /// <param name="offset">How many items should be loaded ahead.</param>
+            /// <returns>List(ApiTypes.Export)</returns>
+            public static async Task<List<ApiTypes.Export>> ListAsync(int limit = 0, int offset = 0)
+            {
+                Dictionary<string, string> values = new Dictionary<string, string>();
+                values.Add("apikey", Api.ApiKey);
+                if (limit != 0) values.Add("limit", limit.ToString());
+                if (offset != 0) values.Add("offset", offset.ToString());
+                ApiResponse<List<ApiTypes.Export>> apiResponse = await ApiUtilities.PostAsync<List<ApiTypes.Export>>("/export/list", values);
+                return apiResponse.Data;
+            }
+
+        }
+        #endregion
+
+
         #region Email functions
         /// <summary>
         /// 
@@ -2327,8 +2292,7 @@ private static void PopulateMappings()
             /// <param name="apikey">ApiKey that gives you access to our SMTP and HTTP API's.</param>
             /// <param name="transactionID">Transaction identifier</param>
             /// <param name="showFailed">Include Bounced email addresses.</param>
-            /// <param name="showSent">Include Sent email addresses.</param>
-            /// <param name="showDelivered">Include all delivered email addresses.</param>
+            /// <param name="showDelivered">Include Sent email addresses.</param>
             /// <param name="showPending">Include Ready to send email addresses.</param>
             /// <param name="showOpened">Include Opened email addresses.</param>
             /// <param name="showClicked">Include Clicked email addresses.</param>
@@ -2337,13 +2301,12 @@ private static void PopulateMappings()
             /// <param name="showErrors">Include error messages for bounced emails.</param>
             /// <param name="showMessageIDs">Include all MessageIDs for this transaction</param>
             /// <returns>ApiTypes.EmailJobStatus</returns>
-            public static async Task<ApiTypes.EmailJobStatus> GetStatusAsync(string transactionID, bool showFailed = false, bool showSent = false, bool showDelivered = false, bool showPending = false, bool showOpened = false, bool showClicked = false, bool showAbuse = false, bool showUnsubscribed = false, bool showErrors = false, bool showMessageIDs = false)
+            public static async Task<ApiTypes.EmailJobStatus> GetStatusAsync(string transactionID, bool showFailed = false, bool showDelivered = false, bool showPending = false, bool showOpened = false, bool showClicked = false, bool showAbuse = false, bool showUnsubscribed = false, bool showErrors = false, bool showMessageIDs = false)
             {
                 Dictionary<string, string> values = new Dictionary<string, string>();
                 values.Add("apikey", Api.ApiKey);
                 values.Add("transactionID", transactionID);
                 if (showFailed != false) values.Add("showFailed", showFailed.ToString());
-                if (showSent != false) values.Add("showSent", showSent.ToString());
                 if (showDelivered != false) values.Add("showDelivered", showDelivered.ToString());
                 if (showPending != false) values.Add("showPending", showPending.ToString());
                 if (showOpened != false) values.Add("showOpened", showOpened.ToString());
@@ -2383,7 +2346,7 @@ private static void PopulateMappings()
             /// <param name="charsetBodyHtml">Sets charset for body html MIME part (overrides default value from charset parameter)</param>
             /// <param name="charsetBodyText">Sets charset for body text MIME part (overrides default value from charset parameter)</param>
             /// <param name="encodingType">0 for None, 1 for Raw7Bit, 2 for Raw8Bit, 3 for QuotedPrintable, 4 for Base64 (Default), 5 for Uue  note that you can also provide the text version such as "Raw7Bit" for value 1.  NOTE: Base64 or QuotedPrintable is recommended if you are validating your domain(s) with DKIM.</param>
-            /// <param name="template">The ID of an email template you have created in your account.</param>
+            /// <param name="template">The name of an email template you have created in your account.</param>
             /// <param name="attachmentFiles">Attachment files. These files should be provided with the POST multipart file upload, not directly in the request's URL. Should also include merge CSV file</param>
             /// <param name="headers">Optional Custom Headers. Request parameters prefixed by headers_ like headers_customheader1, headers_customheader2. Note: a space is required after the colon before the custom header value. headers_xmailer=xmailer: header-value1</param>
             /// <param name="postBack">Optional header returned in notifications.</param>
@@ -2410,21 +2373,21 @@ private static void PopulateMappings()
                 {
                     foreach (string _item in msgTo)
                     {
-                        values.Add("msgTo", _item);
+                        values.Add("msgTo", _item.ToString());
                     }
                 }
                 if (msgCC != null)
                 {
                     foreach (string _item in msgCC)
                     {
-                        values.Add("msgCC", _item);
+                        values.Add("msgCC", _item.ToString());
                     }
                 }
                 if (msgBcc != null)
                 {
                     foreach (string _item in msgBcc)
                     {
-                        values.Add("msgBcc", _item);
+                        values.Add("msgBcc", _item.ToString());
                     }
                 }
                 if (lists != null) values.Add("lists", string.Join(",", lists));
@@ -2495,74 +2458,6 @@ private static void PopulateMappings()
         #endregion
 
 
-        #region Export functions
-        /// <summary>
-        /// 
-        /// </summary>
-        public static class Export
-        {
-            /// <summary>
-            /// Check the current status of the export.
-            /// </summary>
-            /// <param name="apikey">ApiKey that gives you access to our SMTP and HTTP API's.</param>
-            /// <param name="publicExportID"></param>
-            /// <returns>ApiTypes.ExportStatus</returns>
-            public static async Task<ApiTypes.ExportStatus> CheckStatusAsync(Guid publicExportID)
-            {
-                Dictionary<string, string> values = new Dictionary<string, string>();
-                values.Add("apikey", Api.ApiKey);
-                values.Add("publicExportID", publicExportID.ToString());
-                ApiResponse<ApiTypes.ExportStatus> apiResponse = await ApiUtilities.PostAsync<ApiTypes.ExportStatus>("/export/checkstatus", values);
-                return apiResponse.Data;
-            }
-
-            /// <summary>
-            /// Summary of export type counts.
-            /// </summary>
-            /// <param name="apikey">ApiKey that gives you access to our SMTP and HTTP API's.</param>
-            /// <returns>ApiTypes.ExportTypeCounts</returns>
-            public static async Task<ApiTypes.ExportTypeCounts> CountByTypeAsync()
-            {
-                Dictionary<string, string> values = new Dictionary<string, string>();
-                values.Add("apikey", Api.ApiKey);
-                ApiResponse<ApiTypes.ExportTypeCounts> apiResponse = await ApiUtilities.PostAsync<ApiTypes.ExportTypeCounts>("/export/countbytype", values);
-                return apiResponse.Data;
-            }
-
-            /// <summary>
-            /// Delete the specified export.
-            /// </summary>
-            /// <param name="apikey">ApiKey that gives you access to our SMTP and HTTP API's.</param>
-            /// <param name="publicExportID"></param>
-            public static async Task DeleteAsync(Guid publicExportID)
-            {
-                Dictionary<string, string> values = new Dictionary<string, string>();
-                values.Add("apikey", Api.ApiKey);
-                values.Add("publicExportID", publicExportID.ToString());
-                ApiResponse<VoidApiResponse> apiResponse = await ApiUtilities.PostAsync<VoidApiResponse>("/export/delete", values);
-            }
-
-            /// <summary>
-            /// Returns a list of all exported data.
-            /// </summary>
-            /// <param name="apikey">ApiKey that gives you access to our SMTP and HTTP API's.</param>
-            /// <param name="limit">Maximum of loaded items.</param>
-            /// <param name="offset">How many items should be loaded ahead.</param>
-            /// <returns>List(ApiTypes.Export)</returns>
-            public static async Task<List<ApiTypes.Export>> ListAsync(int limit = 0, int offset = 0)
-            {
-                Dictionary<string, string> values = new Dictionary<string, string>();
-                values.Add("apikey", Api.ApiKey);
-                if (limit != 0) values.Add("limit", limit.ToString());
-                if (offset != 0) values.Add("offset", offset.ToString());
-                ApiResponse<List<ApiTypes.Export>> apiResponse = await ApiUtilities.PostAsync<List<ApiTypes.Export>>("/export/list", values);
-                return apiResponse.Data;
-            }
-
-        }
-        #endregion
-
-
         #region List functions
         /// <summary>
         /// API methods for managing your Lists
@@ -2595,7 +2490,7 @@ private static void PopulateMappings()
             }
 
             /// <summary>
-            /// Add existing Contacts to chosen list
+            /// Add Contacts to chosen list
             /// </summary>
             /// <param name="apikey">ApiKey that gives you access to our SMTP and HTTP API's.</param>
             /// <param name="listName">Name of your list.</param>
@@ -2721,7 +2616,7 @@ private static void PopulateMappings()
             /// </summary>
             /// <param name="apikey">ApiKey that gives you access to our SMTP and HTTP API's.</param>
             /// <param name="listName">Name of your list.</param>
-            /// <param name="fileFormat">Format of the exported file</param>
+            /// <param name="fileFormat"></param>
             /// <param name="compressionFormat">FileResponse compression format. None or Zip.</param>
             /// <param name="fileName">Name of your file.</param>
             /// <returns>ApiTypes.ExportLink</returns>
@@ -2853,8 +2748,8 @@ private static void PopulateMappings()
             /// Export email log information to the specified file format.
             /// </summary>
             /// <param name="apikey">ApiKey that gives you access to our SMTP and HTTP API's.</param>
-            /// <param name="statuses">List of comma separated message statuses: 0 for all, 1 for ReadyToSend, 2 for InProgress, 4 for Bounced, 5 for Sent, 6 for Opened, 7 for Clicked, 8 for Unsubscribed, 9 for Abuse Report</param>
-            /// <param name="fileFormat">Format of the exported file</param>
+            /// <param name="statuses">List of comma separated message statuses: 0 or all, 1 for ReadyToSend, 2 for InProgress, 4 for Bounced, 5 for Sent, 6 for Opened, 7 for Clicked, 8 for Unsubscribed, 9 for Abuse Report</param>
+            /// <param name="fileFormat"></param>
             /// <param name="from">Start date.</param>
             /// <param name="to">End date.</param>
             /// <param name="channelID">ID number of selected Channel.</param>
@@ -2893,9 +2788,9 @@ private static void PopulateMappings()
             /// </summary>
             /// <param name="apikey">ApiKey that gives you access to our SMTP and HTTP API's.</param>
             /// <param name="channelID">ID number of selected Channel.</param>
-            /// <param name="from">Starting date for search in YYYY-MM-DDThh:mm:ss format.</param>
-            /// <param name="to">Ending date for search in YYYY-MM-DDThh:mm:ss format.</param>
-            /// <param name="fileFormat">Format of the exported file</param>
+            /// <param name="from">Start date.</param>
+            /// <param name="to">End Date.</param>
+            /// <param name="fileFormat"></param>
             /// <param name="limit">Maximum of loaded items.</param>
             /// <param name="offset">How many items should be loaded ahead.</param>
             /// <param name="compressionFormat">FileResponse compression format. None or Zip.</param>
@@ -2944,7 +2839,7 @@ private static void PopulateMappings()
             /// Returns logs filtered by specified parameters.
             /// </summary>
             /// <param name="apikey">ApiKey that gives you access to our SMTP and HTTP API's.</param>
-            /// <param name="statuses">List of comma separated message statuses: 0 for all, 1 for ReadyToSend, 2 for InProgress, 4 for Bounced, 5 for Sent, 6 for Opened, 7 for Clicked, 8 for Unsubscribed, 9 for Abuse Report</param>
+            /// <param name="statuses">List of comma separated message statuses: 0 or all, 1 for ReadyToSend, 2 for InProgress, 4 for Bounced, 5 for Sent, 6 for Opened, 7 for Clicked, 8 for Unsubscribed, 9 for Abuse Report</param>
             /// <param name="from">Starting date for search in YYYY-MM-DDThh:mm:ss format.</param>
             /// <param name="to">Ending date for search in YYYY-MM-DDThh:mm:ss format.</param>
             /// <param name="channelName">Name of selected channel.</param>
@@ -2976,35 +2871,6 @@ private static void PopulateMappings()
             }
 
             /// <summary>
-            /// Returns notification logs filtered by specified parameters.
-            /// </summary>
-            /// <param name="apikey">ApiKey that gives you access to our SMTP and HTTP API's.</param>
-            /// <param name="statuses">List of comma separated message statuses: 0 for all, 1 for ReadyToSend, 2 for InProgress, 4 for Bounced, 5 for Sent, 6 for Opened, 7 for Clicked, 8 for Unsubscribed, 9 for Abuse Report</param>
-            /// <param name="from">Starting date for search in YYYY-MM-DDThh:mm:ss format.</param>
-            /// <param name="to">Ending date for search in YYYY-MM-DDThh:mm:ss format.</param>
-            /// <param name="limit">Maximum of loaded items.</param>
-            /// <param name="offset">How many items should be loaded ahead.</param>
-            /// <param name="messageCategory">ID of message category</param>
-            /// <param name="useStatusChangeDate">True, if 'from' and 'to' parameters should resolve to the Status Change date. To resolve to the creation date - false</param>
-            /// <param name="notificationType"></param>
-            /// <returns>ApiTypes.Log</returns>
-            public static async Task<ApiTypes.Log> LoadNotificationsAsync(IEnumerable<ApiTypes.LogJobStatus> statuses, DateTime? from = null, DateTime? to = null, int limit = 0, int offset = 0, IEnumerable<ApiTypes.MessageCategory> messageCategory = null, bool useStatusChangeDate = false, ApiTypes.NotificationType notificationType = ApiTypes.NotificationType.All)
-            {
-                Dictionary<string, string> values = new Dictionary<string, string>();
-                values.Add("apikey", Api.ApiKey);
-                values.Add("statuses", string.Join(",", statuses));
-                if (from != null) values.Add("from", from.Value.ToString("M/d/yyyy h:mm:ss tt"));
-                if (to != null) values.Add("to", to.Value.ToString("M/d/yyyy h:mm:ss tt"));
-                if (limit != 0) values.Add("limit", limit.ToString());
-                if (offset != 0) values.Add("offset", offset.ToString());
-                if (messageCategory != null) values.Add("messageCategory", string.Join(",", messageCategory));
-                if (useStatusChangeDate != false) values.Add("useStatusChangeDate", useStatusChangeDate.ToString());
-                if (notificationType != ApiTypes.NotificationType.All) values.Add("notificationType", notificationType.ToString());
-                ApiResponse<ApiTypes.Log> apiResponse = await ApiUtilities.PostAsync<ApiTypes.Log>("/log/loadnotifications", values);
-                return apiResponse.Data;
-            }
-
-            /// <summary>
             /// Retry sending of temporarily not delivered message.
             /// </summary>
             /// <param name="apikey">ApiKey that gives you access to our SMTP and HTTP API's.</param>
@@ -3027,14 +2893,14 @@ private static void PopulateMappings()
             /// <param name="interval">'Hourly' for detailed information, 'summary' for daily overview</param>
             /// <param name="transactionID">ID number of transaction</param>
             /// <returns>ApiTypes.LogSummary</returns>
-            public static async Task<ApiTypes.LogSummary> SummaryAsync(DateTime from, DateTime to, string channelName = null, ApiTypes.IntervalType interval = ApiTypes.IntervalType.Summary, string transactionID = null)
+            public static async Task<ApiTypes.LogSummary> SummaryAsync(DateTime from, DateTime to, string channelName = null, string interval = "summary", string transactionID = null)
             {
                 Dictionary<string, string> values = new Dictionary<string, string>();
                 values.Add("apikey", Api.ApiKey);
                 values.Add("from", from.ToString("M/d/yyyy h:mm:ss tt"));
                 values.Add("to", to.ToString("M/d/yyyy h:mm:ss tt"));
                 if (channelName != null) values.Add("channelName", channelName);
-                if (interval != ApiTypes.IntervalType.Summary) values.Add("interval", interval.ToString());
+                if (interval != "summary") values.Add("interval", interval);
                 if (transactionID != null) values.Add("transactionID", transactionID);
                 ApiResponse<ApiTypes.LogSummary> apiResponse = await ApiUtilities.PostAsync<ApiTypes.LogSummary>("/log/summary", values);
                 return apiResponse.Data;
@@ -3104,7 +2970,7 @@ private static void PopulateMappings()
             /// </summary>
             /// <param name="apikey">ApiKey that gives you access to our SMTP and HTTP API's.</param>
             /// <param name="segmentName">Name of your segment.</param>
-            /// <param name="fileFormat">Format of the exported file</param>
+            /// <param name="fileFormat"></param>
             /// <param name="compressionFormat">FileResponse compression format. None or Zip.</param>
             /// <param name="fileName">Name of your file.</param>
             /// <returns>ApiTypes.ExportLink</returns>
@@ -3125,8 +2991,8 @@ private static void PopulateMappings()
             /// </summary>
             /// <param name="apikey">ApiKey that gives you access to our SMTP and HTTP API's.</param>
             /// <param name="includeHistory">True: Include history of last 30 days. Otherwise, false.</param>
-            /// <param name="from">From what date should the segment history be shown. In YYYY-MM-DDThh:mm:ss format.</param>
-            /// <param name="to">To what date should the segment history be shown. In YYYY-MM-DDThh:mm:ss format.</param>
+            /// <param name="from">From what date should the segment history be shown</param>
+            /// <param name="to">To what date should the segment history be shown</param>
             /// <returns>List(ApiTypes.Segment)</returns>
             public static async Task<List<ApiTypes.Segment>> ListAsync(bool includeHistory = false, DateTime? from = null, DateTime? to = null)
             {
@@ -3145,8 +3011,8 @@ private static void PopulateMappings()
             /// <param name="apikey">ApiKey that gives you access to our SMTP and HTTP API's.</param>
             /// <param name="segmentNames">Names of segments you want to load. Will load all contacts if left empty or the 'All Contacts' name has been provided</param>
             /// <param name="includeHistory">True: Include history of last 30 days. Otherwise, false.</param>
-            /// <param name="from">From what date should the segment history be shown. In YYYY-MM-DDThh:mm:ss format.</param>
-            /// <param name="to">To what date should the segment history be shown. In YYYY-MM-DDThh:mm:ss format.</param>
+            /// <param name="from">From what date should the segment history be shown</param>
+            /// <param name="to">To what date should the segment history be shown</param>
             /// <returns>List(ApiTypes.Segment)</returns>
             public static async Task<List<ApiTypes.Segment>> LoadByNameAsync(IEnumerable<string> segmentNames, bool includeHistory = false, DateTime? from = null, DateTime? to = null)
             {
@@ -3248,7 +3114,7 @@ private static void PopulateMappings()
             /// <param name="apikey">ApiKey that gives you access to our SMTP and HTTP API's.</param>
             /// <param name="publicSurveyID">Survey identifier</param>
             /// <param name="fileName">Name of your file.</param>
-            /// <param name="fileFormat">Format of the exported file</param>
+            /// <param name="fileFormat"></param>
             /// <param name="compressionFormat">FileResponse compression format. None or Zip.</param>
             /// <returns>ApiTypes.ExportLink</returns>
             public static async Task<ApiTypes.ExportLink> ExportAsync(Guid publicSurveyID, string fileName, ApiTypes.ExportFileFormats fileFormat = ApiTypes.ExportFileFormats.Csv, ApiTypes.CompressionFormat compressionFormat = ApiTypes.CompressionFormat.None)
@@ -3533,4072 +3399,3836 @@ private static void PopulateMappings()
     #region Api Types
     public static class ApiTypes
     {
-    /// <summary>
-    /// File response from the server
-    /// </summary>
-    public class FileData
-    {
         /// <summary>
-        /// File content
+        /// File response from the server
         /// </summary>
-        public byte[] Content { get; set; }
-
-        /// <summary>
-        /// MIME content type, optional for uploads
-        /// </summary>
-        public string ContentType { get; set; }
-
-        /// <summary>
-        /// Name of the file this class contains
-        /// </summary>
-        public string FileName { get; set; }
-
-        /// <summary>
-        /// Saves this file to given destination
-        /// </summary>
-        /// <param name="path">Path string exluding file name</param>
-        public void SaveToDirectory(string path)
+        public class FileData
         {
-            File.WriteAllBytes(Path.Combine(path, FileName), Content);
+            /// <summary>
+            /// File content
+            /// </summary>
+            public byte[] Content { get; set; }
+
+            /// <summary>
+            /// MIME content type, optional for uploads
+            /// </summary>
+            public string ContentType { get; set; }
+
+            /// <summary>
+            /// Name of the file this class contains
+            /// </summary>
+            public string FileName { get; set; }
+
+            /// <summary>
+            /// Saves this file to given destination
+            /// </summary>
+            /// <param name="path">Path string exluding file name</param>
+            public void SaveToDirectory(string path)
+            {
+                File.WriteAllBytes(Path.Combine(path, FileName), Content);
+            }
+
+            /// <summary>
+            /// Saves this file to given destination
+            /// </summary>
+            /// <param name="pathWithFileName">Path string including file name</param>
+            public void SaveTo(string pathWithFileName)
+            {
+                File.WriteAllBytes(pathWithFileName, Content);
+            }
+
+            /// <summary>
+            /// Reads a file to this class instance
+            /// </summary>
+            /// <param name="pathWithFileName">Path string including file name</param>
+            public void ReadFrom(string pathWithFileName)
+            {
+                Content = File.ReadAllBytes(pathWithFileName);
+                FileName = Path.GetFileName(pathWithFileName);
+                ContentType = null;
+            }
+
+            /// <summary>
+            /// Creates a new FileData instance from a file
+            /// </summary>
+            /// <param name="pathWithFileName">Path string including file name</param>
+            /// <returns></returns>
+            public static FileData CreateFromFile(string pathWithFileName)
+            {
+                FileData fileData = new FileData();
+                fileData.ReadFrom(pathWithFileName);
+                return fileData;
+            }
+        }
+
+
+#pragma warning disable 0649
+        /// <summary>
+        /// Detailed information about your account
+        /// </summary>
+        public class Account
+        {
+            /// <summary>
+            /// Code used for tax purposes.
+            /// </summary>
+            public string TaxCode { get; set; }
+
+            /// <summary>
+            /// Public key for limited access to your account such as contact/add so you can use it safely on public websites.
+            /// </summary>
+            public string PublicAccountID { get; set; }
+
+            /// <summary>
+            /// ApiKey that gives you access to our SMTP and HTTP API's.
+            /// </summary>
+            public string ApiKey { get; set; }
+
+            /// <summary>
+            /// Second ApiKey that gives you access to our SMTP and HTTP API's.  Used mainly for changing ApiKeys without disrupting services.
+            /// </summary>
+            public string ApiKey2 { get; set; }
+
+            /// <summary>
+            /// True, if account is a subaccount. Otherwise, false
+            /// </summary>
+            public bool IsSub { get; set; }
+
+            /// <summary>
+            /// The number of subaccounts this account has.
+            /// </summary>
+            public long SubAccountsCount { get; set; }
+
+            /// <summary>
+            /// Number of status: 1 - Active
+            /// </summary>
+            public int StatusNumber { get; set; }
+
+            /// <summary>
+            /// Account status: Active
+            /// </summary>
+            public string StatusFormatted { get; set; }
+
+            /// <summary>
+            /// URL form for payments.
+            /// </summary>
+            public string PaymentFormUrl { get; set; }
+
+            /// <summary>
+            /// URL to your logo image.
+            /// </summary>
+            public string LogoUrl { get; set; }
+
+            /// <summary>
+            /// HTTP address of your website.
+            /// </summary>
+            public string Website { get; set; }
+
+            /// <summary>
+            /// True: Turn on or off ability to send mails under your brand. Otherwise, false
+            /// </summary>
+            public bool EnablePrivateBranding { get; set; }
+
+            /// <summary>
+            /// Address to your support.
+            /// </summary>
+            public string SupportLink { get; set; }
+
+            /// <summary>
+            /// Subdomain for your rebranded service
+            /// </summary>
+            public string PrivateBrandingUrl { get; set; }
+
+            /// <summary>
+            /// First name.
+            /// </summary>
+            public string FirstName { get; set; }
+
+            /// <summary>
+            /// Last name.
+            /// </summary>
+            public string LastName { get; set; }
+
+            /// <summary>
+            /// Company name.
+            /// </summary>
+            public string Company { get; set; }
+
+            /// <summary>
+            /// First line of address.
+            /// </summary>
+            public string Address1 { get; set; }
+
+            /// <summary>
+            /// Second line of address.
+            /// </summary>
+            public string Address2 { get; set; }
+
+            /// <summary>
+            /// City.
+            /// </summary>
+            public string City { get; set; }
+
+            /// <summary>
+            /// State or province.
+            /// </summary>
+            public string State { get; set; }
+
+            /// <summary>
+            /// Zip/postal code.
+            /// </summary>
+            public string Zip { get; set; }
+
+            /// <summary>
+            /// Numeric ID of country. A file with the list of countries is available <a href="http://api.elasticemail.com/public/countries"><b>here</b></a>
+            /// </summary>
+            public int? CountryID { get; set; }
+
+            /// <summary>
+            /// Phone number
+            /// </summary>
+            public string Phone { get; set; }
+
+            /// <summary>
+            /// Proper email address.
+            /// </summary>
+            public string Email { get; set; }
+
+            /// <summary>
+            /// URL for affiliating.
+            /// </summary>
+            public string AffiliateLink { get; set; }
+
+            /// <summary>
+            /// Numeric reputation
+            /// </summary>
+            public double Reputation { get; set; }
+
+            /// <summary>
+            /// Amount of emails sent from this account
+            /// </summary>
+            public long TotalEmailsSent { get; set; }
+
+            /// <summary>
+            /// Amount of emails sent from this account
+            /// </summary>
+            public long? MonthlyEmailsSent { get; set; }
+
+            /// <summary>
+            /// Amount of emails sent from this account
+            /// </summary>
+            public decimal Credit { get; set; }
+
+            /// <summary>
+            /// Amount of email credits
+            /// </summary>
+            public int EmailCredits { get; set; }
+
+            /// <summary>
+            /// Amount of emails sent from this account
+            /// </summary>
+            public decimal PricePerEmail { get; set; }
+
+            /// <summary>
+            /// Why your clients are receiving your emails.
+            /// </summary>
+            public string DeliveryReason { get; set; }
+
+            /// <summary>
+            /// URL for making payments.
+            /// </summary>
+            public string AccountPaymentUrl { get; set; }
+
+            /// <summary>
+            /// Address of SMTP server.
+            /// </summary>
+            public string Smtp { get; set; }
+
+            /// <summary>
+            /// Address of alternative SMTP server.
+            /// </summary>
+            public string SmtpAlternative { get; set; }
+
+            /// <summary>
+            /// Status of automatic payments configuration.
+            /// </summary>
+            public string AutoCreditStatus { get; set; }
+
+            /// <summary>
+            /// When AutoCreditStatus is Enabled, the credit level that triggers the credit to be recharged.
+            /// </summary>
+            public decimal AutoCreditLevel { get; set; }
+
+            /// <summary>
+            /// When AutoCreditStatus is Enabled, the amount of credit to be recharged.
+            /// </summary>
+            public decimal AutoCreditAmount { get; set; }
+
+            /// <summary>
+            /// Amount of emails account can send daily
+            /// </summary>
+            public int DailySendLimit { get; set; }
+
+            /// <summary>
+            /// Creation date.
+            /// </summary>
+            public DateTime DateCreated { get; set; }
+
+            /// <summary>
+            /// True, if you have enabled link tracking. Otherwise, false
+            /// </summary>
+            public bool LinkTracking { get; set; }
+
+            /// <summary>
+            /// Type of content encoding
+            /// </summary>
+            public string ContentTransferEncoding { get; set; }
+
+            /// <summary>
+            /// Amount of Litmus credits
+            /// </summary>
+            public decimal LitmusCredits { get; set; }
+
+            /// <summary>
+            /// Enable advanced tools on your Account.
+            /// </summary>
+            public bool EnableContactFeatures { get; set; }
+
+            /// <summary>
+            /// 
+            /// </summary>
+            public bool NeedsSMSVerification { get; set; }
+
         }
 
         /// <summary>
-        /// Saves this file to given destination
+        /// Basic overview of your account
         /// </summary>
-        /// <param name="pathWithFileName">Path string including file name</param>
-        public void SaveTo(string pathWithFileName)
+        public class AccountOverview
         {
-            File.WriteAllBytes(pathWithFileName, Content);
+            /// <summary>
+            /// Amount of emails sent from this account
+            /// </summary>
+            public long TotalEmailsSent { get; set; }
+
+            /// <summary>
+            /// Amount of emails sent from this account
+            /// </summary>
+            public decimal Credit { get; set; }
+
+            /// <summary>
+            /// Cost of 1000 emails
+            /// </summary>
+            public decimal CostPerThousand { get; set; }
+
+            /// <summary>
+            /// Number of messages in progress
+            /// </summary>
+            public long InProgressCount { get; set; }
+
+            /// <summary>
+            /// Number of contacts currently with blocked status of Unsubscribed, Complaint, Bounced or InActive
+            /// </summary>
+            public long BlockedContactsCount { get; set; }
+
+            /// <summary>
+            /// Numeric reputation
+            /// </summary>
+            public double Reputation { get; set; }
+
+            /// <summary>
+            /// Number of contacts
+            /// </summary>
+            public long ContactCount { get; set; }
+
+            /// <summary>
+            /// Number of created campaigns
+            /// </summary>
+            public long CampaignCount { get; set; }
+
+            /// <summary>
+            /// Number of available templates
+            /// </summary>
+            public long TemplateCount { get; set; }
+
+            /// <summary>
+            /// Number of created subaccounts
+            /// </summary>
+            public long SubAccountCount { get; set; }
+
+            /// <summary>
+            /// Number of active referrals
+            /// </summary>
+            public long ReferralCount { get; set; }
+
         }
 
         /// <summary>
-        /// Reads a file to this class instance
+        /// Lists advanced sending options of your account.
         /// </summary>
-        /// <param name="pathWithFileName">Path string including file name</param>
-        public void ReadFrom(string pathWithFileName)
+        public class AdvancedOptions
         {
-            Content = File.ReadAllBytes(pathWithFileName);
-            FileName = Path.GetFileName(pathWithFileName);
-            ContentType = MimeMapping.GetMimeMapping(FileName);
+            /// <summary>
+            /// True, if you want to track clicks. Otherwise, false
+            /// </summary>
+            public bool EnableClickTracking { get; set; }
+
+            /// <summary>
+            /// True, if you want to track by link tracking. Otherwise, false
+            /// </summary>
+            public bool EnableLinkClickTracking { get; set; }
+
+            /// <summary>
+            /// True, if you want to use template scripting in your emails {{}}. Otherwise, false
+            /// </summary>
+            public bool EnableTemplateScripting { get; set; }
+
+            /// <summary>
+            /// True, if text BODY of message should be created automatically. Otherwise, false
+            /// </summary>
+            public bool AutoTextFormat { get; set; }
+
+            /// <summary>
+            /// True, if you want bounce notifications returned. Otherwise, false
+            /// </summary>
+            public bool EmailNotificationForError { get; set; }
+
+            /// <summary>
+            /// True, if you want to send web notifications for sent email. Otherwise, false
+            /// </summary>
+            public bool WebNotificationForSent { get; set; }
+
+            /// <summary>
+            /// True, if you want to send web notifications for opened email. Otherwise, false
+            /// </summary>
+            public bool WebNotificationForOpened { get; set; }
+
+            /// <summary>
+            /// True, if you want to send web notifications for clicked email. Otherwise, false
+            /// </summary>
+            public bool WebNotificationForClicked { get; set; }
+
+            /// <summary>
+            /// True, if you want to send web notifications for unsubscribed email. Otherwise, false
+            /// </summary>
+            public bool WebnotificationForUnsubscribed { get; set; }
+
+            /// <summary>
+            /// True, if you want to send web notifications for complaint email. Otherwise, false
+            /// </summary>
+            public bool WebNotificationForAbuse { get; set; }
+
+            /// <summary>
+            /// True, if you want to send web notifications for bounced email. Otherwise, false
+            /// </summary>
+            public bool WebNotificationForError { get; set; }
+
+            /// <summary>
+            /// True, if you want to receive low credit email notifications. Otherwise, false
+            /// </summary>
+            public bool LowCreditNotification { get; set; }
+
+            /// <summary>
+            /// True, if you want inbound email to only process contacts from your account. Otherwise, false
+            /// </summary>
+            public bool InboundContactsOnly { get; set; }
+
+            /// <summary>
+            /// True, if this account is a sub-account. Otherwise, false
+            /// </summary>
+            public bool IsSubAccount { get; set; }
+
+            /// <summary>
+            /// True, if this account resells Elastic Email. Otherwise, false.
+            /// </summary>
+            public bool IsOwnedByReseller { get; set; }
+
+            /// <summary>
+            /// True, if you want to enable list-unsubscribe header. Otherwise, false
+            /// </summary>
+            public bool EnableUnsubscribeHeader { get; set; }
+
+            /// <summary>
+            /// True, if you want to display your labels on your unsubscribe form. Otherwise, false
+            /// </summary>
+            public bool ManageSubscriptions { get; set; }
+
+            /// <summary>
+            /// True, if you want to only display labels that the contact is subscribed to on your unsubscribe form. Otherwise, false
+            /// </summary>
+            public bool ManageSubscribedOnly { get; set; }
+
+            /// <summary>
+            /// True, if you want to display an option for the contact to opt into transactional email only on your unsubscribe form. Otherwise, false
+            /// </summary>
+            public bool TransactionalOnUnsubscribe { get; set; }
+
+            /// <summary>
+            /// 
+            /// </summary>
+            public string PreviewMessageID { get; set; }
+
+            /// <summary>
+            /// True, if you want to apply custom headers to your emails. Otherwise, false
+            /// </summary>
+            public bool AllowCustomHeaders { get; set; }
+
+            /// <summary>
+            /// Email address to send a copy of all email to.
+            /// </summary>
+            public string BccEmail { get; set; }
+
+            /// <summary>
+            /// Type of content encoding
+            /// </summary>
+            public string ContentTransferEncoding { get; set; }
+
+            /// <summary>
+            /// True, if you want to receive bounce email notifications. Otherwise, false
+            /// </summary>
+            public string EmailNotification { get; set; }
+
+            /// <summary>
+            /// Email addresses to send a copy of all notifications from our system. Separated by semicolon
+            /// </summary>
+            public string NotificationsEmails { get; set; }
+
+            /// <summary>
+            /// Emails, separated by semicolon, to which the notification about contact unsubscribing should be sent to
+            /// </summary>
+            public string UnsubscribeNotificationEmails { get; set; }
+
+            /// <summary>
+            /// URL address to receive web notifications to parse and process.
+            /// </summary>
+            public string WebNotificationUrl { get; set; }
+
+            /// <summary>
+            /// URL used for tracking action of inbound emails
+            /// </summary>
+            public string HubCallbackUrl { get; set; }
+
+            /// <summary>
+            /// Domain you use as your inbound domain
+            /// </summary>
+            public string InboundDomain { get; set; }
+
+            /// <summary>
+            /// True, if account has tooltips active. Otherwise, false
+            /// </summary>
+            public bool EnableUITooltips { get; set; }
+
+            /// <summary>
+            /// True, if you want to use Advanced Tools.  Otherwise, false
+            /// </summary>
+            public bool EnableContactFeatures { get; set; }
+
+            /// <summary>
+            /// URL to your logo image.
+            /// </summary>
+            public string LogoUrl { get; set; }
+
+            /// <summary>
+            /// (0 means this functionality is NOT enabled) Score, depending on the number of times you have sent to a recipient, at which the given recipient should be moved to the Stale status
+            /// </summary>
+            public int StaleContactScore { get; set; }
+
+            /// <summary>
+            /// (0 means this functionality is NOT enabled) Number of days of inactivity for a contact after which the given recipient should be moved to the Stale status
+            /// </summary>
+            public int StaleContactInactiveDays { get; set; }
+
         }
 
         /// <summary>
-        /// Creates a new FileData instance from a file
+        /// 
         /// </summary>
-        /// <param name="pathWithFileName">Path string including file name</param>
-        /// <returns></returns>
-        public static FileData CreateFromFile(string pathWithFileName)
+        public enum APIKeyAction
         {
-            FileData fileData = new FileData();
-            fileData.ReadFrom(pathWithFileName);
-            return fileData;
+            /// <summary>
+            /// Add an additional APIKey to your Account.
+            /// </summary>
+            Add = 1,
+
+            /// <summary>
+            /// Change this APIKey to a new one.
+            /// </summary>
+            Change = 2,
+
+            /// <summary>
+            /// Delete this APIKey
+            /// </summary>
+            Delete = 3,
+
         }
-    }
 
-
-    #pragma warning disable 0649
-    /// <summary>
-    /// Detailed information about your account
-    /// </summary>
-    public class Account
-    {
-        /// <summary>
-        /// Code used for tax purposes.
-        /// </summary>
-        public string TaxCode;
-
-        /// <summary>
-        /// Public key for limited access to your account such as contact/add so you can use it safely on public websites.
-        /// </summary>
-        public string PublicAccountID;
-
-        /// <summary>
-        /// ApiKey that gives you access to our SMTP and HTTP API's.
-        /// </summary>
-        public string ApiKey;
-
-        /// <summary>
-        /// Second ApiKey that gives you access to our SMTP and HTTP API's.  Used mainly for changing ApiKeys without disrupting services.
-        /// </summary>
-        public string ApiKey2;
-
-        /// <summary>
-        /// True, if account is a subaccount. Otherwise, false
-        /// </summary>
-        public bool IsSub;
-
-        /// <summary>
-        /// The number of subaccounts this account has.
-        /// </summary>
-        public long SubAccountsCount;
-
-        /// <summary>
-        /// Number of status: 1 - Active
-        /// </summary>
-        public int StatusNumber;
-
-        /// <summary>
-        /// Account status: Active
-        /// </summary>
-        public string StatusFormatted;
-
-        /// <summary>
-        /// URL form for payments.
-        /// </summary>
-        public string PaymentFormUrl;
-
-        /// <summary>
-        /// URL to your logo image.
-        /// </summary>
-        public string LogoUrl;
-
-        /// <summary>
-        /// HTTP address of your website.
-        /// </summary>
-        public string Website;
-
-        /// <summary>
-        /// True: Turn on or off ability to send mails under your brand. Otherwise, false
-        /// </summary>
-        public bool EnablePrivateBranding;
-
-        /// <summary>
-        /// Address to your support.
-        /// </summary>
-        public string SupportLink;
-
-        /// <summary>
-        /// Subdomain for your rebranded service
-        /// </summary>
-        public string PrivateBrandingUrl;
-
-        /// <summary>
-        /// First name.
-        /// </summary>
-        public string FirstName;
-
-        /// <summary>
-        /// Last name.
-        /// </summary>
-        public string LastName;
-
-        /// <summary>
-        /// Company name.
-        /// </summary>
-        public string Company;
-
-        /// <summary>
-        /// First line of address.
-        /// </summary>
-        public string Address1;
-
-        /// <summary>
-        /// Second line of address.
-        /// </summary>
-        public string Address2;
-
-        /// <summary>
-        /// City.
-        /// </summary>
-        public string City;
-
-        /// <summary>
-        /// State or province.
-        /// </summary>
-        public string State;
-
-        /// <summary>
-        /// Zip/postal code.
-        /// </summary>
-        public string Zip;
-
-        /// <summary>
-        /// Numeric ID of country. A file with the list of countries is available <a href="http://api.elasticemail.com/public/countries"><b>here</b></a>
-        /// </summary>
-        public int? CountryID;
-
-        /// <summary>
-        /// Phone number
-        /// </summary>
-        public string Phone;
-
-        /// <summary>
-        /// Proper email address.
-        /// </summary>
-        public string Email;
-
-        /// <summary>
-        /// URL for affiliating.
-        /// </summary>
-        public string AffiliateLink;
-
-        /// <summary>
-        /// Numeric reputation
-        /// </summary>
-        public double Reputation;
-
-        /// <summary>
-        /// Amount of emails sent from this account
-        /// </summary>
-        public long TotalEmailsSent;
-
-        /// <summary>
-        /// Amount of emails sent from this account
-        /// </summary>
-        public long? MonthlyEmailsSent;
-
-        /// <summary>
-        /// Amount of emails sent from this account
-        /// </summary>
-        public decimal Credit;
-
-        /// <summary>
-        /// Amount of email credits
-        /// </summary>
-        public int EmailCredits;
-
-        /// <summary>
-        /// Amount of emails sent from this account
-        /// </summary>
-        public decimal PricePerEmail;
-
-        /// <summary>
-        /// Why your clients are receiving your emails.
-        /// </summary>
-        public string DeliveryReason;
-
-        /// <summary>
-        /// URL for making payments.
-        /// </summary>
-        public string AccountPaymentUrl;
-
-        /// <summary>
-        /// Address of SMTP server.
-        /// </summary>
-        public string Smtp;
-
-        /// <summary>
-        /// Address of alternative SMTP server.
-        /// </summary>
-        public string SmtpAlternative;
-
-        /// <summary>
-        /// Status of automatic payments configuration.
-        /// </summary>
-        public string AutoCreditStatus;
-
-        /// <summary>
-        /// When AutoCreditStatus is Enabled, the credit level that triggers the credit to be recharged.
-        /// </summary>
-        public decimal AutoCreditLevel;
-
-        /// <summary>
-        /// When AutoCreditStatus is Enabled, the amount of credit to be recharged.
-        /// </summary>
-        public decimal AutoCreditAmount;
-
-        /// <summary>
-        /// Amount of emails account can send daily
-        /// </summary>
-        public int DailySendLimit;
-
-        /// <summary>
-        /// Creation date.
-        /// </summary>
-        public DateTime DateCreated;
-
-        /// <summary>
-        /// True, if you have enabled link tracking. Otherwise, false
-        /// </summary>
-        public bool LinkTracking;
-
-        /// <summary>
-        /// Type of content encoding
-        /// </summary>
-        public string ContentTransferEncoding;
-
-        /// <summary>
-        /// Amount of Litmus credits
-        /// </summary>
-        public decimal LitmusCredits;
-
-        /// <summary>
-        /// Enable advanced tools on your Account.
-        /// </summary>
-        public bool EnableContactFeatures;
-
-        /// <summary>
-        /// 
-        /// </summary>
-        public bool NeedsSMSVerification;
-
-    }
-
-    /// <summary>
-    /// Basic overview of your account
-    /// </summary>
-    public class AccountOverview
-    {
-        /// <summary>
-        /// Amount of emails sent from this account
-        /// </summary>
-        public long TotalEmailsSent;
-
-        /// <summary>
-        /// Amount of emails sent from this account
-        /// </summary>
-        public decimal Credit;
-
-        /// <summary>
-        /// Cost of 1000 emails
-        /// </summary>
-        public decimal CostPerThousand;
-
-        /// <summary>
-        /// Number of messages in progress
-        /// </summary>
-        public long InProgressCount;
-
-        /// <summary>
-        /// Number of contacts currently with blocked status of Unsubscribed, Complaint, Bounced or InActive
-        /// </summary>
-        public long BlockedContactsCount;
-
-        /// <summary>
-        /// Numeric reputation
-        /// </summary>
-        public double Reputation;
-
-        /// <summary>
-        /// Number of contacts
-        /// </summary>
-        public long ContactCount;
-
-        /// <summary>
-        /// Number of created campaigns
-        /// </summary>
-        public long CampaignCount;
-
-        /// <summary>
-        /// Number of available templates
-        /// </summary>
-        public long TemplateCount;
-
-        /// <summary>
-        /// Number of created subaccounts
-        /// </summary>
-        public long SubAccountCount;
-
-        /// <summary>
-        /// Number of active referrals
-        /// </summary>
-        public long ReferralCount;
-
-    }
-
-    /// <summary>
-    /// Lists advanced sending options of your account.
-    /// </summary>
-    public class AdvancedOptions
-    {
-        /// <summary>
-        /// True, if you want to track clicks. Otherwise, false
-        /// </summary>
-        public bool EnableClickTracking;
-
-        /// <summary>
-        /// True, if you want to track by link tracking. Otherwise, false
-        /// </summary>
-        public bool EnableLinkClickTracking;
-
-        /// <summary>
-        /// True, if you want to use template scripting in your emails {{}}. Otherwise, false
-        /// </summary>
-        public bool EnableTemplateScripting;
-
-        /// <summary>
-        /// True, if text BODY of message should be created automatically. Otherwise, false
-        /// </summary>
-        public bool AutoTextFormat;
-
-        /// <summary>
-        /// True, if you want bounce notifications returned. Otherwise, false
-        /// </summary>
-        public bool EmailNotificationForError;
-
-        /// <summary>
-        /// True, if you want to send web notifications for sent email. Otherwise, false
-        /// </summary>
-        public bool WebNotificationForSent;
-
-        /// <summary>
-        /// True, if you want to send web notifications for opened email. Otherwise, false
-        /// </summary>
-        public bool WebNotificationForOpened;
-
-        /// <summary>
-        /// True, if you want to send web notifications for clicked email. Otherwise, false
-        /// </summary>
-        public bool WebNotificationForClicked;
-
-        /// <summary>
-        /// True, if you want to send web notifications for unsubscribed email. Otherwise, false
-        /// </summary>
-        public bool WebnotificationForUnsubscribed;
-
-        /// <summary>
-        /// True, if you want to send web notifications for complaint email. Otherwise, false
-        /// </summary>
-        public bool WebNotificationForAbuse;
-
-        /// <summary>
-        /// True, if you want to send web notifications for bounced email. Otherwise, false
-        /// </summary>
-        public bool WebNotificationForError;
-
-        /// <summary>
-        /// True, if you want to receive notifications for each type only once per email. Otherwise, false
-        /// </summary>
-        public bool WebNotificationNotifyOncePerEmail;
-
-        /// <summary>
-        /// True, if you want to receive low credit email notifications. Otherwise, false
-        /// </summary>
-        public bool LowCreditNotification;
-
-        /// <summary>
-        /// True, if you want inbound email to only process contacts from your account. Otherwise, false
-        /// </summary>
-        public bool InboundContactsOnly;
-
-        /// <summary>
-        /// True, if this account is a sub-account. Otherwise, false
-        /// </summary>
-        public bool IsSubAccount;
-
-        /// <summary>
-        /// True, if this account resells Elastic Email. Otherwise, false.
-        /// </summary>
-        public bool IsOwnedByReseller;
-
-        /// <summary>
-        /// True, if you want to enable list-unsubscribe header. Otherwise, false
-        /// </summary>
-        public bool EnableUnsubscribeHeader;
-
-        /// <summary>
-        /// True, if you want to display your labels on your unsubscribe form. Otherwise, false
-        /// </summary>
-        public bool ManageSubscriptions;
-
-        /// <summary>
-        /// True, if you want to only display labels that the contact is subscribed to on your unsubscribe form. Otherwise, false
-        /// </summary>
-        public bool ManageSubscribedOnly;
-
-        /// <summary>
-        /// True, if you want to display an option for the contact to opt into transactional email only on your unsubscribe form. Otherwise, false
-        /// </summary>
-        public bool TransactionalOnUnsubscribe;
-
-        /// <summary>
-        /// 
-        /// </summary>
-        public string PreviewMessageID;
-
-        /// <summary>
-        /// True, if you want to apply custom headers to your emails. Otherwise, false
-        /// </summary>
-        public bool AllowCustomHeaders;
-
-        /// <summary>
-        /// Email address to send a copy of all email to.
-        /// </summary>
-        public string BccEmail;
-
-        /// <summary>
-        /// Type of content encoding
-        /// </summary>
-        public string ContentTransferEncoding;
-
-        /// <summary>
-        /// True, if you want to receive bounce email notifications. Otherwise, false
-        /// </summary>
-        public string EmailNotification;
-
-        /// <summary>
-        /// Email addresses to send a copy of all notifications from our system. Separated by semicolon
-        /// </summary>
-        public string NotificationsEmails;
-
-        /// <summary>
-        /// Emails, separated by semicolon, to which the notification about contact unsubscribing should be sent to
-        /// </summary>
-        public string UnsubscribeNotificationEmails;
-
-        /// <summary>
-        /// URL address to receive web notifications to parse and process.
-        /// </summary>
-        public string WebNotificationUrl;
-
-        /// <summary>
-        /// URL used for tracking action of inbound emails
-        /// </summary>
-        public string HubCallbackUrl;
-
-        /// <summary>
-        /// Domain you use as your inbound domain
-        /// </summary>
-        public string InboundDomain;
-
-        /// <summary>
-        /// True, if account has tooltips active. Otherwise, false
-        /// </summary>
-        public bool EnableUITooltips;
-
-        /// <summary>
-        /// True, if you want to use Advanced Tools.  Otherwise, false
-        /// </summary>
-        public bool EnableContactFeatures;
-
-        /// <summary>
-        /// URL to your logo image.
-        /// </summary>
-        public string LogoUrl;
-
-        /// <summary>
-        /// (0 means this functionality is NOT enabled) Score, depending on the number of times you have sent to a recipient, at which the given recipient should be moved to the Stale status
-        /// </summary>
-        public int StaleContactScore;
-
-        /// <summary>
-        /// (0 means this functionality is NOT enabled) Number of days of inactivity for a contact after which the given recipient should be moved to the Stale status
-        /// </summary>
-        public int StaleContactInactiveDays;
-
-        /// <summary>
-        /// Why your clients are receiving your emails.
-        /// </summary>
-        public string DeliveryReason;
-
-    }
-
-    /// <summary>
-    /// 
-    /// </summary>
-    public enum APIKeyAction
-    {
-        /// <summary>
-        /// Add an additional APIKey to your Account.
-        /// </summary>
-        Add = 1,
-
-        /// <summary>
-        /// Change this APIKey to a new one.
-        /// </summary>
-        Change = 2,
-
-        /// <summary>
-        /// Delete this APIKey
-        /// </summary>
-        Delete = 3,
-
-    }
-
-    /// <summary>
-    /// Attachment data
-    /// </summary>
-    public class Attachment
-    {
-        /// <summary>
-        /// Name of your file.
-        /// </summary>
-        public string FileName;
-
-        /// <summary>
-        /// ID number of your attachment
-        /// </summary>
-        public long ID;
-
-        /// <summary>
-        /// Size of your attachment.
-        /// </summary>
-        public int Size;
-
-    }
-
-    /// <summary>
-    /// Blocked Contact - Contact returning Hard Bounces
-    /// </summary>
-    public class BlockedContact
-    {
-        /// <summary>
-        /// Proper email address.
-        /// </summary>
-        public string Email;
-
-        /// <summary>
-        /// Name of status: Active, Engaged, Inactive, Abuse, Bounced, Unsubscribed.
-        /// </summary>
-        public string Status;
-
-        /// <summary>
-        /// RFC error message
-        /// </summary>
-        public string FriendlyErrorMessage;
-
-        /// <summary>
-        /// Last change date
-        /// </summary>
-        public string DateUpdated;
-
-    }
-
-    /// <summary>
-    /// Summary of bounced categories, based on specified date range.
-    /// </summary>
-    public class BouncedCategorySummary
-    {
-        /// <summary>
-        /// Number of messages marked as SPAM
-        /// </summary>
-        public long Spam;
-
-        /// <summary>
-        /// Number of blacklisted messages
-        /// </summary>
-        public long BlackListed;
-
-        /// <summary>
-        /// Number of messages flagged with 'No Mailbox'
-        /// </summary>
-        public long NoMailbox;
-
-        /// <summary>
-        /// Number of messages flagged with 'Grey Listed'
-        /// </summary>
-        public long GreyListed;
-
-        /// <summary>
-        /// Number of messages flagged with 'Throttled'
-        /// </summary>
-        public long Throttled;
-
-        /// <summary>
-        /// Number of messages flagged with 'Timeout'
-        /// </summary>
-        public long Timeout;
-
-        /// <summary>
-        /// Number of messages flagged with 'Connection Problem'
-        /// </summary>
-        public long ConnectionProblem;
-
-        /// <summary>
-        /// Number of messages flagged with 'SPF Problem'
-        /// </summary>
-        public long SpfProblem;
-
-        /// <summary>
-        /// Number of messages flagged with 'Account Problem'
-        /// </summary>
-        public long AccountProblem;
-
-        /// <summary>
-        /// Number of messages flagged with 'DNS Problem'
-        /// </summary>
-        public long DnsProblem;
-
-        /// <summary>
-        /// Number of messages flagged with 'WhiteListing Problem'
-        /// </summary>
-        public long WhitelistingProblem;
-
-        /// <summary>
-        /// Number of messages flagged with 'Code Error'
-        /// </summary>
-        public long CodeError;
-
-        /// <summary>
-        /// Number of messages flagged with 'Not Delivered'
-        /// </summary>
-        public long NotDelivered;
-
-        /// <summary>
-        /// Number of manually cancelled messages
-        /// </summary>
-        public long ManualCancel;
-
-        /// <summary>
-        /// Number of messages flagged with 'Connection terminated'
-        /// </summary>
-        public long ConnectionTerminated;
-
-    }
-
-    /// <summary>
-    /// Campaign
-    /// </summary>
-    public class Campaign
-    {
-        /// <summary>
-        /// ID number of selected Channel.
-        /// </summary>
-        public int? ChannelID;
-
-        /// <summary>
-        /// Campaign's name
-        /// </summary>
-        public string Name;
-
-        /// <summary>
-        /// Name of campaign's status
-        /// </summary>
-        public ApiTypes.CampaignStatus Status;
-
-        /// <summary>
-        /// List of Segment and List IDs, preceded with 'l' for Lists and 's' for Segments, comma separated
-        /// </summary>
-        public string[] Targets;
-
-        /// <summary>
-        /// Number of event, triggering mail sending
-        /// </summary>
-        public ApiTypes.CampaignTriggerType TriggerType;
-
-        /// <summary>
-        /// Date of triggered send
-        /// </summary>
-        public DateTime? TriggerDate;
-
-        /// <summary>
-        /// How far into the future should the campaign be sent, in minutes
-        /// </summary>
-        public double TriggerDelay;
-
-        /// <summary>
-        /// When your next automatic mail will be sent, in minutes
-        /// </summary>
-        public double TriggerFrequency;
-
-        /// <summary>
-        /// How many times should the campaign be sent
-        /// </summary>
-        public int TriggerCount;
-
-        /// <summary>
-        /// ID number of transaction
-        /// </summary>
-        public int TriggerChannelID;
-
-        /// <summary>
-        /// Data for filtering event campaigns such as specific link addresses.
-        /// </summary>
-        public string TriggerData;
-
-        /// <summary>
-        /// What should be checked for choosing the winner: opens or clicks
-        /// </summary>
-        public ApiTypes.SplitOptimization SplitOptimization;
-
-        /// <summary>
-        /// Number of minutes between sends during optimization period
-        /// </summary>
-        public int SplitOptimizationMinutes;
-
-        /// <summary>
-        /// 
-        /// </summary>
-        public int TimingOption;
-
-        /// <summary>
-        /// 
-        /// </summary>
-        public List<ApiTypes.CampaignTemplate> CampaignTemplates;
-
-    }
-
-    /// <summary>
-    /// Channel
-    /// </summary>
-    public class CampaignChannel
-    {
-        /// <summary>
-        /// ID number of selected Channel.
-        /// </summary>
-        public int ChannelID;
-
-        /// <summary>
-        /// Filename
-        /// </summary>
-        public string Name;
-
-        /// <summary>
-        /// True, if you are sending a campaign. Otherwise, false.
-        /// </summary>
-        public bool IsCampaign;
-
-        /// <summary>
-        /// Name of your custom IP Pool to be used in the sending process
-        /// </summary>
-        public string PoolName;
-
-        /// <summary>
-        /// Date of creation in YYYY-MM-DDThh:ii:ss format
-        /// </summary>
-        public DateTime DateAdded;
-
-        /// <summary>
-        /// Name of campaign's status
-        /// </summary>
-        public ApiTypes.CampaignStatus Status;
-
-        /// <summary>
-        /// Date of last activity on account
-        /// </summary>
-        public DateTime? LastActivity;
-
-        /// <summary>
-        /// Datetime of last action done on campaign.
-        /// </summary>
-        public DateTime? LastProcessed;
-
-        /// <summary>
-        /// Id number of parent channel
-        /// </summary>
-        public int ParentChannelID;
-
-        /// <summary>
-        /// List of Segment and List IDs, preceded with 'l' for Lists and 's' for Segments, comma separated
-        /// </summary>
-        public string[] Targets;
-
-        /// <summary>
-        /// Number of event, triggering mail sending
-        /// </summary>
-        public ApiTypes.CampaignTriggerType TriggerType;
-
-        /// <summary>
-        /// Date of triggered send
-        /// </summary>
-        public DateTime? TriggerDate;
-
-        /// <summary>
-        /// How far into the future should the campaign be sent, in minutes
-        /// </summary>
-        public double TriggerDelay;
-
-        /// <summary>
-        /// When your next automatic mail will be sent, in minutes
-        /// </summary>
-        public double TriggerFrequency;
-
-        /// <summary>
-        /// How many times should the campaign be sent
-        /// </summary>
-        public int TriggerCount;
-
-        /// <summary>
-        /// ID number of transaction
-        /// </summary>
-        public int TriggerChannelID;
-
-        /// <summary>
-        /// Data for filtering event campaigns such as specific link addresses.
-        /// </summary>
-        public string TriggerData;
-
-        /// <summary>
-        /// What should be checked for choosing the winner: opens or clicks
-        /// </summary>
-        public ApiTypes.SplitOptimization SplitOptimization;
-
-        /// <summary>
-        /// Number of minutes between sends during optimization period
-        /// </summary>
-        public int SplitOptimizationMinutes;
-
-        /// <summary>
-        /// 
-        /// </summary>
-        public int TimingOption;
-
-        /// <summary>
-        /// ID number of template.
-        /// </summary>
-        public int? TemplateID;
-
-        /// <summary>
-        /// Default subject of email.
-        /// </summary>
-        public string TemplateSubject;
-
-        /// <summary>
-        /// Default From: email address.
-        /// </summary>
-        public string TemplateFromEmail;
-
-        /// <summary>
-        /// Default From: name.
-        /// </summary>
-        public string TemplateFromName;
-
-        /// <summary>
-        /// Default Reply: email address.
-        /// </summary>
-        public string TemplateReplyEmail;
-
-        /// <summary>
-        /// Default Reply: name.
-        /// </summary>
-        public string TemplateReplyName;
-
-        /// <summary>
-        /// Total emails clicked
-        /// </summary>
-        public int ClickedCount;
-
-        /// <summary>
-        /// Total emails opened.
-        /// </summary>
-        public int OpenedCount;
-
-        /// <summary>
-        /// Overall number of recipients
-        /// </summary>
-        public int RecipientCount;
-
-        /// <summary>
-        /// Total emails sent.
-        /// </summary>
-        public int SentCount;
-
-        /// <summary>
-        /// Total emails sent.
-        /// </summary>
-        public int FailedCount;
-
-        /// <summary>
-        /// Total emails clicked
-        /// </summary>
-        public int UnsubscribedCount;
-
-        /// <summary>
-        /// Abuses - mails sent to user without their consent
-        /// </summary>
-        public int FailedAbuse;
-
-        /// <summary>
-        /// List of CampaignTemplate for sending A-X split testing.
-        /// </summary>
-        public List<ApiTypes.CampaignChannel> TemplateChannels;
-
-    }
-
-    /// <summary>
-    /// 
-    /// </summary>
-    public enum CampaignStatus
-    {
-        /// <summary>
-        /// Campaign is logically deleted and not returned by API or interface calls.
-        /// </summary>
-        Deleted = -1,
-
-        /// <summary>
-        /// Campaign is curently active and available.
-        /// </summary>
-        Active = 0,
-
-        /// <summary>
-        /// Campaign is currently being processed for delivery.
-        /// </summary>
-        Processing = 1,
-
-        /// <summary>
-        /// Campaign is currently sending.
-        /// </summary>
-        Sending = 2,
-
-        /// <summary>
-        /// Campaign has completed sending.
-        /// </summary>
-        Completed = 3,
-
-        /// <summary>
-        /// Campaign is currently paused and not sending.
-        /// </summary>
-        Paused = 4,
-
-        /// <summary>
-        /// Campaign has been cancelled during delivery.
-        /// </summary>
-        Cancelled = 5,
-
-        /// <summary>
-        /// Campaign is save as draft and not processing.
-        /// </summary>
-        Draft = 6,
-
-    }
-
-    /// <summary>
-    /// 
-    /// </summary>
-    public class CampaignTemplate
-    {
-        /// <summary>
-        /// ID number of selected Channel.
-        /// </summary>
-        public int? ChannelID;
-
-        /// <summary>
-        /// Name of campaign's status
-        /// </summary>
-        public ApiTypes.CampaignStatus Status;
-
-        /// <summary>
-        /// Name of your custom IP Pool to be used in the sending process
-        /// </summary>
-        public string PoolName;
-
-        /// <summary>
-        /// ID number of template.
-        /// </summary>
-        public int? TemplateID;
-
-        /// <summary>
-        /// Default subject of email.
-        /// </summary>
-        public string TemplateSubject;
-
-        /// <summary>
-        /// Default From: email address.
-        /// </summary>
-        public string TemplateFromEmail;
-
-        /// <summary>
-        /// Default From: name.
-        /// </summary>
-        public string TemplateFromName;
-
-        /// <summary>
-        /// Default Reply: email address.
-        /// </summary>
-        public string TemplateReplyEmail;
-
-        /// <summary>
-        /// Default Reply: name.
-        /// </summary>
-        public string TemplateReplyName;
-
-    }
-
-    /// <summary>
-    /// 
-    /// </summary>
-    public enum CampaignTriggerType
-    {
-        /// <summary>
-        /// 
-        /// </summary>
-        SendNow = 1,
-
-        /// <summary>
-        /// 
-        /// </summary>
-        FutureScheduled = 2,
-
-        /// <summary>
-        /// 
-        /// </summary>
-        OnAdd = 3,
-
-        /// <summary>
-        /// 
-        /// </summary>
-        OnOpen = 4,
-
-        /// <summary>
-        /// 
-        /// </summary>
-        OnClick = 5,
-
-    }
-
-    /// <summary>
-    /// SMTP and HTTP API channel for grouping email delivery
-    /// </summary>
-    public class Channel
-    {
-        /// <summary>
-        /// Descriptive name of the channel.
-        /// </summary>
-        public string Name;
-
-        /// <summary>
-        /// The date the channel was added to your account.
-        /// </summary>
-        public DateTime DateAdded;
-
-        /// <summary>
-        /// The date the channel was last sent through.
-        /// </summary>
-        public DateTime? LastActivity;
-
-        /// <summary>
-        /// The number of email jobs this channel has been used with.
-        /// </summary>
-        public int JobCount;
-
-        /// <summary>
-        /// The number of emails that have been clicked within this channel.
-        /// </summary>
-        public int ClickedCount;
-
-        /// <summary>
-        /// The number of emails that have been opened within this channel.
-        /// </summary>
-        public int OpenedCount;
-
-        /// <summary>
-        /// The number of emails attempted to be sent within this channel.
-        /// </summary>
-        public int RecipientCount;
-
-        /// <summary>
-        /// The number of emails that have been sent within this channel.
-        /// </summary>
-        public int SentCount;
-
-        /// <summary>
-        /// The number of emails that have been bounced within this channel.
-        /// </summary>
-        public int FailedCount;
-
-        /// <summary>
-        /// The number of emails that have been unsubscribed within this channel.
-        /// </summary>
-        public int UnsubscribedCount;
-
-        /// <summary>
-        /// The number of emails that have been marked as abuse or complaint within this channel.
-        /// </summary>
-        public int FailedAbuse;
-
-        /// <summary>
-        /// The total cost for emails/attachments within this channel.
-        /// </summary>
-        public decimal Cost;
-
-    }
-
-    /// <summary>
-    /// FileResponse compression format
-    /// </summary>
-    public enum CompressionFormat
-    {
-        /// <summary>
-        /// No compression
-        /// </summary>
-        None = 0,
-
-        /// <summary>
-        /// Zip compression
-        /// </summary>
-        Zip = 1,
-
-    }
-
-    /// <summary>
-    /// Contact
-    /// </summary>
-    public class Contact
-    {
-        /// <summary>
-        /// 
-        /// </summary>
-        public int ContactScore;
-
-        /// <summary>
-        /// Date of creation in YYYY-MM-DDThh:ii:ss format
-        /// </summary>
-        public DateTime DateAdded;
-
-        /// <summary>
-        /// Proper email address.
-        /// </summary>
-        public string Email;
-
-        /// <summary>
-        /// First name.
-        /// </summary>
-        public string FirstName;
-
-        /// <summary>
-        /// Last name.
-        /// </summary>
-        public string LastName;
-
-        /// <summary>
-        /// Title
-        /// </summary>
-        public string Title;
-
-        /// <summary>
-        /// Name of organization
-        /// </summary>
-        public string OrganizationName;
-
-        /// <summary>
-        /// City.
-        /// </summary>
-        public string City;
-
-        /// <summary>
-        /// Name of country.
-        /// </summary>
-        public string Country;
-
-        /// <summary>
-        /// State or province.
-        /// </summary>
-        public string State;
-
-        /// <summary>
-        /// Zip/postal code.
-        /// </summary>
-        public string Zip;
-
-        /// <summary>
-        /// Phone number
-        /// </summary>
-        public string Phone;
-
-        /// <summary>
-        /// Date of birth in YYYY-MM-DD format
-        /// </summary>
-        public DateTime? BirthDate;
-
-        /// <summary>
-        /// Your gender
-        /// </summary>
-        public string Gender;
-
-        /// <summary>
-        /// Name of status: Active, Engaged, Inactive, Abuse, Bounced, Unsubscribed.
-        /// </summary>
-        public ApiTypes.ContactStatus Status;
-
-        /// <summary>
-        /// RFC Error code
-        /// </summary>
-        public int? BouncedErrorCode;
-
-        /// <summary>
-        /// RFC error message
-        /// </summary>
-        public string BouncedErrorMessage;
-
-        /// <summary>
-        /// Total emails sent.
-        /// </summary>
-        public int TotalSent;
-
-        /// <summary>
-        /// Total emails sent.
-        /// </summary>
-        public int TotalFailed;
-
-        /// <summary>
-        /// Total emails opened.
-        /// </summary>
-        public int TotalOpened;
-
-        /// <summary>
-        /// Total emails clicked
-        /// </summary>
-        public int TotalClicked;
-
-        /// <summary>
-        /// Date of first failed message
-        /// </summary>
-        public DateTime? FirstFailedDate;
-
-        /// <summary>
-        /// Number of fails in sending to this Contact
-        /// </summary>
-        public int LastFailedCount;
-
-        /// <summary>
-        /// Last change date
-        /// </summary>
-        public DateTime DateUpdated;
-
-        /// <summary>
-        /// Source of URL of payment
-        /// </summary>
-        public ApiTypes.ContactSource Source;
-
-        /// <summary>
-        /// RFC Error code
-        /// </summary>
-        public int? ErrorCode;
-
-        /// <summary>
-        /// RFC error message
-        /// </summary>
-        public string FriendlyErrorMessage;
-
-        /// <summary>
-        /// IP address
-        /// </summary>
-        public string CreatedFromIP;
-
-        /// <summary>
-        /// Yearly revenue for the contact
-        /// </summary>
-        public decimal Revenue;
-
-        /// <summary>
-        /// Number of purchases contact has made
-        /// </summary>
-        public int PurchaseCount;
-
-        /// <summary>
-        /// Mobile phone number
-        /// </summary>
-        public string MobileNumber;
-
-        /// <summary>
-        /// Fax number
-        /// </summary>
-        public string FaxNumber;
-
-        /// <summary>
-        /// Biography for Linked-In
-        /// </summary>
-        public string LinkedInBio;
-
-        /// <summary>
-        /// Number of Linked-In connections
-        /// </summary>
-        public int LinkedInConnections;
-
-        /// <summary>
-        /// Biography for Twitter
-        /// </summary>
-        public string TwitterBio;
-
-        /// <summary>
-        /// User name for Twitter
-        /// </summary>
-        public string TwitterUsername;
-
-        /// <summary>
-        /// URL for Twitter photo
-        /// </summary>
-        public string TwitterProfilePhoto;
-
-        /// <summary>
-        /// Number of Twitter followers
-        /// </summary>
-        public int TwitterFollowerCount;
-
-        /// <summary>
-        /// Unsubscribed date in YYYY-MM-DD format
-        /// </summary>
-        public DateTime? UnsubscribedDate;
-
-        /// <summary>
-        /// Industry contact works in
-        /// </summary>
-        public string Industry;
-
-        /// <summary>
-        /// Number of employees
-        /// </summary>
-        public int NumberOfEmployees;
-
-        /// <summary>
-        /// Annual revenue of contact
-        /// </summary>
-        public decimal? AnnualRevenue;
-
-        /// <summary>
-        /// Date of first purchase in YYYY-MM-DD format
-        /// </summary>
-        public DateTime? FirstPurchase;
-
-        /// <summary>
-        /// Date of last purchase in YYYY-MM-DD format
-        /// </summary>
-        public DateTime? LastPurchase;
-
-        /// <summary>
-        /// Free form field of notes
-        /// </summary>
-        public string Notes;
-
-        /// <summary>
-        /// Website of contact
-        /// </summary>
-        public string WebsiteUrl;
-
-        /// <summary>
-        /// Number of page views
-        /// </summary>
-        public int PageViews;
-
-        /// <summary>
-        /// Number of website visits
-        /// </summary>
-        public int Visits;
-
-        /// <summary>
-        /// Number of messages sent last month
-        /// </summary>
-        public int? LastMonthSent;
-
-        /// <summary>
-        /// Date this contact last opened an email
-        /// </summary>
-        public DateTime? LastOpened;
-
-        /// <summary>
-        /// 
-        /// </summary>
-        public DateTime? LastClicked;
-
-        /// <summary>
-        /// Your gravatar hash for image
-        /// </summary>
-        public string GravatarHash;
-
-    }
-
-    /// <summary>
-    /// Collection of lists and segments
-    /// </summary>
-    public class ContactCollection
-    {
-        /// <summary>
-        /// Lists which contain the requested contact
-        /// </summary>
-        public List<ApiTypes.ContactContainer> Lists;
-
-        /// <summary>
-        /// Segments which contain the requested contact
-        /// </summary>
-        public List<ApiTypes.ContactContainer> Segments;
-
-    }
-
-    /// <summary>
-    /// List's or segment's short info
-    /// </summary>
-    public class ContactContainer
-    {
-        /// <summary>
-        /// ID of the list/segment
-        /// </summary>
-        public int ID;
-
-        /// <summary>
-        /// Name of the list/segment
-        /// </summary>
-        public string Name;
-
-    }
-
-    /// <summary>
-    /// History of chosen Contact
-    /// </summary>
-    public class ContactHistory
-    {
-        /// <summary>
-        /// ID of history of selected Contact.
-        /// </summary>
-        public long ContactHistoryID;
-
-        /// <summary>
-        /// Type of event occured on this Contact.
-        /// </summary>
-        public string EventType;
-
-        /// <summary>
-        /// Numeric code of event occured on this Contact.
-        /// </summary>
-        public int EventTypeValue;
-
-        /// <summary>
-        /// Formatted date of event.
-        /// </summary>
-        public string EventDate;
-
-        /// <summary>
-        /// Name of selected channel.
-        /// </summary>
-        public string ChannelName;
-
-        /// <summary>
-        /// Name of template.
-        /// </summary>
-        public string TemplateName;
-
-        /// <summary>
-        /// IP Address of the event.
-        /// </summary>
-        public string IPAddress;
-
-        /// <summary>
-        /// Country of the event.
-        /// </summary>
-        public string Country;
-
-    }
-
-    /// <summary>
-    /// 
-    /// </summary>
-    public enum ContactSource
-    {
-        /// <summary>
-        /// Source of the contact is from sending an email via our SMTP or HTTP API's
-        /// </summary>
-        DeliveryApi = 0,
-
-        /// <summary>
-        /// Contact was manually entered from the interface.
-        /// </summary>
-        ManualInput = 1,
-
-        /// <summary>
-        /// Contact was uploaded via a file such as CSV.
-        /// </summary>
-        FileUpload = 2,
-
-        /// <summary>
-        /// Contact was added from a public web form.
-        /// </summary>
-        WebForm = 3,
-
-        /// <summary>
-        /// Contact was added from the contact api.
-        /// </summary>
-        ContactApi = 4,
-
-    }
-
-    /// <summary>
-    /// 
-    /// </summary>
-    public enum ContactStatus
-    {
-        /// <summary>
-        /// Only transactional email can be sent to contacts with this status.
-        /// </summary>
-        Transactional = -2,
-
-        /// <summary>
-        /// Contact has had an open or click in the last 6 months.
-        /// </summary>
-        Engaged = -1,
-
-        /// <summary>
-        /// Contact is eligible to be sent to.
-        /// </summary>
-        Active = 0,
-
-        /// <summary>
-        /// Contact has had a hard bounce and is no longer eligible to be sent to.
-        /// </summary>
-        Bounced = 1,
-
-        /// <summary>
-        /// Contact has unsubscribed and is no longer eligible to be sent to.
-        /// </summary>
-        Unsubscribed = 2,
-
-        /// <summary>
-        /// Contact has complained and is no longer eligible to be sent to.
-        /// </summary>
-        Abuse = 3,
-
-        /// <summary>
-        /// Contact has not been activated or has been de-activated and is not eligible to be sent to.
-        /// </summary>
-        Inactive = 4,
-
-        /// <summary>
-        /// Contact has not been opening emails for a long period of time and is not eligible to be sent to.
-        /// </summary>
-        Stale = 5,
-
-        /// <summary>
-        /// Contact has not confirmed their double opt-in activation and is not eligible to be sent to.
-        /// </summary>
-        NotConfirmed = 6,
-
-    }
-
-    /// <summary>
-    /// Number of Contacts, grouped by Status;
-    /// </summary>
-    public class ContactStatusCounts
-    {
-        /// <summary>
-        /// Number of engaged contacts
-        /// </summary>
-        public long Engaged;
-
-        /// <summary>
-        /// Number of active contacts
-        /// </summary>
-        public long Active;
-
-        /// <summary>
-        /// Number of complaint messages
-        /// </summary>
-        public long Complaint;
-
-        /// <summary>
-        /// Number of unsubscribed messages
-        /// </summary>
-        public long Unsubscribed;
-
-        /// <summary>
-        /// Number of bounced messages
-        /// </summary>
-        public long Bounced;
-
-        /// <summary>
-        /// Number of inactive contacts
-        /// </summary>
-        public long Inactive;
-
-        /// <summary>
-        /// Number of transactional contacts
-        /// </summary>
-        public long Transactional;
-
-        /// <summary>
-        /// 
-        /// </summary>
-        public long Stale;
-
-        /// <summary>
-        /// 
-        /// </summary>
-        public long NotConfirmed;
-
-    }
-
-    /// <summary>
-    /// Type of credits
-    /// </summary>
-    public enum CreditType
-    {
-        /// <summary>
-        /// Used to send emails.  One credit = one email.
-        /// </summary>
-        Email = 9,
-
-        /// <summary>
-        /// Used to run a litmus test on a template.  1 credit = 1 test.
-        /// </summary>
-        Litmus = 17,
-
-    }
-
-    /// <summary>
-    /// Daily summary of log status, based on specified date range.
-    /// </summary>
-    public class DailyLogStatusSummary
-    {
-        /// <summary>
-        /// Date in YYYY-MM-DDThh:ii:ss format
-        /// </summary>
-        public string Date;
-
-        /// <summary>
-        /// Proper email address.
-        /// </summary>
-        public int Email;
-
-        /// <summary>
-        /// Number of SMS
-        /// </summary>
-        public int Sms;
-
-        /// <summary>
-        /// Number of delivered messages
-        /// </summary>
-        public int Delivered;
-
-        /// <summary>
-        /// Number of opened messages
-        /// </summary>
-        public int Opened;
-
-        /// <summary>
-        /// Number of clicked messages
-        /// </summary>
-        public int Clicked;
-
-        /// <summary>
-        /// Number of unsubscribed messages
-        /// </summary>
-        public int Unsubscribed;
-
-        /// <summary>
-        /// Number of complaint messages
-        /// </summary>
-        public int Complaint;
-
-        /// <summary>
-        /// Number of bounced messages
-        /// </summary>
-        public int Bounced;
-
-        /// <summary>
-        /// Number of inbound messages
-        /// </summary>
-        public int Inbound;
-
-        /// <summary>
-        /// Number of manually cancelled messages
-        /// </summary>
-        public int ManualCancel;
-
-        /// <summary>
-        /// Number of messages flagged with 'Not Delivered'
-        /// </summary>
-        public int NotDelivered;
-
-    }
-
-    /// <summary>
-    /// Domain data, with information about domain records.
-    /// </summary>
-    public class DomainDetail
-    {
-        /// <summary>
-        /// Name of selected domain.
-        /// </summary>
-        public string Domain;
-
-        /// <summary>
-        /// True, if domain is used as default. Otherwise, false,
-        /// </summary>
-        public bool DefaultDomain;
-
-        /// <summary>
-        /// True, if SPF record is verified
-        /// </summary>
-        public bool Spf;
-
-        /// <summary>
-        /// True, if DKIM record is verified
-        /// </summary>
-        public bool Dkim;
-
-        /// <summary>
-        /// True, if MX record is verified
-        /// </summary>
-        public bool MX;
-
-        /// <summary>
-        /// 
-        /// </summary>
-        public bool DMARC;
-
-        /// <summary>
-        /// True, if tracking CNAME record is verified
-        /// </summary>
-        public bool IsRewriteDomainValid;
-
-        /// <summary>
-        /// True, if verification is available
-        /// </summary>
-        public bool Verify;
-
-        /// <summary>
-        /// 
-        /// </summary>
-        public ApiTypes.TrackingType Type;
-
-    }
-
-    /// <summary>
-    /// Detailed information about email credits
-    /// </summary>
-    public class EmailCredits
-    {
-        /// <summary>
-        /// Date in YYYY-MM-DDThh:ii:ss format
-        /// </summary>
-        public DateTime Date;
-
-        /// <summary>
-        /// Amount of money in transaction
-        /// </summary>
-        public decimal Amount;
-
-        /// <summary>
-        /// Source of URL of payment
-        /// </summary>
-        public string Source;
-
-        /// <summary>
-        /// Free form field of notes
-        /// </summary>
-        public string Notes;
-
-    }
-
-    /// <summary>
-    /// 
-    /// </summary>
-    public class EmailJobFailedStatus
-    {
-        /// <summary>
-        /// 
-        /// </summary>
-        public string Address;
-
-        /// <summary>
-        /// 
-        /// </summary>
-        public string Error;
-
-        /// <summary>
-        /// RFC Error code
-        /// </summary>
-        public int ErrorCode;
-
-        /// <summary>
-        /// 
-        /// </summary>
-        public string Category;
-
-    }
-
-    /// <summary>
-    /// 
-    /// </summary>
-    public class EmailJobStatus
-    {
-        /// <summary>
-        /// ID number of your attachment
-        /// </summary>
-        public string ID;
-
-        /// <summary>
-        /// Name of status: submitted, complete, in_progress
-        /// </summary>
-        public string Status;
-
-        /// <summary>
-        /// 
-        /// </summary>
-        public int RecipientsCount;
-
-        /// <summary>
-        /// 
-        /// </summary>
-        public List<ApiTypes.EmailJobFailedStatus> Failed;
-
-        /// <summary>
-        /// Total emails sent.
-        /// </summary>
-        public int FailedCount;
-
-        /// <summary>
-        /// 
-        /// </summary>
-        public List<string> Sent;
-
-        /// <summary>
-        /// Total emails sent.
-        /// </summary>
-        public int SentCount;
-
-        /// <summary>
-        /// Number of delivered messages
-        /// </summary>
-        public List<string> Delivered;
-
-        /// <summary>
-        /// 
-        /// </summary>
-        public int DeliveredCount;
-
-        /// <summary>
-        /// 
-        /// </summary>
-        public List<string> Pending;
-
-        /// <summary>
-        /// 
-        /// </summary>
-        public int PendingCount;
-
-        /// <summary>
-        /// Number of opened messages
-        /// </summary>
-        public List<string> Opened;
-
-        /// <summary>
-        /// Total emails opened.
-        /// </summary>
-        public int OpenedCount;
-
-        /// <summary>
-        /// Number of clicked messages
-        /// </summary>
-        public List<string> Clicked;
-
-        /// <summary>
-        /// Total emails clicked
-        /// </summary>
-        public int ClickedCount;
-
-        /// <summary>
-        /// Number of unsubscribed messages
-        /// </summary>
-        public List<string> Unsubscribed;
-
-        /// <summary>
-        /// Total emails clicked
-        /// </summary>
-        public int UnsubscribedCount;
-
-        /// <summary>
-        /// 
-        /// </summary>
-        public List<string> AbuseReports;
-
-        /// <summary>
-        /// 
-        /// </summary>
-        public int AbuseReportsCount;
-
-        /// <summary>
-        /// List of all MessageIDs for this job.
-        /// </summary>
-        public List<string> MessageIDs;
-
-    }
-
-    /// <summary>
-    /// 
-    /// </summary>
-    public class EmailSend
-    {
-        /// <summary>
-        /// ID number of transaction
-        /// </summary>
-        public string TransactionID;
-
-        /// <summary>
-        /// Unique identifier for this email.
-        /// </summary>
-        public string MessageID;
-
-    }
-
-    /// <summary>
-    /// Status information of the specified email
-    /// </summary>
-    public class EmailStatus
-    {
-        /// <summary>
-        /// Email address this email was sent from.
-        /// </summary>
-        public string From;
-
-        /// <summary>
-        /// Email address this email was sent to.
-        /// </summary>
-        public string To;
-
-        /// <summary>
-        /// Date the email was submitted.
-        /// </summary>
-        public DateTime Date;
-
-        /// <summary>
-        /// Value of email's status
-        /// </summary>
-        public ApiTypes.LogJobStatus Status;
-
-        /// <summary>
-        /// Name of email's status
-        /// </summary>
-        public string StatusName;
-
-        /// <summary>
-        /// Date of last status change.
-        /// </summary>
-        public DateTime StatusChangeDate;
-
-        /// <summary>
-        /// Detailed error or bounced message.
-        /// </summary>
-        public string ErrorMessage;
-
-        /// <summary>
-        /// ID number of transaction
-        /// </summary>
-        public Guid TransactionID;
-
-    }
-
-    /// <summary>
-    /// Email details formatted in json
-    /// </summary>
-    public class EmailView
-    {
-        /// <summary>
-        /// Body (text) of your message.
-        /// </summary>
-        public string Body;
-
-        /// <summary>
-        /// Default subject of email.
-        /// </summary>
-        public string Subject;
-
-        /// <summary>
-        /// Starting date for search in YYYY-MM-DDThh:mm:ss format.
-        /// </summary>
-        public string From;
-
-    }
-
-    /// <summary>
-    /// Encoding type for the email headers
-    /// </summary>
-    public enum EncodingType
-    {
-        /// <summary>
-        /// Encoding of the email is provided by the sender and not altered.
-        /// </summary>
-        UserProvided = -1,
-
-        /// <summary>
-        /// No endcoding is set for the email.
-        /// </summary>
-        None = 0,
-
-        /// <summary>
-        /// Encoding of the email is in Raw7bit format.
-        /// </summary>
-        Raw7bit = 1,
-
-        /// <summary>
-        /// Encoding of the email is in Raw8bit format.
-        /// </summary>
-        Raw8bit = 2,
-
-        /// <summary>
-        /// Encoding of the email is in QuotedPrintable format.
-        /// </summary>
-        QuotedPrintable = 3,
-
-        /// <summary>
-        /// Encoding of the email is in Base64 format.
-        /// </summary>
-        Base64 = 4,
-
-        /// <summary>
-        /// Encoding of the email is in Uue format.
-        /// </summary>
-        Uue = 5,
-
-    }
-
-    /// <summary>
-    /// Record of exported data from the system.
-    /// </summary>
-    public class Export
-    {
-        /// <summary>
-        /// 
-        /// </summary>
-        public Guid PublicExportID;
-
-        /// <summary>
-        /// Date the export was created
-        /// </summary>
-        public DateTime DateAdded;
-
-        /// <summary>
-        /// Type of export
-        /// </summary>
-        public string Type;
-
-        /// <summary>
-        /// Current status of export
-        /// </summary>
-        public string Status;
-
-        /// <summary>
-        /// Long description of the export
-        /// </summary>
-        public string Info;
-
-        /// <summary>
-        /// Name of the file
-        /// </summary>
-        public string Filename;
-
-        /// <summary>
-        /// Link to download the export
-        /// </summary>
-        public string Link;
-
-    }
-
-    /// <summary>
-    /// Type of export
-    /// </summary>
-    public enum ExportFileFormats
-    {
-        /// <summary>
-        /// Export in comma separated values format.
-        /// </summary>
-        Csv = 1,
-
-        /// <summary>
-        /// Export in xml format
-        /// </summary>
-        Xml = 2,
-
-        /// <summary>
-        /// Export in json format
-        /// </summary>
-        Json = 3,
-
-    }
-
-    /// <summary>
-    /// 
-    /// </summary>
-    public class ExportLink
-    {
-        /// <summary>
-        /// Direct URL to the exported file
-        /// </summary>
-        public string Link;
-
-    }
-
-    /// <summary>
-    /// Current status of export
-    /// </summary>
-    public enum ExportStatus
-    {
-        /// <summary>
-        /// Export had an error and can not be downloaded.
-        /// </summary>
-        Error = -1,
-
-        /// <summary>
-        /// Export is currently loading and can not be downloaded.
-        /// </summary>
-        Loading = 0,
-
-        /// <summary>
-        /// Export is currently available for downloading.
-        /// </summary>
-        Ready = 1,
-
-        /// <summary>
-        /// Export is no longer available for downloading.
-        /// </summary>
-        Expired = 2,
-
-    }
-
-    /// <summary>
-    /// Number of Exports, grouped by export type
-    /// </summary>
-    public class ExportTypeCounts
-    {
-        /// <summary>
-        /// 
-        /// </summary>
-        public long Log;
-
-        /// <summary>
-        /// 
-        /// </summary>
-        public long Contact;
-
-        /// <summary>
-        /// Json representation of a campaign
-        /// </summary>
-        public long Campaign;
-
-        /// <summary>
-        /// True, if you have enabled link tracking. Otherwise, false
-        /// </summary>
-        public long LinkTracking;
-
-        /// <summary>
-        /// Json representation of a survey
-        /// </summary>
-        public long Survey;
-
-    }
-
-    /// <summary>
-    /// 
-    /// </summary>
-    public enum IntervalType
-    {
         /// <summary>
-        /// Daily overview
+        /// Attachment data
         /// </summary>
-        Summary = 0,
+        public class Attachment
+        {
+            /// <summary>
+            /// Name of your file.
+            /// </summary>
+            public string FileName { get; set; }
 
-        /// <summary>
-        /// Hourly, detailed information
-        /// </summary>
-        Hourly = 1,
-
-    }
-
-    /// <summary>
-    /// Object containig tracking data.
-    /// </summary>
-    public class LinkTrackingDetails
-    {
-        /// <summary>
-        /// Number of items.
-        /// </summary>
-        public int Count;
-
-        /// <summary>
-        /// True, if there are more detailed data available. Otherwise, false
-        /// </summary>
-        public bool MoreAvailable;
-
-        /// <summary>
-        /// 
-        /// </summary>
-        public List<ApiTypes.TrackedLink> TrackedLink;
-
-    }
-
-    /// <summary>
-    /// List of Lists, with detailed data about its contents.
-    /// </summary>
-    public class List
-    {
-        /// <summary>
-        /// ID number of selected list.
-        /// </summary>
-        public int ListID;
-
-        /// <summary>
-        /// Name of your list.
-        /// </summary>
-        public string ListName;
-
-        /// <summary>
-        /// Number of items.
-        /// </summary>
-        public int Count;
-
-        /// <summary>
-        /// ID code of list
-        /// </summary>
-        public Guid? PublicListID;
-
-        /// <summary>
-        /// Date of creation in YYYY-MM-DDThh:ii:ss format
-        /// </summary>
-        public DateTime DateAdded;
-
-        /// <summary>
-        /// True: Allow unsubscribing from this list. Otherwise, false
-        /// </summary>
-        public bool AllowUnsubscribe;
-
-        /// <summary>
-        /// Query used for filtering.
-        /// </summary>
-        public string Rule;
-
-    }
-
-    /// <summary>
-    /// Detailed information about litmus credits
-    /// </summary>
-    public class LitmusCredits
-    {
-        /// <summary>
-        /// Date in YYYY-MM-DDThh:ii:ss format
-        /// </summary>
-        public DateTime Date;
-
-        /// <summary>
-        /// Amount of money in transaction
-        /// </summary>
-        public decimal Amount;
-
-    }
-
-    /// <summary>
-    /// Logs for selected date range
-    /// </summary>
-    public class Log
-    {
-        /// <summary>
-        /// Starting date for search in YYYY-MM-DDThh:mm:ss format.
-        /// </summary>
-        public DateTime? From;
-
-        /// <summary>
-        /// Ending date for search in YYYY-MM-DDThh:mm:ss format.
-        /// </summary>
-        public DateTime? To;
-
-        /// <summary>
-        /// Number of recipients
-        /// </summary>
-        public List<ApiTypes.Recipient> Recipients;
-
-    }
-
-    /// <summary>
-    /// 
-    /// </summary>
-    public enum LogJobStatus
-    {
-        /// <summary>
-        /// All emails
-        /// </summary>
-        All = 0,
-
-        /// <summary>
-        /// Email has been submitted successfully and is queued for sending.
-        /// </summary>
-        ReadyToSend = 1,
-
-        /// <summary>
-        /// Email has soft bounced and is scheduled to retry.
-        /// </summary>
-        WaitingToRetry = 2,
-
-        /// <summary>
-        /// Email is currently sending.
-        /// </summary>
-        Sending = 3,
+            /// <summary>
+            /// ID number of your attachment
+            /// </summary>
+            public string ID { get; set; }
 
-        /// <summary>
-        /// Email has errored or bounced for some reason.
-        /// </summary>
-        Error = 4,
-
-        /// <summary>
-        /// Email has been successfully delivered.
-        /// </summary>
-        Sent = 5,
-
-        /// <summary>
-        /// Email has been opened by the recipient.
-        /// </summary>
-        Opened = 6,
-
-        /// <summary>
-        /// Email has had at least one link clicked by the recipient.
-        /// </summary>
-        Clicked = 7,
-
-        /// <summary>
-        /// Email has been unsubscribed by the recipient.
-        /// </summary>
-        Unsubscribed = 8,
-
-        /// <summary>
-        /// Email has been complained about or marked as spam by the recipient.
-        /// </summary>
-        AbuseReport = 9,
-
-    }
-
-    /// <summary>
-    /// Summary of log status, based on specified date range.
-    /// </summary>
-    public class LogStatusSummary
-    {
-        /// <summary>
-        /// Starting date for search in YYYY-MM-DDThh:mm:ss format.
-        /// </summary>
-        public string From;
-
-        /// <summary>
-        /// Ending date for search in YYYY-MM-DDThh:mm:ss format.
-        /// </summary>
-        public string To;
-
-        /// <summary>
-        /// Overall duration
-        /// </summary>
-        public double Duration;
-
-        /// <summary>
-        /// Number of recipients
-        /// </summary>
-        public long Recipients;
-
-        /// <summary>
-        /// Number of emails
-        /// </summary>
-        public long EmailTotal;
-
-        /// <summary>
-        /// Number of SMS
-        /// </summary>
-        public long SmsTotal;
-
-        /// <summary>
-        /// Number of delivered messages
-        /// </summary>
-        public long Delivered;
-
-        /// <summary>
-        /// Number of bounced messages
-        /// </summary>
-        public long Bounced;
-
-        /// <summary>
-        /// Number of messages in progress
-        /// </summary>
-        public long InProgress;
-
-        /// <summary>
-        /// Number of opened messages
-        /// </summary>
-        public long Opened;
+            /// <summary>
+            /// Size of your attachment.
+            /// </summary>
+            public int Size { get; set; }
 
-        /// <summary>
-        /// Number of clicked messages
-        /// </summary>
-        public long Clicked;
-
-        /// <summary>
-        /// Number of unsubscribed messages
-        /// </summary>
-        public long Unsubscribed;
-
-        /// <summary>
-        /// Number of complaint messages
-        /// </summary>
-        public long Complaints;
+        }
 
         /// <summary>
-        /// Number of inbound messages
+        /// Blocked Contact - Contact returning Hard Bounces
         /// </summary>
-        public long Inbound;
+        public class BlockedContact
+        {
+            /// <summary>
+            /// Proper email address.
+            /// </summary>
+            public string Email { get; set; }
 
-        /// <summary>
-        /// Number of manually cancelled messages
-        /// </summary>
-        public long ManualCancel;
-
-        /// <summary>
-        /// Number of messages flagged with 'Not Delivered'
-        /// </summary>
-        public long NotDelivered;
+            /// <summary>
+            /// Name of status: Active, Engaged, Inactive, Abuse, Bounced, Unsubscribed.
+            /// </summary>
+            public string Status { get; set; }
 
-        /// <summary>
-        /// ID number of template used
-        /// </summary>
-        public bool TemplateChannel;
+            /// <summary>
+            /// RFC error message
+            /// </summary>
+            public string FriendlyErrorMessage { get; set; }
 
-    }
+            /// <summary>
+            /// Last change date
+            /// </summary>
+            public string DateUpdated { get; set; }
 
-    /// <summary>
-    /// Overall log summary information.
-    /// </summary>
-    public class LogSummary
-    {
-        /// <summary>
-        /// Summary of log status, based on specified date range.
-        /// </summary>
-        public ApiTypes.LogStatusSummary LogStatusSummary;
+        }
 
         /// <summary>
         /// Summary of bounced categories, based on specified date range.
         /// </summary>
-        public ApiTypes.BouncedCategorySummary BouncedCategorySummary;
+        public class BouncedCategorySummary
+        {
+            /// <summary>
+            /// Number of messages marked as SPAM
+            /// </summary>
+            public long Spam { get; set; }
+
+            /// <summary>
+            /// Number of blacklisted messages
+            /// </summary>
+            public long BlackListed { get; set; }
+
+            /// <summary>
+            /// Number of messages flagged with 'No Mailbox'
+            /// </summary>
+            public long NoMailbox { get; set; }
+
+            /// <summary>
+            /// Number of messages flagged with 'Grey Listed'
+            /// </summary>
+            public long GreyListed { get; set; }
+
+            /// <summary>
+            /// Number of messages flagged with 'Throttled'
+            /// </summary>
+            public long Throttled { get; set; }
+
+            /// <summary>
+            /// Number of messages flagged with 'Timeout'
+            /// </summary>
+            public long Timeout { get; set; }
+
+            /// <summary>
+            /// Number of messages flagged with 'Connection Problem'
+            /// </summary>
+            public long ConnectionProblem { get; set; }
+
+            /// <summary>
+            /// Number of messages flagged with 'SPF Problem'
+            /// </summary>
+            public long SpfProblem { get; set; }
+
+            /// <summary>
+            /// Number of messages flagged with 'Account Problem'
+            /// </summary>
+            public long AccountProblem { get; set; }
+
+            /// <summary>
+            /// Number of messages flagged with 'DNS Problem'
+            /// </summary>
+            public long DnsProblem { get; set; }
+
+            /// <summary>
+            /// Number of messages flagged with 'WhiteListing Problem'
+            /// </summary>
+            public long WhitelistingProblem { get; set; }
+
+            /// <summary>
+            /// Number of messages flagged with 'Code Error'
+            /// </summary>
+            public long CodeError { get; set; }
+
+            /// <summary>
+            /// Number of messages flagged with 'Not Delivered'
+            /// </summary>
+            public long NotDelivered { get; set; }
+
+            /// <summary>
+            /// Number of manually cancelled messages
+            /// </summary>
+            public long ManualCancel { get; set; }
+
+            /// <summary>
+            /// Number of messages flagged with 'Connection terminated'
+            /// </summary>
+            public long ConnectionTerminated { get; set; }
+
+        }
+
+        /// <summary>
+        /// Campaign
+        /// </summary>
+        public class Campaign
+        {
+            /// <summary>
+            /// ID number of selected Channel.
+            /// </summary>
+            public int? ChannelID { get; set; }
+
+            /// <summary>
+            /// Campaign's name
+            /// </summary>
+            public string Name { get; set; }
+
+            /// <summary>
+            /// Name of campaign's status
+            /// </summary>
+            public ApiTypes.CampaignStatus Status { get; set; }
+
+            /// <summary>
+            /// List of Segment and List IDs, comma separated
+            /// </summary>
+            public string[] Targets { get; set; }
+
+            /// <summary>
+            /// Number of event, triggering mail sending
+            /// </summary>
+            public ApiTypes.CampaignTriggerType TriggerType { get; set; }
+
+            /// <summary>
+            /// Date of triggered send
+            /// </summary>
+            public DateTime? TriggerDate { get; set; }
+
+            /// <summary>
+            /// How far into the future should the campaign be sent, in minutes
+            /// </summary>
+            public double TriggerDelay { get; set; }
+
+            /// <summary>
+            /// When your next automatic mail will be sent, in days
+            /// </summary>
+            public double TriggerFrequency { get; set; }
+
+            /// <summary>
+            /// Date of send
+            /// </summary>
+            public int TriggerCount { get; set; }
+
+            /// <summary>
+            /// ID number of transaction
+            /// </summary>
+            public int TriggerChannelID { get; set; }
+
+            /// <summary>
+            /// Data for filtering event campaigns such as specific link addresses.
+            /// </summary>
+            public string TriggerData { get; set; }
+
+            /// <summary>
+            /// What should be checked for choosing the winner: opens or clicks
+            /// </summary>
+            public ApiTypes.SplitOptimization SplitOptimization { get; set; }
+
+            /// <summary>
+            /// Number of minutes between sends during optimization period
+            /// </summary>
+            public int SplitOptimizationMinutes { get; set; }
+
+            /// <summary>
+            /// 
+            /// </summary>
+            public int TimingOption { get; set; }
+
+            /// <summary>
+            /// 
+            /// </summary>
+            public List<ApiTypes.CampaignTemplate> CampaignTemplates { get; set; }
+
+        }
+
+        /// <summary>
+        /// Channel
+        /// </summary>
+        public class CampaignChannel
+        {
+            /// <summary>
+            /// ID number of selected Channel.
+            /// </summary>
+            public int ChannelID { get; set; }
+
+            /// <summary>
+            /// Filename
+            /// </summary>
+            public string Name { get; set; }
+
+            /// <summary>
+            /// True, if you are sending a campaign. Otherwise, false.
+            /// </summary>
+            public bool IsCampaign { get; set; }
+
+            /// <summary>
+            /// Name of your custom IP Pool to be used in the sending process
+            /// </summary>
+            public string PoolName { get; set; }
+
+            /// <summary>
+            /// Date of creation in YYYY-MM-DDThh:ii:ss format
+            /// </summary>
+            public DateTime DateAdded { get; set; }
+
+            /// <summary>
+            /// Name of campaign's status
+            /// </summary>
+            public ApiTypes.CampaignStatus Status { get; set; }
+
+            /// <summary>
+            /// Date of last activity on account
+            /// </summary>
+            public DateTime? LastActivity { get; set; }
+
+            /// <summary>
+            /// Datetime of last action done on campaign.
+            /// </summary>
+            public DateTime? LastProcessed { get; set; }
+
+            /// <summary>
+            /// Id number of parent channel
+            /// </summary>
+            public int ParentChannelID { get; set; }
+
+            /// <summary>
+            /// List of Segment and List IDs, comma separated
+            /// </summary>
+            public string[] Targets { get; set; }
+
+            /// <summary>
+            /// Number of event, triggering mail sending
+            /// </summary>
+            public ApiTypes.CampaignTriggerType TriggerType { get; set; }
+
+            /// <summary>
+            /// Date of triggered send
+            /// </summary>
+            public DateTime? TriggerDate { get; set; }
+
+            /// <summary>
+            /// How far into the future should the campaign be sent, in minutes
+            /// </summary>
+            public double TriggerDelay { get; set; }
+
+            /// <summary>
+            /// When your next automatic mail will be sent, in days
+            /// </summary>
+            public double TriggerFrequency { get; set; }
+
+            /// <summary>
+            /// Date of send
+            /// </summary>
+            public int TriggerCount { get; set; }
+
+            /// <summary>
+            /// ID number of transaction
+            /// </summary>
+            public int TriggerChannelID { get; set; }
+
+            /// <summary>
+            /// Data for filtering event campaigns such as specific link addresses.
+            /// </summary>
+            public string TriggerData { get; set; }
+
+            /// <summary>
+            /// What should be checked for choosing the winner: opens or clicks
+            /// </summary>
+            public ApiTypes.SplitOptimization SplitOptimization { get; set; }
+
+            /// <summary>
+            /// Number of minutes between sends during optimization period
+            /// </summary>
+            public int SplitOptimizationMinutes { get; set; }
+
+            /// <summary>
+            /// 
+            /// </summary>
+            public int TimingOption { get; set; }
+
+            /// <summary>
+            /// ID number of template.
+            /// </summary>
+            public int? TemplateID { get; set; }
+
+            /// <summary>
+            /// Default subject of email.
+            /// </summary>
+            public string TemplateSubject { get; set; }
+
+            /// <summary>
+            /// Default From: email address.
+            /// </summary>
+            public string TemplateFromEmail { get; set; }
+
+            /// <summary>
+            /// Default From: name.
+            /// </summary>
+            public string TemplateFromName { get; set; }
+
+            /// <summary>
+            /// Default Reply: email address.
+            /// </summary>
+            public string TemplateReplyEmail { get; set; }
+
+            /// <summary>
+            /// Default Reply: name.
+            /// </summary>
+            public string TemplateReplyName { get; set; }
+
+            /// <summary>
+            /// Total emails clicked
+            /// </summary>
+            public int ClickedCount { get; set; }
+
+            /// <summary>
+            /// Total emails opened.
+            /// </summary>
+            public int OpenedCount { get; set; }
+
+            /// <summary>
+            /// Overall number of recipients
+            /// </summary>
+            public int RecipientCount { get; set; }
+
+            /// <summary>
+            /// Total emails sent.
+            /// </summary>
+            public int SentCount { get; set; }
+
+            /// <summary>
+            /// Total emails sent.
+            /// </summary>
+            public int FailedCount { get; set; }
+
+            /// <summary>
+            /// Total emails clicked
+            /// </summary>
+            public int UnsubscribedCount { get; set; }
+
+            /// <summary>
+            /// Abuses - mails sent to user without their consent
+            /// </summary>
+            public int FailedAbuse { get; set; }
+
+            /// <summary>
+            /// List of CampaignTemplate for sending A-X split testing.
+            /// </summary>
+            public List<ApiTypes.CampaignChannel> TemplateChannels { get; set; }
+
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public enum CampaignStatus
+        {
+            /// <summary>
+            /// Campaign is logically deleted and not returned by API or interface calls.
+            /// </summary>
+            Deleted = -1,
+
+            /// <summary>
+            /// Campaign is curently active and available.
+            /// </summary>
+            Active = 0,
+
+            /// <summary>
+            /// Campaign is currently being processed for delivery.
+            /// </summary>
+            Processing = 1,
+
+            /// <summary>
+            /// Campaign is currently sending.
+            /// </summary>
+            Sending = 2,
+
+            /// <summary>
+            /// Campaign has completed sending.
+            /// </summary>
+            Completed = 3,
+
+            /// <summary>
+            /// Campaign is currently paused and not sending.
+            /// </summary>
+            Paused = 4,
+
+            /// <summary>
+            /// Campaign has been cancelled during delivery.
+            /// </summary>
+            Cancelled = 5,
+
+            /// <summary>
+            /// Campaign is save as draft and not processing.
+            /// </summary>
+            Draft = 6,
+
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public class CampaignTemplate
+        {
+            /// <summary>
+            /// ID number of selected Channel.
+            /// </summary>
+            public int? ChannelID { get; set; }
+
+            /// <summary>
+            /// Name of campaign's status
+            /// </summary>
+            public ApiTypes.CampaignStatus Status { get; set; }
+
+            /// <summary>
+            /// Name of your custom IP Pool to be used in the sending process
+            /// </summary>
+            public string PoolName { get; set; }
+
+            /// <summary>
+            /// ID number of template.
+            /// </summary>
+            public int? TemplateID { get; set; }
+
+            /// <summary>
+            /// Default subject of email.
+            /// </summary>
+            public string TemplateSubject { get; set; }
+
+            /// <summary>
+            /// Default From: email address.
+            /// </summary>
+            public string TemplateFromEmail { get; set; }
+
+            /// <summary>
+            /// Default From: name.
+            /// </summary>
+            public string TemplateFromName { get; set; }
+
+            /// <summary>
+            /// Default Reply: email address.
+            /// </summary>
+            public string TemplateReplyEmail { get; set; }
+
+            /// <summary>
+            /// Default Reply: name.
+            /// </summary>
+            public string TemplateReplyName { get; set; }
+
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public enum CampaignTriggerType
+        {
+            /// <summary>
+            /// 
+            /// </summary>
+            SendNow = 1,
+
+            /// <summary>
+            /// 
+            /// </summary>
+            FutureScheduled = 2,
+
+            /// <summary>
+            /// 
+            /// </summary>
+            OnAdd = 3,
+
+            /// <summary>
+            /// 
+            /// </summary>
+            OnOpen = 4,
+
+            /// <summary>
+            /// 
+            /// </summary>
+            OnClick = 5,
+
+        }
+
+        /// <summary>
+        /// SMTP and HTTP API channel for grouping email delivery
+        /// </summary>
+        public class Channel
+        {
+            /// <summary>
+            /// Descriptive name of the channel.
+            /// </summary>
+            public string Name { get; set; }
+
+            /// <summary>
+            /// The date the channel was added to your account.
+            /// </summary>
+            public DateTime DateAdded { get; set; }
+
+            /// <summary>
+            /// The date the channel was last sent through.
+            /// </summary>
+            public DateTime? LastActivity { get; set; }
+
+            /// <summary>
+            /// The number of email jobs this channel has been used with.
+            /// </summary>
+            public int JobCount { get; set; }
+
+            /// <summary>
+            /// The number of emails that have been clicked within this channel.
+            /// </summary>
+            public int ClickedCount { get; set; }
+
+            /// <summary>
+            /// The number of emails that have been opened within this channel.
+            /// </summary>
+            public int OpenedCount { get; set; }
+
+            /// <summary>
+            /// The number of emails attempted to be sent within this channel.
+            /// </summary>
+            public int RecipientCount { get; set; }
+
+            /// <summary>
+            /// The number of emails that have been sent within this channel.
+            /// </summary>
+            public int SentCount { get; set; }
+
+            /// <summary>
+            /// The number of emails that have been bounced within this channel.
+            /// </summary>
+            public int FailedCount { get; set; }
+
+            /// <summary>
+            /// The number of emails that have been unsubscribed within this channel.
+            /// </summary>
+            public int UnsubscribedCount { get; set; }
+
+            /// <summary>
+            /// The number of emails that have been marked as abuse or complaint within this channel.
+            /// </summary>
+            public int FailedAbuse { get; set; }
+
+            /// <summary>
+            /// The total cost for emails/attachments within this channel.
+            /// </summary>
+            public decimal Cost { get; set; }
+
+        }
+
+        /// <summary>
+        /// FileResponse compression format
+        /// </summary>
+        public enum CompressionFormat
+        {
+            /// <summary>
+            /// No compression
+            /// </summary>
+            None = 0,
+
+            /// <summary>
+            /// Zip compression
+            /// </summary>
+            Zip = 1,
+
+        }
+
+        /// <summary>
+        /// Contact
+        /// </summary>
+        public class Contact
+        {
+            /// <summary>
+            /// 
+            /// </summary>
+            public int ContactScore { get; set; }
+
+            /// <summary>
+            /// Date of creation in YYYY-MM-DDThh:ii:ss format
+            /// </summary>
+            public DateTime DateAdded { get; set; }
+
+            /// <summary>
+            /// Proper email address.
+            /// </summary>
+            public string Email { get; set; }
+
+            /// <summary>
+            /// First name.
+            /// </summary>
+            public string FirstName { get; set; }
+
+            /// <summary>
+            /// Last name.
+            /// </summary>
+            public string LastName { get; set; }
+
+            /// <summary>
+            /// Title
+            /// </summary>
+            public string Title { get; set; }
+
+            /// <summary>
+            /// Name of organization
+            /// </summary>
+            public string OrganizationName { get; set; }
+
+            /// <summary>
+            /// City.
+            /// </summary>
+            public string City { get; set; }
+
+            /// <summary>
+            /// Name of country.
+            /// </summary>
+            public string Country { get; set; }
+
+            /// <summary>
+            /// State or province.
+            /// </summary>
+            public string State { get; set; }
+
+            /// <summary>
+            /// Zip/postal code.
+            /// </summary>
+            public string Zip { get; set; }
+
+            /// <summary>
+            /// Phone number
+            /// </summary>
+            public string Phone { get; set; }
+
+            /// <summary>
+            /// Date of birth in YYYY-MM-DD format
+            /// </summary>
+            public DateTime? BirthDate { get; set; }
+
+            /// <summary>
+            /// Your gender
+            /// </summary>
+            public string Gender { get; set; }
+
+            /// <summary>
+            /// Name of status: Active, Engaged, Inactive, Abuse, Bounced, Unsubscribed.
+            /// </summary>
+            public ApiTypes.ContactStatus Status { get; set; }
+
+            /// <summary>
+            /// RFC Error code
+            /// </summary>
+            public int? BouncedErrorCode { get; set; }
+
+            /// <summary>
+            /// RFC error message
+            /// </summary>
+            public string BouncedErrorMessage { get; set; }
+
+            /// <summary>
+            /// Total emails sent.
+            /// </summary>
+            public int TotalSent { get; set; }
+
+            /// <summary>
+            /// Total emails sent.
+            /// </summary>
+            public int TotalFailed { get; set; }
+
+            /// <summary>
+            /// Total emails opened.
+            /// </summary>
+            public int TotalOpened { get; set; }
+
+            /// <summary>
+            /// Total emails clicked
+            /// </summary>
+            public int TotalClicked { get; set; }
+
+            /// <summary>
+            /// Date of first failed message
+            /// </summary>
+            public DateTime? FirstFailedDate { get; set; }
+
+            /// <summary>
+            /// Number of fails in sending to this Contact
+            /// </summary>
+            public int LastFailedCount { get; set; }
+
+            /// <summary>
+            /// Last change date
+            /// </summary>
+            public DateTime DateUpdated { get; set; }
+
+            /// <summary>
+            /// Source of URL of payment
+            /// </summary>
+            public ApiTypes.ContactSource Source { get; set; }
+
+            /// <summary>
+            /// RFC Error code
+            /// </summary>
+            public int? ErrorCode { get; set; }
+
+            /// <summary>
+            /// RFC error message
+            /// </summary>
+            public string FriendlyErrorMessage { get; set; }
+
+            /// <summary>
+            /// IP address
+            /// </summary>
+            public string CreatedFromIP { get; set; }
+
+            /// <summary>
+            /// Yearly revenue for the contact
+            /// </summary>
+            public decimal Revenue { get; set; }
+
+            /// <summary>
+            /// Number of purchases contact has made
+            /// </summary>
+            public int PurchaseCount { get; set; }
+
+            /// <summary>
+            /// Mobile phone number
+            /// </summary>
+            public string MobileNumber { get; set; }
+
+            /// <summary>
+            /// Fax number
+            /// </summary>
+            public string FaxNumber { get; set; }
+
+            /// <summary>
+            /// Biography for Linked-In
+            /// </summary>
+            public string LinkedInBio { get; set; }
+
+            /// <summary>
+            /// Number of Linked-In connections
+            /// </summary>
+            public int LinkedInConnections { get; set; }
+
+            /// <summary>
+            /// Biography for Twitter
+            /// </summary>
+            public string TwitterBio { get; set; }
+
+            /// <summary>
+            /// User name for Twitter
+            /// </summary>
+            public string TwitterUsername { get; set; }
+
+            /// <summary>
+            /// URL for Twitter photo
+            /// </summary>
+            public string TwitterProfilePhoto { get; set; }
+
+            /// <summary>
+            /// Number of Twitter followers
+            /// </summary>
+            public int TwitterFollowerCount { get; set; }
+
+            /// <summary>
+            /// Unsubscribed date in YYYY-MM-DD format
+            /// </summary>
+            public DateTime? UnsubscribedDate { get; set; }
+
+            /// <summary>
+            /// Industry contact works in
+            /// </summary>
+            public string Industry { get; set; }
+
+            /// <summary>
+            /// Number of employees
+            /// </summary>
+            public int NumberOfEmployees { get; set; }
+
+            /// <summary>
+            /// Annual revenue of contact
+            /// </summary>
+            public decimal? AnnualRevenue { get; set; }
+
+            /// <summary>
+            /// Date of first purchase in YYYY-MM-DD format
+            /// </summary>
+            public DateTime? FirstPurchase { get; set; }
+
+            /// <summary>
+            /// Date of last purchase in YYYY-MM-DD format
+            /// </summary>
+            public DateTime? LastPurchase { get; set; }
+
+            /// <summary>
+            /// Free form field of notes
+            /// </summary>
+            public string Notes { get; set; }
+
+            /// <summary>
+            /// Website of contact
+            /// </summary>
+            public string WebsiteUrl { get; set; }
+
+            /// <summary>
+            /// Number of page views
+            /// </summary>
+            public int PageViews { get; set; }
+
+            /// <summary>
+            /// Number of website visits
+            /// </summary>
+            public int Visits { get; set; }
+
+            /// <summary>
+            /// Number of messages sent last month
+            /// </summary>
+            public int? LastMonthSent { get; set; }
+
+            /// <summary>
+            /// Date this contact last opened an email
+            /// </summary>
+            public DateTime? LastOpened { get; set; }
+
+            /// <summary>
+            /// 
+            /// </summary>
+            public DateTime? LastClicked { get; set; }
+
+            /// <summary>
+            /// Your gravatar hash for image
+            /// </summary>
+            public string GravatarHash { get; set; }
+
+        }
+
+        /// <summary>
+        /// Collection of lists and segments
+        /// </summary>
+        public class ContactCollection
+        {
+            /// <summary>
+            /// Lists which contain the requested contact
+            /// </summary>
+            public List<ApiTypes.ContactContainer> Lists { get; set; }
+
+            /// <summary>
+            /// Segments which contain the requested contact
+            /// </summary>
+            public List<ApiTypes.ContactContainer> Segments { get; set; }
+
+        }
+
+        /// <summary>
+        /// List's or segment's short info
+        /// </summary>
+        public class ContactContainer
+        {
+            /// <summary>
+            /// ID of the list/segment
+            /// </summary>
+            public int ID { get; set; }
+
+            /// <summary>
+            /// Name of the list/segment
+            /// </summary>
+            public string Name { get; set; }
+
+        }
+
+        /// <summary>
+        /// History of chosen Contact
+        /// </summary>
+        public class ContactHistory
+        {
+            /// <summary>
+            /// ID of history of selected Contact.
+            /// </summary>
+            public long ContactHistoryID { get; set; }
+
+            /// <summary>
+            /// Type of event occured on this Contact.
+            /// </summary>
+            public string EventType { get; set; }
+
+            /// <summary>
+            /// Numeric code of event occured on this Contact.
+            /// </summary>
+            public int EventTypeValue { get; set; }
+
+            /// <summary>
+            /// Formatted date of event.
+            /// </summary>
+            public string EventDate { get; set; }
+
+            /// <summary>
+            /// Name of selected channel.
+            /// </summary>
+            public string ChannelName { get; set; }
+
+            /// <summary>
+            /// Name of template.
+            /// </summary>
+            public string TemplateName { get; set; }
+
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public enum ContactSource
+        {
+            /// <summary>
+            /// Source of the contact is from sending an email via our SMTP or HTTP API's
+            /// </summary>
+            DeliveryApi = 0,
+
+            /// <summary>
+            /// Contact was manually entered from the interface.
+            /// </summary>
+            ManualInput = 1,
+
+            /// <summary>
+            /// Contact was uploaded via a file such as CSV.
+            /// </summary>
+            FileUpload = 2,
+
+            /// <summary>
+            /// Contact was added from a public web form.
+            /// </summary>
+            WebForm = 3,
+
+            /// <summary>
+            /// Contact was added from the contact api.
+            /// </summary>
+            ContactApi = 4,
+
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public enum ContactStatus
+        {
+            /// <summary>
+            /// Only transactional email can be sent to contacts with this status.
+            /// </summary>
+            Transactional = -2,
+
+            /// <summary>
+            /// Contact has had an open or click in the last 6 months.
+            /// </summary>
+            Engaged = -1,
+
+            /// <summary>
+            /// Contact is eligible to be sent to.
+            /// </summary>
+            Active = 0,
+
+            /// <summary>
+            /// Contact has had a hard bounce and is no longer eligible to be sent to.
+            /// </summary>
+            Bounced = 1,
+
+            /// <summary>
+            /// Contact has unsubscribed and is no longer eligible to be sent to.
+            /// </summary>
+            Unsubscribed = 2,
+
+            /// <summary>
+            /// Contact has complained and is no longer eligible to be sent to.
+            /// </summary>
+            Abuse = 3,
+
+            /// <summary>
+            /// Contact has not been activated or has been de-activated and is not eligible to be sent to.
+            /// </summary>
+            Inactive = 4,
+
+            /// <summary>
+            /// Contact has not been opening emails for a long period of time and is not eligible to be sent to.
+            /// </summary>
+            Stale = 5,
+
+        }
+
+        /// <summary>
+        /// Number of Contacts, grouped by Status;
+        /// </summary>
+        public class ContactStatusCounts
+        {
+            /// <summary>
+            /// Number of engaged contacts
+            /// </summary>
+            public long Engaged { get; set; }
+
+            /// <summary>
+            /// Number of active contacts
+            /// </summary>
+            public long Active { get; set; }
+
+            /// <summary>
+            /// Number of complaint messages
+            /// </summary>
+            public long Complaint { get; set; }
+
+            /// <summary>
+            /// Number of unsubscribed messages
+            /// </summary>
+            public long Unsubscribed { get; set; }
+
+            /// <summary>
+            /// Number of bounced messages
+            /// </summary>
+            public long Bounced { get; set; }
+
+            /// <summary>
+            /// Number of inactive contacts
+            /// </summary>
+            public long Inactive { get; set; }
+
+            /// <summary>
+            /// Number of transactional contacts
+            /// </summary>
+            public long Transactional { get; set; }
+
+            /// <summary>
+            /// 
+            /// </summary>
+            public long Stale { get; set; }
+
+        }
+
+        /// <summary>
+        /// Type of credits
+        /// </summary>
+        public enum CreditType
+        {
+            /// <summary>
+            /// Used to send emails.  One credit = one email.
+            /// </summary>
+            Email = 9,
+
+            /// <summary>
+            /// Used to run a litmus test on a template.  1 credit = 1 test.
+            /// </summary>
+            Litmus = 17,
+
+        }
 
         /// <summary>
         /// Daily summary of log status, based on specified date range.
         /// </summary>
-        public List<ApiTypes.DailyLogStatusSummary> DailyLogStatusSummary;
+        public class DailyLogStatusSummary
+        {
+            /// <summary>
+            /// Date in YYYY-MM-DDThh:ii:ss format
+            /// </summary>
+            public string Date { get; set; }
 
-    }
+            /// <summary>
+            /// Proper email address.
+            /// </summary>
+            public int Email { get; set; }
 
-    /// <summary>
-    /// 
-    /// </summary>
-    public enum MessageCategory
-    {
-        /// <summary>
-        /// 
-        /// </summary>
-        Unknown = 0,
+            /// <summary>
+            /// Number of SMS
+            /// </summary>
+            public int Sms { get; set; }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        Ignore = 1,
+            /// <summary>
+            /// Number of delivered messages
+            /// </summary>
+            public int Delivered { get; set; }
 
-        /// <summary>
-        /// Number of messages marked as SPAM
-        /// </summary>
-        Spam = 2,
+            /// <summary>
+            /// Number of opened messages
+            /// </summary>
+            public int Opened { get; set; }
 
-        /// <summary>
-        /// Number of blacklisted messages
-        /// </summary>
-        BlackListed = 3,
+            /// <summary>
+            /// Number of clicked messages
+            /// </summary>
+            public int Clicked { get; set; }
 
-        /// <summary>
-        /// Number of messages flagged with 'No Mailbox'
-        /// </summary>
-        NoMailbox = 4,
+            /// <summary>
+            /// Number of unsubscribed messages
+            /// </summary>
+            public int Unsubscribed { get; set; }
 
-        /// <summary>
-        /// Number of messages flagged with 'Grey Listed'
-        /// </summary>
-        GreyListed = 5,
+            /// <summary>
+            /// Number of complaint messages
+            /// </summary>
+            public int Complaint { get; set; }
 
-        /// <summary>
-        /// Number of messages flagged with 'Throttled'
-        /// </summary>
-        Throttled = 6,
+            /// <summary>
+            /// Number of bounced messages
+            /// </summary>
+            public int Bounced { get; set; }
 
-        /// <summary>
-        /// Number of messages flagged with 'Timeout'
-        /// </summary>
-        Timeout = 7,
+            /// <summary>
+            /// Number of inbound messages
+            /// </summary>
+            public int Inbound { get; set; }
 
-        /// <summary>
-        /// Number of messages flagged with 'Connection Problem'
-        /// </summary>
-        ConnectionProblem = 8,
+            /// <summary>
+            /// Number of manually cancelled messages
+            /// </summary>
+            public int ManualCancel { get; set; }
 
-        /// <summary>
-        /// Number of messages flagged with 'SPF Problem'
-        /// </summary>
-        SPFProblem = 9,
+            /// <summary>
+            /// Number of messages flagged with 'Not Delivered'
+            /// </summary>
+            public int NotDelivered { get; set; }
 
-        /// <summary>
-        /// Number of messages flagged with 'Account Problem'
-        /// </summary>
-        AccountProblem = 10,
-
-        /// <summary>
-        /// Number of messages flagged with 'DNS Problem'
-        /// </summary>
-        DNSProblem = 11,
+        }
 
         /// <summary>
-        /// 
+        /// Domain data, with information about domain records.
         /// </summary>
-        NotDeliveredCancelled = 12,
+        public class DomainDetail
+        {
+            /// <summary>
+            /// Name of selected domain.
+            /// </summary>
+            public string Domain { get; set; }
+
+            /// <summary>
+            /// True, if domain is used as default. Otherwise, false,
+            /// </summary>
+            public bool DefaultDomain { get; set; }
+
+            /// <summary>
+            /// True, if SPF record is verified
+            /// </summary>
+            public bool Spf { get; set; }
+
+            /// <summary>
+            /// True, if DKIM record is verified
+            /// </summary>
+            public bool Dkim { get; set; }
+
+            /// <summary>
+            /// True, if MX record is verified
+            /// </summary>
+            public bool MX { get; set; }
+
+            /// <summary>
+            /// 
+            /// </summary>
+            public bool DMARC { get; set; }
+
+            /// <summary>
+            /// True, if tracking CNAME record is verified
+            /// </summary>
+            public bool IsRewriteDomainValid { get; set; }
+
+            /// <summary>
+            /// True, if verification is available
+            /// </summary>
+            public bool Verify { get; set; }
+
+            /// <summary>
+            /// 
+            /// </summary>
+            public ApiTypes.TrackingType Type { get; set; }
+
+        }
 
         /// <summary>
-        /// Number of messages flagged with 'Code Error'
+        /// Detailed information about email credits
         /// </summary>
-        CodeError = 13,
+        public class EmailCredits
+        {
+            /// <summary>
+            /// Date in YYYY-MM-DDThh:ii:ss format
+            /// </summary>
+            public DateTime Date { get; set; }
 
-        /// <summary>
-        /// Number of manually cancelled messages
-        /// </summary>
-        ManualCancel = 14,
+            /// <summary>
+            /// Amount of money in transaction
+            /// </summary>
+            public decimal Amount { get; set; }
 
-        /// <summary>
-        /// Number of messages flagged with 'Connection terminated'
-        /// </summary>
-        ConnectionTerminated = 15,
+            /// <summary>
+            /// Source of URL of payment
+            /// </summary>
+            public string Source { get; set; }
 
-        /// <summary>
-        /// Number of messages flagged with 'Not Delivered'
-        /// </summary>
-        NotDelivered = 16,
+            /// <summary>
+            /// Free form field of notes
+            /// </summary>
+            public string Notes { get; set; }
 
-    }
-
-    /// <summary>
-    /// Queue of notifications
-    /// </summary>
-    public class NotificationQueue
-    {
-        /// <summary>
-        /// Creation date.
-        /// </summary>
-        public string DateCreated;
-
-        /// <summary>
-        /// Date of last status change.
-        /// </summary>
-        public string StatusChangeDate;
-
-        /// <summary>
-        /// Actual status.
-        /// </summary>
-        public string NewStatus;
-
-        /// <summary>
-        /// 
-        /// </summary>
-        public string Reference;
-
-        /// <summary>
-        /// Error message.
-        /// </summary>
-        public string ErrorMessage;
-
-        /// <summary>
-        /// Number of previous delivery attempts
-        /// </summary>
-        public string RetryCount;
-
-    }
-
-    /// <summary>
-    /// 
-    /// </summary>
-    public enum NotificationType
-    {
-        /// <summary>
-        /// Both, email and web, notifications
-        /// </summary>
-        All = 0,
-
-        /// <summary>
-        /// Only email notifications
-        /// </summary>
-        Email = 1,
-
-        /// <summary>
-        /// Only web notifications
-        /// </summary>
-        Web = 2,
-
-    }
-
-    /// <summary>
-    /// Detailed information about existing money transfers.
-    /// </summary>
-    public class Payment
-    {
-        /// <summary>
-        /// Date in YYYY-MM-DDThh:ii:ss format
-        /// </summary>
-        public DateTime Date;
-
-        /// <summary>
-        /// Amount of money in transaction
-        /// </summary>
-        public decimal Amount;
-
-        /// <summary>
-        /// Source of URL of payment
-        /// </summary>
-        public string Source;
-
-    }
-
-    /// <summary>
-    /// Basic information about your profile
-    /// </summary>
-    public class Profile
-    {
-        /// <summary>
-        /// First name.
-        /// </summary>
-        public string FirstName;
-
-        /// <summary>
-        /// Last name.
-        /// </summary>
-        public string LastName;
-
-        /// <summary>
-        /// Company name.
-        /// </summary>
-        public string Company;
-
-        /// <summary>
-        /// First line of address.
-        /// </summary>
-        public string Address1;
-
-        /// <summary>
-        /// Second line of address.
-        /// </summary>
-        public string Address2;
-
-        /// <summary>
-        /// City.
-        /// </summary>
-        public string City;
-
-        /// <summary>
-        /// State or province.
-        /// </summary>
-        public string State;
-
-        /// <summary>
-        /// Zip/postal code.
-        /// </summary>
-        public string Zip;
-
-        /// <summary>
-        /// Numeric ID of country. A file with the list of countries is available <a href="http://api.elasticemail.com/public/countries"><b>here</b></a>
-        /// </summary>
-        public int? CountryID;
-
-        /// <summary>
-        /// Phone number
-        /// </summary>
-        public string Phone;
-
-        /// <summary>
-        /// Proper email address.
-        /// </summary>
-        public string Email;
-
-        /// <summary>
-        /// Code used for tax purposes.
-        /// </summary>
-        public string TaxCode;
-
-    }
-
-    /// <summary>
-    /// 
-    /// </summary>
-    public enum QuestionType
-    {
-        /// <summary>
-        /// 
-        /// </summary>
-        RadioButtons = 1,
+        }
 
         /// <summary>
         /// 
         /// </summary>
-        DropdownMenu = 2,
+        public class EmailJobFailedStatus
+        {
+            /// <summary>
+            /// 
+            /// </summary>
+            public string Address { get; set; }
+
+            /// <summary>
+            /// 
+            /// </summary>
+            public string Error { get; set; }
+
+            /// <summary>
+            /// RFC Error code
+            /// </summary>
+            public int ErrorCode { get; set; }
+
+            /// <summary>
+            /// 
+            /// </summary>
+            public string Category { get; set; }
+
+        }
 
         /// <summary>
         /// 
         /// </summary>
-        Checkboxes = 3,
+        public class EmailJobStatus
+        {
+            /// <summary>
+            /// ID number of your attachment
+            /// </summary>
+            public string ID { get; set; }
+
+            /// <summary>
+            /// Name of status: submitted, complete, in_progress
+            /// </summary>
+            public string Status { get; set; }
+
+            /// <summary>
+            /// 
+            /// </summary>
+            public int RecipientsCount { get; set; }
+
+            /// <summary>
+            /// 
+            /// </summary>
+            public List<ApiTypes.EmailJobFailedStatus> Failed { get; set; }
+
+            /// <summary>
+            /// Total emails sent.
+            /// </summary>
+            public int FailedCount { get; set; }
+
+            /// <summary>
+            /// Number of delivered messages
+            /// </summary>
+            public List<string> Delivered { get; set; }
+
+            /// <summary>
+            /// 
+            /// </summary>
+            public int DeliveredCount { get; set; }
+
+            /// <summary>
+            /// 
+            /// </summary>
+            public List<string> Pending { get; set; }
+
+            /// <summary>
+            /// 
+            /// </summary>
+            public int PendingCount { get; set; }
+
+            /// <summary>
+            /// Number of opened messages
+            /// </summary>
+            public List<string> Opened { get; set; }
+
+            /// <summary>
+            /// Total emails opened.
+            /// </summary>
+            public int OpenedCount { get; set; }
+
+            /// <summary>
+            /// Number of clicked messages
+            /// </summary>
+            public List<string> Clicked { get; set; }
+
+            /// <summary>
+            /// Total emails clicked
+            /// </summary>
+            public int ClickedCount { get; set; }
+
+            /// <summary>
+            /// Number of unsubscribed messages
+            /// </summary>
+            public List<string> Unsubscribed { get; set; }
+
+            /// <summary>
+            /// Total emails clicked
+            /// </summary>
+            public int UnsubscribedCount { get; set; }
+
+            /// <summary>
+            /// 
+            /// </summary>
+            public List<string> AbuseReports { get; set; }
+
+            /// <summary>
+            /// 
+            /// </summary>
+            public int AbuseReportsCount { get; set; }
+
+            /// <summary>
+            /// List of all MessageIDs for this job.
+            /// </summary>
+            public List<string> MessageIDs { get; set; }
+
+        }
 
         /// <summary>
         /// 
         /// </summary>
-        LongAnswer = 4,
+        public class EmailSend
+        {
+            /// <summary>
+            /// ID number of transaction
+            /// </summary>
+            public string TransactionID { get; set; }
+
+            /// <summary>
+            /// Unique identifier for this email.
+            /// </summary>
+            public string MessageID { get; set; }
+
+        }
+
+        /// <summary>
+        /// Status information of the specified email
+        /// </summary>
+        public class EmailStatus
+        {
+            /// <summary>
+            /// Email address this email was sent from.
+            /// </summary>
+            public string From { get; set; }
+
+            /// <summary>
+            /// Email address this email was sent to.
+            /// </summary>
+            public string To { get; set; }
+
+            /// <summary>
+            /// Date the email was submitted.
+            /// </summary>
+            public DateTime Date { get; set; }
+
+            /// <summary>
+            /// Value of email's status
+            /// </summary>
+            public ApiTypes.LogJobStatus Status { get; set; }
+
+            /// <summary>
+            /// Name of email's status
+            /// </summary>
+            public string StatusName { get; set; }
+
+            /// <summary>
+            /// Date of last status change.
+            /// </summary>
+            public DateTime StatusChangeDate { get; set; }
+
+            /// <summary>
+            /// Detailed error or bounced message.
+            /// </summary>
+            public string ErrorMessage { get; set; }
+
+            /// <summary>
+            /// ID number of transaction
+            /// </summary>
+            public Guid TransactionID { get; set; }
+
+        }
+
+        /// <summary>
+        /// Email details formatted in json
+        /// </summary>
+        public class EmailView
+        {
+            /// <summary>
+            /// Body (text) of your message.
+            /// </summary>
+            public string Body { get; set; }
+
+            /// <summary>
+            /// Default subject of email.
+            /// </summary>
+            public string Subject { get; set; }
+
+            /// <summary>
+            /// Starting date for search in YYYY-MM-DDThh:mm:ss format.
+            /// </summary>
+            public string From { get; set; }
+
+        }
+
+        /// <summary>
+        /// Encoding type for the email headers
+        /// </summary>
+        public enum EncodingType
+        {
+            /// <summary>
+            /// Encoding of the email is provided by the sender and not altered.
+            /// </summary>
+            UserProvided = -1,
+
+            /// <summary>
+            /// No endcoding is set for the email.
+            /// </summary>
+            None = 0,
+
+            /// <summary>
+            /// Encoding of the email is in Raw7bit format.
+            /// </summary>
+            Raw7bit = 1,
+
+            /// <summary>
+            /// Encoding of the email is in Raw8bit format.
+            /// </summary>
+            Raw8bit = 2,
+
+            /// <summary>
+            /// Encoding of the email is in QuotedPrintable format.
+            /// </summary>
+            QuotedPrintable = 3,
+
+            /// <summary>
+            /// Encoding of the email is in Base64 format.
+            /// </summary>
+            Base64 = 4,
+
+            /// <summary>
+            /// Encoding of the email is in Uue format.
+            /// </summary>
+            Uue = 5,
+
+        }
+
+        /// <summary>
+        /// Record of exported data from the system.
+        /// </summary>
+        public class Export
+        {
+            /// <summary>
+            /// 
+            /// </summary>
+            public Guid PublicExportID { get; set; }
+
+            /// <summary>
+            /// Date the export was created
+            /// </summary>
+            public DateTime DateAdded { get; set; }
+
+            /// <summary>
+            /// Type of export
+            /// </summary>
+            public string Type { get; set; }
+
+            /// <summary>
+            /// Current status of export
+            /// </summary>
+            public string Status { get; set; }
+
+            /// <summary>
+            /// Long description of the export
+            /// </summary>
+            public string Info { get; set; }
+
+            /// <summary>
+            /// Name of the file
+            /// </summary>
+            public string Filename { get; set; }
+
+            /// <summary>
+            /// Link to download the export
+            /// </summary>
+            public string Link { get; set; }
+
+        }
+
+        /// <summary>
+        /// Type of export
+        /// </summary>
+        public enum ExportFileFormats
+        {
+            /// <summary>
+            /// Export in comma separated values format.
+            /// </summary>
+            Csv = 1,
+
+            /// <summary>
+            /// Export in xml format
+            /// </summary>
+            Xml = 2,
+
+            /// <summary>
+            /// Export in json format
+            /// </summary>
+            Json = 3,
+
+        }
 
         /// <summary>
         /// 
         /// </summary>
-        Textbox = 5,
+        public class ExportLink
+        {
+            /// <summary>
+            /// Direct URL to the exported file
+            /// </summary>
+            public string Link { get; set; }
+
+        }
 
         /// <summary>
-        /// Date in YYYY-MM-DDThh:ii:ss format
+        /// Current status of export
         /// </summary>
-        Date = 6,
+        public enum ExportStatus
+        {
+            /// <summary>
+            /// Export had an error and can not be downloaded.
+            /// </summary>
+            Error = -1,
 
-    }
+            /// <summary>
+            /// Export is currently loading and can not be downloaded.
+            /// </summary>
+            Loading = 0,
 
-    /// <summary>
-    /// Detailed information about message recipient
-    /// </summary>
-    public class Recipient
-    {
-        /// <summary>
-        /// True, if message is SMS. Otherwise, false
-        /// </summary>
-        public bool IsSms;
+            /// <summary>
+            /// Export is currently available for downloading.
+            /// </summary>
+            Ready = 1,
 
-        /// <summary>
-        /// ID number of selected message.
-        /// </summary>
-        public string MsgID;
+            /// <summary>
+            /// Export is no longer available for downloading.
+            /// </summary>
+            Expired = 2,
 
-        /// <summary>
-        /// Ending date for search in YYYY-MM-DDThh:mm:ss format.
-        /// </summary>
-        public string To;
-
-        /// <summary>
-        /// Name of recipient's status: Submitted, ReadyToSend, WaitingToRetry, Sending, Bounced, Sent, Opened, Clicked, Unsubscribed, AbuseReport
-        /// </summary>
-        public string Status;
+        }
 
         /// <summary>
-        /// Name of selected Channel.
+        /// Number of Exports, grouped by export type
         /// </summary>
-        public string Channel;
+        public class ExportTypeCounts
+        {
+            /// <summary>
+            /// 
+            /// </summary>
+            public long Log { get; set; }
+
+            /// <summary>
+            /// 
+            /// </summary>
+            public long Contact { get; set; }
+
+            /// <summary>
+            /// Json representation of a campaign
+            /// </summary>
+            public long Campaign { get; set; }
+
+            /// <summary>
+            /// True, if you have enabled link tracking. Otherwise, false
+            /// </summary>
+            public long LinkTracking { get; set; }
+
+            /// <summary>
+            /// Json representation of a survey
+            /// </summary>
+            public long Survey { get; set; }
+
+        }
 
         /// <summary>
-        /// Date in YYYY-MM-DDThh:ii:ss format
+        /// Object containig tracking data.
         /// </summary>
-        public string Date;
+        public class LinkTrackingDetails
+        {
+            /// <summary>
+            /// Number of items.
+            /// </summary>
+            public int Count { get; set; }
+
+            /// <summary>
+            /// True, if there are more detailed data available. Otherwise, false
+            /// </summary>
+            public bool MoreAvailable { get; set; }
+
+            /// <summary>
+            /// 
+            /// </summary>
+            public List<ApiTypes.TrackedLink> TrackedLink { get; set; }
+
+        }
 
         /// <summary>
-        /// Content of message, HTML encoded
+        /// List of Contacts, with detailed data about its contents.
         /// </summary>
-        public string Message;
+        public class List
+        {
+            /// <summary>
+            /// ID number of selected list.
+            /// </summary>
+            public int ListID { get; set; }
+
+            /// <summary>
+            /// Name of your list.
+            /// </summary>
+            public string ListName { get; set; }
+
+            /// <summary>
+            /// Number of items.
+            /// </summary>
+            public int Count { get; set; }
+
+            /// <summary>
+            /// ID code of list
+            /// </summary>
+            public Guid? PublicListID { get; set; }
+
+            /// <summary>
+            /// Date of creation in YYYY-MM-DDThh:ii:ss format
+            /// </summary>
+            public DateTime DateAdded { get; set; }
+
+            /// <summary>
+            /// True: Allow unsubscribing from this list. Otherwise, false
+            /// </summary>
+            public bool AllowUnsubscribe { get; set; }
+
+            /// <summary>
+            /// Query used for filtering.
+            /// </summary>
+            public string Rule { get; set; }
+
+        }
 
         /// <summary>
-        /// True, if message category should be shown. Otherwise, false
+        /// Detailed information about litmus credits
         /// </summary>
-        public bool ShowCategory;
+        public class LitmusCredits
+        {
+            /// <summary>
+            /// Date in YYYY-MM-DDThh:ii:ss format
+            /// </summary>
+            public DateTime Date { get; set; }
+
+            /// <summary>
+            /// Amount of money in transaction
+            /// </summary>
+            public decimal Amount { get; set; }
+
+        }
 
         /// <summary>
-        /// Name of message category
+        /// Logs for selected date range
         /// </summary>
-        public string MessageCategory;
+        public class Log
+        {
+            /// <summary>
+            /// Starting date for search in YYYY-MM-DDThh:mm:ss format.
+            /// </summary>
+            public DateTime? From { get; set; }
+
+            /// <summary>
+            /// Ending date for search in YYYY-MM-DDThh:mm:ss format.
+            /// </summary>
+            public DateTime? To { get; set; }
+
+            /// <summary>
+            /// Number of recipients
+            /// </summary>
+            public List<ApiTypes.Recipient> Recipients { get; set; }
+
+        }
 
         /// <summary>
-        /// ID of message category
+        /// 
         /// </summary>
-        public ApiTypes.MessageCategory MessageCategoryID;
+        public enum LogJobStatus
+        {
+            /// <summary>
+            /// Email has been submitted successfully and is queued for sending.
+            /// </summary>
+            ReadyToSend = 1,
+
+            /// <summary>
+            /// Email has soft bounced and is scheduled to retry.
+            /// </summary>
+            WaitingToRetry = 2,
+
+            /// <summary>
+            /// Email is currently sending.
+            /// </summary>
+            Sending = 3,
+
+            /// <summary>
+            /// Email has errored or bounced for some reason.
+            /// </summary>
+            Error = 4,
+
+            /// <summary>
+            /// Email has been successfully delivered.
+            /// </summary>
+            Sent = 5,
+
+            /// <summary>
+            /// Email has been opened by the recipient.
+            /// </summary>
+            Opened = 6,
+
+            /// <summary>
+            /// Email has had at least one link clicked by the recipient.
+            /// </summary>
+            Clicked = 7,
+
+            /// <summary>
+            /// Email has been unsubscribed by the recipient.
+            /// </summary>
+            Unsubscribed = 8,
+
+            /// <summary>
+            /// Email has been complained about or marked as spam by the recipient.
+            /// </summary>
+            AbuseReport = 9,
+
+        }
 
         /// <summary>
-        /// Date of last status change.
+        /// Summary of log status, based on specified date range.
         /// </summary>
-        public string StatusChangeDate;
+        public class LogStatusSummary
+        {
+            /// <summary>
+            /// Starting date for search in YYYY-MM-DDThh:mm:ss format.
+            /// </summary>
+            public string From { get; set; }
+
+            /// <summary>
+            /// Ending date for search in YYYY-MM-DDThh:mm:ss format.
+            /// </summary>
+            public string To { get; set; }
+
+            /// <summary>
+            /// Overall duration
+            /// </summary>
+            public double Duration { get; set; }
+
+            /// <summary>
+            /// Number of recipients
+            /// </summary>
+            public long Recipients { get; set; }
+
+            /// <summary>
+            /// Number of emails
+            /// </summary>
+            public long EmailTotal { get; set; }
+
+            /// <summary>
+            /// Number of SMS
+            /// </summary>
+            public long SmsTotal { get; set; }
+
+            /// <summary>
+            /// Number of delivered messages
+            /// </summary>
+            public long Delivered { get; set; }
+
+            /// <summary>
+            /// Number of bounced messages
+            /// </summary>
+            public long Bounced { get; set; }
+
+            /// <summary>
+            /// Number of messages in progress
+            /// </summary>
+            public long InProgress { get; set; }
+
+            /// <summary>
+            /// Number of opened messages
+            /// </summary>
+            public long Opened { get; set; }
+
+            /// <summary>
+            /// Number of clicked messages
+            /// </summary>
+            public long Clicked { get; set; }
+
+            /// <summary>
+            /// Number of unsubscribed messages
+            /// </summary>
+            public long Unsubscribed { get; set; }
+
+            /// <summary>
+            /// Number of complaint messages
+            /// </summary>
+            public long Complaints { get; set; }
+
+            /// <summary>
+            /// Number of inbound messages
+            /// </summary>
+            public long Inbound { get; set; }
+
+            /// <summary>
+            /// Number of manually cancelled messages
+            /// </summary>
+            public long ManualCancel { get; set; }
+
+            /// <summary>
+            /// Number of messages flagged with 'Not Delivered'
+            /// </summary>
+            public long NotDelivered { get; set; }
+
+            /// <summary>
+            /// ID number of template used
+            /// </summary>
+            public bool TemplateChannel { get; set; }
+
+        }
 
         /// <summary>
-        /// Date of next try
+        /// Overall log summary information.
         /// </summary>
-        public string NextTryOn;
+        public class LogSummary
+        {
+            /// <summary>
+            /// Summary of log status, based on specified date range.
+            /// </summary>
+            public ApiTypes.LogStatusSummary LogStatusSummary { get; set; }
+
+            /// <summary>
+            /// Summary of bounced categories, based on specified date range.
+            /// </summary>
+            public ApiTypes.BouncedCategorySummary BouncedCategorySummary { get; set; }
+
+            /// <summary>
+            /// Daily summary of log status, based on specified date range.
+            /// </summary>
+            public List<ApiTypes.DailyLogStatusSummary> DailyLogStatusSummary { get; set; }
+
+        }
 
         /// <summary>
-        /// Default subject of email.
+        /// 
         /// </summary>
-        public string Subject;
+        public enum MessageCategory
+        {
+            /// <summary>
+            /// 
+            /// </summary>
+            Unknown = 0,
+
+            /// <summary>
+            /// 
+            /// </summary>
+            Ignore = 1,
+
+            /// <summary>
+            /// Number of messages marked as SPAM
+            /// </summary>
+            Spam = 2,
+
+            /// <summary>
+            /// Number of blacklisted messages
+            /// </summary>
+            BlackListed = 3,
+
+            /// <summary>
+            /// Number of messages flagged with 'No Mailbox'
+            /// </summary>
+            NoMailbox = 4,
+
+            /// <summary>
+            /// Number of messages flagged with 'Grey Listed'
+            /// </summary>
+            GreyListed = 5,
+
+            /// <summary>
+            /// Number of messages flagged with 'Throttled'
+            /// </summary>
+            Throttled = 6,
+
+            /// <summary>
+            /// Number of messages flagged with 'Timeout'
+            /// </summary>
+            Timeout = 7,
+
+            /// <summary>
+            /// Number of messages flagged with 'Connection Problem'
+            /// </summary>
+            ConnectionProblem = 8,
+
+            /// <summary>
+            /// Number of messages flagged with 'SPF Problem'
+            /// </summary>
+            SPFProblem = 9,
+
+            /// <summary>
+            /// Number of messages flagged with 'Account Problem'
+            /// </summary>
+            AccountProblem = 10,
+
+            /// <summary>
+            /// Number of messages flagged with 'DNS Problem'
+            /// </summary>
+            DNSProblem = 11,
+
+            /// <summary>
+            /// 
+            /// </summary>
+            NotDeliveredCancelled = 12,
+
+            /// <summary>
+            /// Number of messages flagged with 'Code Error'
+            /// </summary>
+            CodeError = 13,
+
+            /// <summary>
+            /// Number of manually cancelled messages
+            /// </summary>
+            ManualCancel = 14,
+
+            /// <summary>
+            /// Number of messages flagged with 'Connection terminated'
+            /// </summary>
+            ConnectionTerminated = 15,
+
+            /// <summary>
+            /// Number of messages flagged with 'Not Delivered'
+            /// </summary>
+            NotDelivered = 16,
+
+        }
 
         /// <summary>
-        /// Default From: email address.
+        /// Queue of notifications
         /// </summary>
-        public string FromEmail;
+        public class NotificationQueue
+        {
+            /// <summary>
+            /// Creation date.
+            /// </summary>
+            public string DateCreated { get; set; }
+
+            /// <summary>
+            /// Date of last status change.
+            /// </summary>
+            public string StatusChangeDate { get; set; }
+
+            /// <summary>
+            /// Actual status.
+            /// </summary>
+            public string NewStatus { get; set; }
+
+            /// <summary>
+            /// 
+            /// </summary>
+            public string Reference { get; set; }
+
+            /// <summary>
+            /// Error message.
+            /// </summary>
+            public string ErrorMessage { get; set; }
+
+            /// <summary>
+            /// Number of previous delivery attempts
+            /// </summary>
+            public string RetryCount { get; set; }
+
+        }
 
         /// <summary>
-        /// ID of certain mail job
+        /// Detailed information about existing money transfers.
         /// </summary>
-        public string JobID;
+        public class Payment
+        {
+            /// <summary>
+            /// Date in YYYY-MM-DDThh:ii:ss format
+            /// </summary>
+            public DateTime Date { get; set; }
+
+            /// <summary>
+            /// Amount of money in transaction
+            /// </summary>
+            public decimal Amount { get; set; }
+
+            /// <summary>
+            /// Source of URL of payment
+            /// </summary>
+            public string Source { get; set; }
+
+        }
 
         /// <summary>
-        /// True, if message is a SMS and status is not yet confirmed. Otherwise, false
+        /// Basic information about your profile
         /// </summary>
-        public bool SmsUpdateRequired;
+        public class Profile
+        {
+            /// <summary>
+            /// First name.
+            /// </summary>
+            public string FirstName { get; set; }
+
+            /// <summary>
+            /// Last name.
+            /// </summary>
+            public string LastName { get; set; }
+
+            /// <summary>
+            /// Company name.
+            /// </summary>
+            public string Company { get; set; }
+
+            /// <summary>
+            /// First line of address.
+            /// </summary>
+            public string Address1 { get; set; }
+
+            /// <summary>
+            /// Second line of address.
+            /// </summary>
+            public string Address2 { get; set; }
+
+            /// <summary>
+            /// City.
+            /// </summary>
+            public string City { get; set; }
+
+            /// <summary>
+            /// State or province.
+            /// </summary>
+            public string State { get; set; }
+
+            /// <summary>
+            /// Zip/postal code.
+            /// </summary>
+            public string Zip { get; set; }
+
+            /// <summary>
+            /// Numeric ID of country. A file with the list of countries is available <a href="http://api.elasticemail.com/public/countries"><b>here</b></a>
+            /// </summary>
+            public int? CountryID { get; set; }
+
+            /// <summary>
+            /// Phone number
+            /// </summary>
+            public string Phone { get; set; }
+
+            /// <summary>
+            /// Proper email address.
+            /// </summary>
+            public string Email { get; set; }
+
+            /// <summary>
+            /// Code used for tax purposes.
+            /// </summary>
+            public string TaxCode { get; set; }
+
+        }
 
         /// <summary>
-        /// Content of message
+        /// 
         /// </summary>
-        public string TextMessage;
+        public enum QuestionType
+        {
+            /// <summary>
+            /// 
+            /// </summary>
+            RadioButtons = 1,
+
+            /// <summary>
+            /// 
+            /// </summary>
+            DropdownMenu = 2,
+
+            /// <summary>
+            /// 
+            /// </summary>
+            Checkboxes = 3,
+
+            /// <summary>
+            /// 
+            /// </summary>
+            LongAnswer = 4,
+
+            /// <summary>
+            /// 
+            /// </summary>
+            Textbox = 5,
+
+            /// <summary>
+            /// Date in YYYY-MM-DDThh:ii:ss format
+            /// </summary>
+            Date = 6,
+
+        }
 
         /// <summary>
-        /// Comma separated ID numbers of messages.
+        /// Detailed information about message recipient
         /// </summary>
-        public string MessageSid;
+        public class Recipient
+        {
+            /// <summary>
+            /// True, if message is SMS. Otherwise, false
+            /// </summary>
+            public bool IsSms { get; set; }
+
+            /// <summary>
+            /// ID number of selected message.
+            /// </summary>
+            public string MsgID { get; set; }
+
+            /// <summary>
+            /// Ending date for search in YYYY-MM-DDThh:mm:ss format.
+            /// </summary>
+            public string To { get; set; }
+
+            /// <summary>
+            /// Name of recipient's status: Submitted, ReadyToSend, WaitingToRetry, Sending, Bounced, Sent, Opened, Clicked, Unsubscribed, AbuseReport
+            /// </summary>
+            public string Status { get; set; }
+
+            /// <summary>
+            /// Name of selected Channel.
+            /// </summary>
+            public string Channel { get; set; }
+
+            /// <summary>
+            /// Date in YYYY-MM-DDThh:ii:ss format
+            /// </summary>
+            public string Date { get; set; }
+
+            /// <summary>
+            /// Content of message, HTML encoded
+            /// </summary>
+            public string Message { get; set; }
+
+            /// <summary>
+            /// True, if message category should be shown. Otherwise, false
+            /// </summary>
+            public bool ShowCategory { get; set; }
+
+            /// <summary>
+            /// Name of message category
+            /// </summary>
+            public string MessageCategory { get; set; }
+
+            /// <summary>
+            /// ID of message category
+            /// </summary>
+            public ApiTypes.MessageCategory MessageCategoryID { get; set; }
+
+            /// <summary>
+            /// Date of last status change.
+            /// </summary>
+            public string StatusChangeDate { get; set; }
+
+            /// <summary>
+            /// Date of next try
+            /// </summary>
+            public string NextTryOn { get; set; }
+
+            /// <summary>
+            /// Default subject of email.
+            /// </summary>
+            public string Subject { get; set; }
+
+            /// <summary>
+            /// Default From: email address.
+            /// </summary>
+            public string FromEmail { get; set; }
+
+            /// <summary>
+            /// ID of certain mail job
+            /// </summary>
+            public string JobID { get; set; }
+
+            /// <summary>
+            /// True, if message is a SMS and status is not yet confirmed. Otherwise, false
+            /// </summary>
+            public bool SmsUpdateRequired { get; set; }
+
+            /// <summary>
+            /// Content of message
+            /// </summary>
+            public string TextMessage { get; set; }
+
+            /// <summary>
+            /// Comma separated ID numbers of messages.
+            /// </summary>
+            public string MessageSid { get; set; }
+
+        }
 
         /// <summary>
-        /// Recipient's last bounce error because of which this e-mail was suppressed
+        /// Referral details for this account.
         /// </summary>
-        public string ContactLastError;
+        public class Referral
+        {
+            /// <summary>
+            /// Current amount of dolars you have from referring.
+            /// </summary>
+            public decimal CurrentReferralCredit { get; set; }
 
-    }
+            /// <summary>
+            /// Number of active referrals.
+            /// </summary>
+            public long CurrentReferralCount { get; set; }
 
-    /// <summary>
-    /// Referral details for this account.
-    /// </summary>
-    public class Referral
-    {
+        }
+
         /// <summary>
-        /// Current amount of dolars you have from referring.
+        /// Detailed sending reputation of your account.
         /// </summary>
-        public decimal CurrentReferralCredit;
+        public class ReputationDetail
+        {
+            /// <summary>
+            /// Overall reputation impact, based on the most important factors.
+            /// </summary>
+            public ApiTypes.ReputationImpact Impact { get; set; }
+
+            /// <summary>
+            /// Percent of Complaining users - those, who do not want to receive email from you.
+            /// </summary>
+            public double AbusePercent { get; set; }
+
+            /// <summary>
+            /// Percent of Unknown users - users that couldn't be found
+            /// </summary>
+            public double UnknownUsersPercent { get; set; }
+
+            /// <summary>
+            /// 
+            /// </summary>
+            public double OpenedPercent { get; set; }
+
+            /// <summary>
+            /// 
+            /// </summary>
+            public double ClickedPercent { get; set; }
+
+            /// <summary>
+            /// Penalty from messages marked as spam.
+            /// </summary>
+            public double AverageSpamScore { get; set; }
+
+            /// <summary>
+            /// Percent of Bounced users
+            /// </summary>
+            public double FailedSpamPercent { get; set; }
+
+            /// <summary>
+            /// Points from quantity of your emails.
+            /// </summary>
+            public double RepEmailsSent { get; set; }
+
+            /// <summary>
+            /// Average reputation.
+            /// </summary>
+            public double AverageReputation { get; set; }
+
+            /// <summary>
+            /// Actual price level.
+            /// </summary>
+            public double PriceLevelReputation { get; set; }
+
+            /// <summary>
+            /// Reputation needed to change pricing.
+            /// </summary>
+            public double NextPriceLevelReputation { get; set; }
+
+            /// <summary>
+            /// Amount of emails sent from this account
+            /// </summary>
+            public string PriceLevel { get; set; }
+
+            /// <summary>
+            /// True, if tracking domain is correctly configured. Otherwise, false.
+            /// </summary>
+            public bool TrackingDomainValid { get; set; }
+
+            /// <summary>
+            /// True, if sending domain is correctly configured. Otherwise, false.
+            /// </summary>
+            public bool SenderDomainValid { get; set; }
+
+        }
 
         /// <summary>
-        /// Number of active referrals.
+        /// Reputation history of your account.
         /// </summary>
-        public long CurrentReferralCount;
+        public class ReputationHistory
+        {
+            /// <summary>
+            /// Creation date.
+            /// </summary>
+            public string DateCreated { get; set; }
 
-    }
+            /// <summary>
+            /// Percent of Complaining users - those, who do not want to receive email from you.
+            /// </summary>
+            public double AbusePercent { get; set; }
 
-    /// <summary>
-    /// Detailed sending reputation of your account.
-    /// </summary>
-    public class ReputationDetail
-    {
+            /// <summary>
+            /// Percent of Unknown users - users that couldn't be found
+            /// </summary>
+            public double UnknownUsersPercent { get; set; }
+
+            /// <summary>
+            /// 
+            /// </summary>
+            public double OpenedPercent { get; set; }
+
+            /// <summary>
+            /// 
+            /// </summary>
+            public double ClickedPercent { get; set; }
+
+            /// <summary>
+            /// Penalty from messages marked as spam.
+            /// </summary>
+            public double AverageSpamScore { get; set; }
+
+            /// <summary>
+            /// Points from proper setup of your account
+            /// </summary>
+            public double SetupScore { get; set; }
+
+            /// <summary>
+            /// Points from quantity of your emails.
+            /// </summary>
+            public double RepEmailsSent { get; set; }
+
+            /// <summary>
+            /// Numeric reputation
+            /// </summary>
+            public double Reputation { get; set; }
+
+        }
+
         /// <summary>
         /// Overall reputation impact, based on the most important factors.
         /// </summary>
-        public ApiTypes.ReputationImpact Impact;
+        public class ReputationImpact
+        {
+            /// <summary>
+            /// Abuses - mails sent to user without their consent
+            /// </summary>
+            public double Abuse { get; set; }
+
+            /// <summary>
+            /// Users, that could not be reached.
+            /// </summary>
+            public double UnknownUsers { get; set; }
+
+            /// <summary>
+            /// Number of opened messages
+            /// </summary>
+            public double Opened { get; set; }
+
+            /// <summary>
+            /// Number of clicked messages
+            /// </summary>
+            public double Clicked { get; set; }
+
+            /// <summary>
+            /// Penalty from messages marked as spam.
+            /// </summary>
+            public double AverageSpamScore { get; set; }
+
+            /// <summary>
+            /// Content analysis.
+            /// </summary>
+            public double ServerFilter { get; set; }
+
+            /// <summary>
+            /// Tracking domain.
+            /// </summary>
+            public double TrackingDomain { get; set; }
+
+            /// <summary>
+            /// Sending domain.
+            /// </summary>
+            public double SenderDomain { get; set; }
+
+        }
 
         /// <summary>
-        /// Percent of Complaining users - those, who do not want to receive email from you.
+        /// Information about Contact Segment, selected by RULE.
         /// </summary>
-        public double AbusePercent;
+        public class Segment
+        {
+            /// <summary>
+            /// ID number of your segment.
+            /// </summary>
+            public int SegmentID { get; set; }
+
+            /// <summary>
+            /// Filename
+            /// </summary>
+            public string Name { get; set; }
+
+            /// <summary>
+            /// Query used for filtering.
+            /// </summary>
+            public string Rule { get; set; }
+
+            /// <summary>
+            /// Number of items from last check.
+            /// </summary>
+            public long LastCount { get; set; }
+
+            /// <summary>
+            /// History of segment information.
+            /// </summary>
+            public List<ApiTypes.SegmentHistory> History { get; set; }
+
+        }
 
         /// <summary>
-        /// Percent of Unknown users - users that couldn't be found
+        /// Segment History
         /// </summary>
-        public double UnknownUsersPercent;
+        public class SegmentHistory
+        {
+            /// <summary>
+            /// ID number of history.
+            /// </summary>
+            public int SegmentHistoryID { get; set; }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        public double OpenedPercent;
+            /// <summary>
+            /// ID number of your segment.
+            /// </summary>
+            public int SegmentID { get; set; }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        public double ClickedPercent;
+            /// <summary>
+            /// Date in YYYY-MM-DD format
+            /// </summary>
+            public int Day { get; set; }
 
-        /// <summary>
-        /// Penalty from messages marked as spam.
-        /// </summary>
-        public double AverageSpamScore;
+            /// <summary>
+            /// Number of items.
+            /// </summary>
+            public long Count { get; set; }
 
-        /// <summary>
-        /// Percent of Bounced users
-        /// </summary>
-        public double FailedSpamPercent;
+            /// <summary>
+            /// 
+            /// </summary>
+            public long EngagedCount { get; set; }
 
-        /// <summary>
-        /// Points from quantity of your emails.
-        /// </summary>
-        public double RepEmailsSent;
+            /// <summary>
+            /// 
+            /// </summary>
+            public long ActiveCount { get; set; }
 
-        /// <summary>
-        /// Average reputation.
-        /// </summary>
-        public double AverageReputation;
+            /// <summary>
+            /// 
+            /// </summary>
+            public long BouncedCount { get; set; }
 
-        /// <summary>
-        /// Actual price level.
-        /// </summary>
-        public double PriceLevelReputation;
+            /// <summary>
+            /// Total emails clicked
+            /// </summary>
+            public long UnsubscribedCount { get; set; }
 
-        /// <summary>
-        /// Reputation needed to change pricing.
-        /// </summary>
-        public double NextPriceLevelReputation;
+            /// <summary>
+            /// 
+            /// </summary>
+            public long AbuseCount { get; set; }
 
-        /// <summary>
-        /// Amount of emails sent from this account
-        /// </summary>
-        public string PriceLevel;
+            /// <summary>
+            /// 
+            /// </summary>
+            public long InactiveCount { get; set; }
 
-        /// <summary>
-        /// True, if tracking domain is correctly configured. Otherwise, false.
-        /// </summary>
-        public bool TrackingDomainValid;
-
-        /// <summary>
-        /// True, if sending domain is correctly configured. Otherwise, false.
-        /// </summary>
-        public bool SenderDomainValid;
-
-    }
-
-    /// <summary>
-    /// Reputation history of your account.
-    /// </summary>
-    public class ReputationHistory
-    {
-        /// <summary>
-        /// Creation date.
-        /// </summary>
-        public string DateCreated;
-
-        /// <summary>
-        /// Percent of Complaining users - those, who do not want to receive email from you.
-        /// </summary>
-        public double AbusePercent;
-
-        /// <summary>
-        /// Percent of Unknown users - users that couldn't be found
-        /// </summary>
-        public double UnknownUsersPercent;
-
-        /// <summary>
-        /// 
-        /// </summary>
-        public double OpenedPercent;
-
-        /// <summary>
-        /// 
-        /// </summary>
-        public double ClickedPercent;
-
-        /// <summary>
-        /// Penalty from messages marked as spam.
-        /// </summary>
-        public double AverageSpamScore;
-
-        /// <summary>
-        /// Points from proper setup of your account
-        /// </summary>
-        public double SetupScore;
-
-        /// <summary>
-        /// Points from quantity of your emails.
-        /// </summary>
-        public double RepEmailsSent;
-
-        /// <summary>
-        /// Numeric reputation
-        /// </summary>
-        public double Reputation;
-
-    }
-
-    /// <summary>
-    /// Overall reputation impact, based on the most important factors.
-    /// </summary>
-    public class ReputationImpact
-    {
-        /// <summary>
-        /// Abuses - mails sent to user without their consent
-        /// </summary>
-        public double Abuse;
-
-        /// <summary>
-        /// Users, that could not be reached.
-        /// </summary>
-        public double UnknownUsers;
-
-        /// <summary>
-        /// Number of opened messages
-        /// </summary>
-        public double Opened;
-
-        /// <summary>
-        /// Number of clicked messages
-        /// </summary>
-        public double Clicked;
-
-        /// <summary>
-        /// Penalty from messages marked as spam.
-        /// </summary>
-        public double AverageSpamScore;
-
-        /// <summary>
-        /// Content analysis.
-        /// </summary>
-        public double ServerFilter;
-
-        /// <summary>
-        /// Tracking domain.
-        /// </summary>
-        public double TrackingDomain;
-
-        /// <summary>
-        /// Sending domain.
-        /// </summary>
-        public double SenderDomain;
-
-    }
-
-    /// <summary>
-    /// Information about Contact Segment, selected by RULE.
-    /// </summary>
-    public class Segment
-    {
-        /// <summary>
-        /// ID number of your segment.
-        /// </summary>
-        public int SegmentID;
-
-        /// <summary>
-        /// Filename
-        /// </summary>
-        public string Name;
-
-        /// <summary>
-        /// Query used for filtering.
-        /// </summary>
-        public string Rule;
-
-        /// <summary>
-        /// Number of items from last check.
-        /// </summary>
-        public long LastCount;
-
-        /// <summary>
-        /// History of segment information.
-        /// </summary>
-        public List<ApiTypes.SegmentHistory> History;
-
-    }
-
-    /// <summary>
-    /// Segment History
-    /// </summary>
-    public class SegmentHistory
-    {
-        /// <summary>
-        /// ID number of history.
-        /// </summary>
-        public int SegmentHistoryID;
-
-        /// <summary>
-        /// ID number of your segment.
-        /// </summary>
-        public int SegmentID;
-
-        /// <summary>
-        /// Date in YYYY-MM-DD format
-        /// </summary>
-        public int Day;
-
-        /// <summary>
-        /// Number of items.
-        /// </summary>
-        public long Count;
+        }
 
         /// <summary>
         /// 
         /// </summary>
-        public long EngagedCount;
+        public enum SendingPermission
+        {
+            /// <summary>
+            /// Sending not allowed.
+            /// </summary>
+            None = 0,
+
+            /// <summary>
+            /// Allow sending via SMTP only.
+            /// </summary>
+            Smtp = 1,
+
+            /// <summary>
+            /// Allow sending via HTTP API only.
+            /// </summary>
+            HttpApi = 2,
+
+            /// <summary>
+            /// Allow sending via SMTP and HTTP API.
+            /// </summary>
+            SmtpAndHttpApi = 3,
+
+            /// <summary>
+            /// Allow sending via the website interface only.
+            /// </summary>
+            Interface = 4,
+
+            /// <summary>
+            /// Allow sending via SMTP and the website interface.
+            /// </summary>
+            SmtpAndInterface = 5,
+
+            /// <summary>
+            /// Allow sendnig via HTTP API and the website interface.
+            /// </summary>
+            HttpApiAndInterface = 6,
+
+            /// <summary>
+            /// Sending allowed via SMTP, HTTP API and the website interface.
+            /// </summary>
+            All = 255,
+
+        }
+
+        /// <summary>
+        /// Spam check of specified message.
+        /// </summary>
+        public class SpamCheck
+        {
+            /// <summary>
+            /// Total spam score from
+            /// </summary>
+            public string TotalScore { get; set; }
+
+            /// <summary>
+            /// Date in YYYY-MM-DDThh:ii:ss format
+            /// </summary>
+            public string Date { get; set; }
+
+            /// <summary>
+            /// Default subject of email.
+            /// </summary>
+            public string Subject { get; set; }
+
+            /// <summary>
+            /// Default From: email address.
+            /// </summary>
+            public string FromEmail { get; set; }
+
+            /// <summary>
+            /// ID number of selected message.
+            /// </summary>
+            public string MsgID { get; set; }
+
+            /// <summary>
+            /// Name of selected channel.
+            /// </summary>
+            public string ChannelName { get; set; }
+
+            /// <summary>
+            /// 
+            /// </summary>
+            public List<ApiTypes.SpamRule> Rules { get; set; }
+
+        }
+
+        /// <summary>
+        /// Single spam score
+        /// </summary>
+        public class SpamRule
+        {
+            /// <summary>
+            /// Spam score
+            /// </summary>
+            public string Score { get; set; }
+
+            /// <summary>
+            /// Name of rule
+            /// </summary>
+            public string Key { get; set; }
+
+            /// <summary>
+            /// Description of rule.
+            /// </summary>
+            public string Description { get; set; }
+
+        }
 
         /// <summary>
         /// 
         /// </summary>
-        public long ActiveCount;
+        public enum SplitOptimization
+        {
+            /// <summary>
+            /// Number of opened messages
+            /// </summary>
+            Opened = 0,
+
+            /// <summary>
+            /// Number of clicked messages
+            /// </summary>
+            Clicked = 1,
+
+        }
+
+        /// <summary>
+        /// Subaccount. Contains detailed data of your Subaccount.
+        /// </summary>
+        public class SubAccount
+        {
+            /// <summary>
+            /// Public key for limited access to your account such as contact/add so you can use it safely on public websites.
+            /// </summary>
+            public string PublicAccountID { get; set; }
+
+            /// <summary>
+            /// ApiKey that gives you access to our SMTP and HTTP API's.
+            /// </summary>
+            public string ApiKey { get; set; }
+
+            /// <summary>
+            /// Proper email address.
+            /// </summary>
+            public string Email { get; set; }
+
+            /// <summary>
+            /// ID number of mailer
+            /// </summary>
+            public string MailerID { get; set; }
+
+            /// <summary>
+            /// Name of your custom IP Pool to be used in the sending process
+            /// </summary>
+            public string PoolName { get; set; }
+
+            /// <summary>
+            /// Date of last activity on account
+            /// </summary>
+            public string LastActivity { get; set; }
+
+            /// <summary>
+            /// Amount of email credits
+            /// </summary>
+            public string EmailCredits { get; set; }
+
+            /// <summary>
+            /// True, if account needs credits to send emails. Otherwise, false
+            /// </summary>
+            public bool RequiresEmailCredits { get; set; }
+
+            /// <summary>
+            /// Amount of credits added to account automatically
+            /// </summary>
+            public double MonthlyRefillCredits { get; set; }
+
+            /// <summary>
+            /// True, if account needs credits to buy templates. Otherwise, false
+            /// </summary>
+            public bool RequiresTemplateCredits { get; set; }
+
+            /// <summary>
+            /// Amount of Litmus credits
+            /// </summary>
+            public decimal LitmusCredits { get; set; }
+
+            /// <summary>
+            /// True, if account is able to send template tests to Litmus. Otherwise, false
+            /// </summary>
+            public bool EnableLitmusTest { get; set; }
+
+            /// <summary>
+            /// True, if account needs credits to send emails. Otherwise, false
+            /// </summary>
+            public bool RequiresLitmusCredits { get; set; }
+
+            /// <summary>
+            /// True, if account can buy templates on its own. Otherwise, false
+            /// </summary>
+            public bool EnablePremiumTemplates { get; set; }
+
+            /// <summary>
+            /// True, if account can request for private IP on its own. Otherwise, false
+            /// </summary>
+            public bool EnablePrivateIPRequest { get; set; }
+
+            /// <summary>
+            /// Amount of emails sent from this account
+            /// </summary>
+            public long TotalEmailsSent { get; set; }
+
+            /// <summary>
+            /// Percent of Unknown users - users that couldn't be found
+            /// </summary>
+            public double UnknownUsersPercent { get; set; }
+
+            /// <summary>
+            /// Percent of Complaining users - those, who do not want to receive email from you.
+            /// </summary>
+            public double AbusePercent { get; set; }
+
+            /// <summary>
+            /// Percent of Bounced users
+            /// </summary>
+            public double FailedSpamPercent { get; set; }
+
+            /// <summary>
+            /// Numeric reputation
+            /// </summary>
+            public double Reputation { get; set; }
+
+            /// <summary>
+            /// Amount of emails account can send daily
+            /// </summary>
+            public long DailySendLimit { get; set; }
+
+            /// <summary>
+            /// Name of account's status: Deleted, Disabled, UnderReview, NoPaymentsAllowed, NeverSignedIn, Active, SystemPaused
+            /// </summary>
+            public string Status { get; set; }
+
+        }
+
+        /// <summary>
+        /// Detailed account settings.
+        /// </summary>
+        public class SubAccountSettings
+        {
+            /// <summary>
+            /// Proper email address.
+            /// </summary>
+            public string Email { get; set; }
+
+            /// <summary>
+            /// True, if account needs credits to send emails. Otherwise, false
+            /// </summary>
+            public bool RequiresEmailCredits { get; set; }
+
+            /// <summary>
+            /// True, if account needs credits to buy templates. Otherwise, false
+            /// </summary>
+            public bool RequiresTemplateCredits { get; set; }
+
+            /// <summary>
+            /// Amount of credits added to account automatically
+            /// </summary>
+            public double MonthlyRefillCredits { get; set; }
+
+            /// <summary>
+            /// Amount of Litmus credits
+            /// </summary>
+            public decimal LitmusCredits { get; set; }
+
+            /// <summary>
+            /// True, if account is able to send template tests to Litmus. Otherwise, false
+            /// </summary>
+            public bool EnableLitmusTest { get; set; }
+
+            /// <summary>
+            /// True, if account needs credits to send emails. Otherwise, false
+            /// </summary>
+            public bool RequiresLitmusCredits { get; set; }
+
+            /// <summary>
+            /// Maximum size of email including attachments in MB's
+            /// </summary>
+            public int EmailSizeLimit { get; set; }
+
+            /// <summary>
+            /// Amount of emails account can send daily
+            /// </summary>
+            public int DailySendLimit { get; set; }
+
+            /// <summary>
+            /// Maximum number of contacts the account can have
+            /// </summary>
+            public int MaxContacts { get; set; }
+
+            /// <summary>
+            /// True, if account can request for private IP on its own. Otherwise, false
+            /// </summary>
+            public bool EnablePrivateIPRequest { get; set; }
+
+            /// <summary>
+            /// True, if you want to use Advanced Tools.  Otherwise, false
+            /// </summary>
+            public bool EnableContactFeatures { get; set; }
+
+            /// <summary>
+            /// Sending permission setting for account
+            /// </summary>
+            public ApiTypes.SendingPermission SendingPermission { get; set; }
+
+            /// <summary>
+            /// Name of your custom IP Pool to be used in the sending process
+            /// </summary>
+            public string PoolName { get; set; }
+
+            /// <summary>
+            /// Public key for limited access to your account such as contact/add so you can use it safely on public websites.
+            /// </summary>
+            public string PublicAccountID { get; set; }
+
+        }
+
+        /// <summary>
+        /// A survey object
+        /// </summary>
+        public class Survey
+        {
+            /// <summary>
+            /// Survey identifier
+            /// </summary>
+            public Guid PublicSurveyID { get; set; }
+
+            /// <summary>
+            /// Creation date.
+            /// </summary>
+            public DateTime DateCreated { get; set; }
+
+            /// <summary>
+            /// Last change date
+            /// </summary>
+            public DateTime? DateUpdated { get; set; }
+
+            /// <summary>
+            /// Filename
+            /// </summary>
+            public string Name { get; set; }
+
+            /// <summary>
+            /// Activate, delete, or pause your survey
+            /// </summary>
+            public ApiTypes.SurveyStatus Status { get; set; }
+
+            /// <summary>
+            /// Number of results count
+            /// </summary>
+            public int ResultCount { get; set; }
+
+            /// <summary>
+            /// Survey's steps info
+            /// </summary>
+            public List<ApiTypes.SurveyStep> SurveyStep { get; set; }
+
+            /// <summary>
+            /// URL of the survey
+            /// </summary>
+            public string SurveyLink { get; set; }
+
+        }
+
+        /// <summary>
+        /// Object with the single answer's data
+        /// </summary>
+        public class SurveyResultAnswerInfo
+        {
+            /// <summary>
+            /// Answer's content
+            /// </summary>
+            public string content { get; set; }
+
+            /// <summary>
+            /// Identifier of the step
+            /// </summary>
+            public int surveystepid { get; set; }
+
+            /// <summary>
+            /// Identifier of the answer of the step
+            /// </summary>
+            public string surveystepanswerid { get; set; }
+
+        }
+
+        /// <summary>
+        /// Single answer's data with user's specific info
+        /// </summary>
+        public class SurveyResultInfo
+        {
+            /// <summary>
+            /// Identifier of the result
+            /// </summary>
+            public string SurveyResultID { get; set; }
+
+            /// <summary>
+            /// IP address
+            /// </summary>
+            public string CreatedFromIP { get; set; }
+
+            /// <summary>
+            /// Completion date
+            /// </summary>
+            public DateTime DateCompleted { get; set; }
+
+            /// <summary>
+            /// Start date
+            /// </summary>
+            public DateTime DateStart { get; set; }
+
+            /// <summary>
+            /// Answers for the survey
+            /// </summary>
+            public List<ApiTypes.SurveyResultAnswerInfo> SurveyResultAnswers { get; set; }
+
+        }
+
+        /// <summary>
+        /// Summary with all the answers
+        /// </summary>
+        public class SurveyResultsSummary
+        {
+            /// <summary>
+            /// Answers' statistics
+            /// </summary>
+            public Dictionary<string, int> Answers { get; set; }
+
+            /// <summary>
+            /// Open answers for the question
+            /// </summary>
+            public List<string> OpenAnswers { get; set; }
+
+        }
+
+        /// <summary>
+        /// Data on the survey's result
+        /// </summary>
+        public class SurveyResultsSummaryInfo
+        {
+            /// <summary>
+            /// Number of items.
+            /// </summary>
+            public int Count { get; set; }
+
+            /// <summary>
+            /// Summary statistics
+            /// </summary>
+            public Dictionary<int, ApiTypes.SurveyResultsSummary> Summary { get; set; }
+
+        }
 
         /// <summary>
         /// 
         /// </summary>
-        public long BouncedCount;
+        public enum SurveyStatus
+        {
+            /// <summary>
+            /// The survey is deleted
+            /// </summary>
+            Deleted = -1,
+
+            /// <summary>
+            /// The survey is not receiving result for now
+            /// </summary>
+            Paused = 0,
+
+            /// <summary>
+            /// The survey is active and receiving answers
+            /// </summary>
+            Active = 1,
+
+        }
 
         /// <summary>
-        /// Total emails clicked
+        /// Survey's single step info with the answers
         /// </summary>
-        public long UnsubscribedCount;
+        public class SurveyStep
+        {
+            /// <summary>
+            /// Identifier of the step
+            /// </summary>
+            public int SurveyStepID { get; set; }
+
+            /// <summary>
+            /// Type of the step
+            /// </summary>
+            public ApiTypes.SurveyStepType SurveyStepType { get; set; }
+
+            /// <summary>
+            /// Type of the question
+            /// </summary>
+            public ApiTypes.QuestionType QuestionType { get; set; }
+
+            /// <summary>
+            /// Answer's content
+            /// </summary>
+            public string Content { get; set; }
+
+            /// <summary>
+            /// Is the answer required
+            /// </summary>
+            public bool Required { get; set; }
+
+            /// <summary>
+            /// Sequence of the answers
+            /// </summary>
+            public int Sequence { get; set; }
+
+            /// <summary>
+            /// Answer object of the step
+            /// </summary>
+            public List<ApiTypes.SurveyStepAnswer> SurveyStepAnswer { get; set; }
+
+        }
 
         /// <summary>
-        /// 
+        /// Single step's answer object
         /// </summary>
-        public long AbuseCount;
+        public class SurveyStepAnswer
+        {
+            /// <summary>
+            /// Identifier of the answer of the step
+            /// </summary>
+            public string SurveyStepAnswerID { get; set; }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        public long InactiveCount;
+            /// <summary>
+            /// Answer's content
+            /// </summary>
+            public string Content { get; set; }
 
-    }
+            /// <summary>
+            /// Sequence of the answers
+            /// </summary>
+            public int Sequence { get; set; }
 
-    /// <summary>
-    /// 
-    /// </summary>
-    public enum SendingPermission
-    {
-        /// <summary>
-        /// Sending not allowed.
-        /// </summary>
-        None = 0,
-
-        /// <summary>
-        /// Allow sending via SMTP only.
-        /// </summary>
-        Smtp = 1,
-
-        /// <summary>
-        /// Allow sending via HTTP API only.
-        /// </summary>
-        HttpApi = 2,
-
-        /// <summary>
-        /// Allow sending via SMTP and HTTP API.
-        /// </summary>
-        SmtpAndHttpApi = 3,
-
-        /// <summary>
-        /// Allow sending via the website interface only.
-        /// </summary>
-        Interface = 4,
-
-        /// <summary>
-        /// Allow sending via SMTP and the website interface.
-        /// </summary>
-        SmtpAndInterface = 5,
-
-        /// <summary>
-        /// Allow sendnig via HTTP API and the website interface.
-        /// </summary>
-        HttpApiAndInterface = 6,
-
-        /// <summary>
-        /// Sending allowed via SMTP, HTTP API and the website interface.
-        /// </summary>
-        All = 255,
-
-    }
-
-    /// <summary>
-    /// Spam check of specified message.
-    /// </summary>
-    public class SpamCheck
-    {
-        /// <summary>
-        /// Total spam score from
-        /// </summary>
-        public string TotalScore;
-
-        /// <summary>
-        /// Date in YYYY-MM-DDThh:ii:ss format
-        /// </summary>
-        public string Date;
-
-        /// <summary>
-        /// Default subject of email.
-        /// </summary>
-        public string Subject;
-
-        /// <summary>
-        /// Default From: email address.
-        /// </summary>
-        public string FromEmail;
-
-        /// <summary>
-        /// ID number of selected message.
-        /// </summary>
-        public string MsgID;
-
-        /// <summary>
-        /// Name of selected channel.
-        /// </summary>
-        public string ChannelName;
+        }
 
         /// <summary>
         /// 
         /// </summary>
-        public List<ApiTypes.SpamRule> Rules;
+        public enum SurveyStepType
+        {
+            /// <summary>
+            /// 
+            /// </summary>
+            PageBreak = 1,
 
-    }
+            /// <summary>
+            /// 
+            /// </summary>
+            Question = 2,
 
-    /// <summary>
-    /// Single spam score
-    /// </summary>
-    public class SpamRule
-    {
-        /// <summary>
-        /// Spam score
-        /// </summary>
-        public string Score;
+            /// <summary>
+            /// 
+            /// </summary>
+            TextMedia = 3,
 
-        /// <summary>
-        /// Name of rule
-        /// </summary>
-        public string Key;
+            /// <summary>
+            /// 
+            /// </summary>
+            ConfirmationPage = 4,
 
-        /// <summary>
-        /// Description of rule.
-        /// </summary>
-        public string Description;
+            /// <summary>
+            /// 
+            /// </summary>
+            ExpiredPage = 5,
 
-    }
-
-    /// <summary>
-    /// 
-    /// </summary>
-    public enum SplitOptimization
-    {
-        /// <summary>
-        /// Number of opened messages
-        /// </summary>
-        Opened = 0,
+        }
 
         /// <summary>
-        /// Number of clicked messages
+        /// Template
         /// </summary>
-        Clicked = 1,
+        public class Template
+        {
+            /// <summary>
+            /// ID number of template.
+            /// </summary>
+            public int TemplateID { get; set; }
 
-    }
+            /// <summary>
+            /// 0 for API connections
+            /// </summary>
+            public ApiTypes.TemplateType TemplateType { get; set; }
 
-    /// <summary>
-    /// Subaccount. Contains detailed data of your Subaccount.
-    /// </summary>
-    public class SubAccount
-    {
-        /// <summary>
-        /// Public key for limited access to your account such as contact/add so you can use it safely on public websites.
-        /// </summary>
-        public string PublicAccountID;
+            /// <summary>
+            /// Filename
+            /// </summary>
+            public string Name { get; set; }
 
-        /// <summary>
-        /// ApiKey that gives you access to our SMTP and HTTP API's.
-        /// </summary>
-        public string ApiKey;
+            /// <summary>
+            /// Date of creation in YYYY-MM-DDThh:ii:ss format
+            /// </summary>
+            public DateTime DateAdded { get; set; }
 
-        /// <summary>
-        /// Proper email address.
-        /// </summary>
-        public string Email;
+            /// <summary>
+            /// CSS style
+            /// </summary>
+            public string Css { get; set; }
 
-        /// <summary>
-        /// ID number of mailer
-        /// </summary>
-        public string MailerID;
+            /// <summary>
+            /// Default subject of email.
+            /// </summary>
+            public string Subject { get; set; }
 
-        /// <summary>
-        /// Name of your custom IP Pool to be used in the sending process
-        /// </summary>
-        public string PoolName;
+            /// <summary>
+            /// Default From: email address.
+            /// </summary>
+            public string FromEmail { get; set; }
 
-        /// <summary>
-        /// Date of last activity on account
-        /// </summary>
-        public string LastActivity;
+            /// <summary>
+            /// Default From: name.
+            /// </summary>
+            public string FromName { get; set; }
 
-        /// <summary>
-        /// Amount of email credits
-        /// </summary>
-        public string EmailCredits;
+            /// <summary>
+            /// HTML code of email (needs escaping).
+            /// </summary>
+            public string BodyHtml { get; set; }
 
-        /// <summary>
-        /// True, if account needs credits to send emails. Otherwise, false
-        /// </summary>
-        public bool RequiresEmailCredits;
+            /// <summary>
+            /// Text body of email.
+            /// </summary>
+            public string BodyText { get; set; }
 
-        /// <summary>
-        /// Amount of credits added to account automatically
-        /// </summary>
-        public double MonthlyRefillCredits;
+            /// <summary>
+            /// ID number of original template.
+            /// </summary>
+            public int OriginalTemplateID { get; set; }
 
-        /// <summary>
-        /// True, if account needs credits to buy templates. Otherwise, false
-        /// </summary>
-        public bool RequiresTemplateCredits;
+            /// <summary>
+            /// Enum: 0 - private, 1 - public, 2 - mockup
+            /// </summary>
+            public ApiTypes.TemplateScope TemplateScope { get; set; }
 
-        /// <summary>
-        /// Amount of Litmus credits
-        /// </summary>
-        public decimal LitmusCredits;
-
-        /// <summary>
-        /// True, if account is able to send template tests to Litmus. Otherwise, false
-        /// </summary>
-        public bool EnableLitmusTest;
+        }
 
         /// <summary>
-        /// True, if account needs credits to send emails. Otherwise, false
+        /// List of templates (including drafts)
         /// </summary>
-        public bool RequiresLitmusCredits;
+        public class TemplateList
+        {
+            /// <summary>
+            /// List of templates
+            /// </summary>
+            public List<ApiTypes.Template> Templates { get; set; }
 
-        /// <summary>
-        /// True, if account can buy templates on its own. Otherwise, false
-        /// </summary>
-        public bool EnablePremiumTemplates;
+            /// <summary>
+            /// List of draft templates
+            /// </summary>
+            public List<ApiTypes.Template> DraftTemplate { get; set; }
 
-        /// <summary>
-        /// True, if account can request for private IP on its own. Otherwise, false
-        /// </summary>
-        public bool EnablePrivateIPRequest;
-
-        /// <summary>
-        /// Amount of emails sent from this account
-        /// </summary>
-        public long TotalEmailsSent;
-
-        /// <summary>
-        /// Percent of Unknown users - users that couldn't be found
-        /// </summary>
-        public double UnknownUsersPercent;
-
-        /// <summary>
-        /// Percent of Complaining users - those, who do not want to receive email from you.
-        /// </summary>
-        public double AbusePercent;
-
-        /// <summary>
-        /// Percent of Bounced users
-        /// </summary>
-        public double FailedSpamPercent;
-
-        /// <summary>
-        /// Numeric reputation
-        /// </summary>
-        public double Reputation;
-
-        /// <summary>
-        /// Amount of emails account can send daily
-        /// </summary>
-        public long DailySendLimit;
-
-        /// <summary>
-        /// Name of account's status: Deleted, Disabled, UnderReview, NoPaymentsAllowed, NeverSignedIn, Active, SystemPaused
-        /// </summary>
-        public string Status;
-
-        /// <summary>
-        /// Maximum size of email including attachments in MB's
-        /// </summary>
-        public int EmailSizeLimit;
-
-        /// <summary>
-        /// Maximum number of contacts the account can have
-        /// </summary>
-        public int MaxContacts;
-
-        /// <summary>
-        /// True, if you want to use Advanced Tools.  Otherwise, false
-        /// </summary>
-        public bool EnableContactFeatures;
-
-        /// <summary>
-        /// Sending permission setting for account
-        /// </summary>
-        public ApiTypes.SendingPermission SendingPermission;
-
-    }
-
-    /// <summary>
-    /// Detailed account settings.
-    /// </summary>
-    public class SubAccountSettings
-    {
-        /// <summary>
-        /// Proper email address.
-        /// </summary>
-        public string Email;
-
-        /// <summary>
-        /// True, if account needs credits to send emails. Otherwise, false
-        /// </summary>
-        public bool RequiresEmailCredits;
-
-        /// <summary>
-        /// True, if account needs credits to buy templates. Otherwise, false
-        /// </summary>
-        public bool RequiresTemplateCredits;
-
-        /// <summary>
-        /// Amount of credits added to account automatically
-        /// </summary>
-        public double MonthlyRefillCredits;
-
-        /// <summary>
-        /// Amount of Litmus credits
-        /// </summary>
-        public decimal LitmusCredits;
-
-        /// <summary>
-        /// True, if account is able to send template tests to Litmus. Otherwise, false
-        /// </summary>
-        public bool EnableLitmusTest;
-
-        /// <summary>
-        /// True, if account needs credits to send emails. Otherwise, false
-        /// </summary>
-        public bool RequiresLitmusCredits;
-
-        /// <summary>
-        /// Maximum size of email including attachments in MB's
-        /// </summary>
-        public int EmailSizeLimit;
-
-        /// <summary>
-        /// Amount of emails account can send daily
-        /// </summary>
-        public int DailySendLimit;
-
-        /// <summary>
-        /// Maximum number of contacts the account can have
-        /// </summary>
-        public int MaxContacts;
-
-        /// <summary>
-        /// True, if account can request for private IP on its own. Otherwise, false
-        /// </summary>
-        public bool EnablePrivateIPRequest;
-
-        /// <summary>
-        /// True, if you want to use Advanced Tools.  Otherwise, false
-        /// </summary>
-        public bool EnableContactFeatures;
-
-        /// <summary>
-        /// Sending permission setting for account
-        /// </summary>
-        public ApiTypes.SendingPermission SendingPermission;
-
-        /// <summary>
-        /// Name of your custom IP Pool to be used in the sending process
-        /// </summary>
-        public string PoolName;
-
-        /// <summary>
-        /// Public key for limited access to your account such as contact/add so you can use it safely on public websites.
-        /// </summary>
-        public string PublicAccountID;
-
-    }
-
-    /// <summary>
-    /// A survey object
-    /// </summary>
-    public class Survey
-    {
-        /// <summary>
-        /// Survey identifier
-        /// </summary>
-        public Guid PublicSurveyID;
-
-        /// <summary>
-        /// Creation date.
-        /// </summary>
-        public DateTime DateCreated;
-
-        /// <summary>
-        /// Last change date
-        /// </summary>
-        public DateTime? DateUpdated;
+        }
 
         /// <summary>
         /// 
         /// </summary>
-        public DateTime? ExpiryDate;
+        public enum TemplateScope
+        {
+            /// <summary>
+            /// Template is available for this account only.
+            /// </summary>
+            Private = 0,
 
-        /// <summary>
-        /// Filename
-        /// </summary>
-        public string Name;
+            /// <summary>
+            /// Template is available for this account and it's sub-accounts.
+            /// </summary>
+            Public = 1,
 
-        /// <summary>
-        /// Activate, delete, or pause your survey
-        /// </summary>
-        public ApiTypes.SurveyStatus Status;
-
-        /// <summary>
-        /// Number of results count
-        /// </summary>
-        public int ResultCount;
+        }
 
         /// <summary>
         /// 
         /// </summary>
-        public List<ApiTypes.SurveyStep> SurveySteps;
+        public enum TemplateType
+        {
+            /// <summary>
+            /// Template supports any valid HTML
+            /// </summary>
+            RawHTML = 0,
+
+            /// <summary>
+            /// Template is created and can only be modified in drag and drop editor
+            /// </summary>
+            DragDropEditor = 1,
+
+        }
 
         /// <summary>
-        /// URL of the survey
+        /// Information about tracking link and its clicks.
         /// </summary>
-        public string SurveyLink;
+        public class TrackedLink
+        {
+            /// <summary>
+            /// URL clicked
+            /// </summary>
+            public string Link { get; set; }
 
-    }
+            /// <summary>
+            /// Number of clicks
+            /// </summary>
+            public string Clicks { get; set; }
 
-    /// <summary>
-    /// Object with the single answer's data
-    /// </summary>
-    public class SurveyResultAnswerInfo
-    {
-        /// <summary>
-        /// Answer's content
-        /// </summary>
-        public string content;
+            /// <summary>
+            /// Percent of clicks
+            /// </summary>
+            public string Percent { get; set; }
 
-        /// <summary>
-        /// Identifier of the step
-        /// </summary>
-        public int surveystepid;
-
-        /// <summary>
-        /// Identifier of the answer of the step
-        /// </summary>
-        public string surveystepanswerid;
-
-    }
-
-    /// <summary>
-    /// Single answer's data with user's specific info
-    /// </summary>
-    public class SurveyResultInfo
-    {
-        /// <summary>
-        /// Identifier of the result
-        /// </summary>
-        public string SurveyResultID;
-
-        /// <summary>
-        /// IP address
-        /// </summary>
-        public string CreatedFromIP;
-
-        /// <summary>
-        /// Completion date
-        /// </summary>
-        public DateTime DateCompleted;
-
-        /// <summary>
-        /// Start date
-        /// </summary>
-        public DateTime DateStart;
-
-        /// <summary>
-        /// Answers for the survey
-        /// </summary>
-        public List<ApiTypes.SurveyResultAnswerInfo> SurveyResultAnswers;
-
-    }
-
-    /// <summary>
-    /// 
-    /// </summary>
-    public class SurveyResultsAnswer
-    {
-        /// <summary>
-        /// Identifier of the answer of the step
-        /// </summary>
-        public string SurveyStepAnswerID;
-
-        /// <summary>
-        /// Number of items.
-        /// </summary>
-        public int Count;
-
-        /// <summary>
-        /// Answer's content
-        /// </summary>
-        public string Content;
-
-    }
-
-    /// <summary>
-    /// Data on the survey's result
-    /// </summary>
-    public class SurveyResultsSummaryInfo
-    {
-        /// <summary>
-        /// Number of items.
-        /// </summary>
-        public int Count;
-
-        /// <summary>
-        /// Summary statistics
-        /// </summary>
-        public Dictionary<int, List<ApiTypes.SurveyResultsAnswer>> Summary;
-
-    }
-
-    /// <summary>
-    /// 
-    /// </summary>
-    public enum SurveyStatus
-    {
-        /// <summary>
-        /// The survey is deleted
-        /// </summary>
-        Deleted = -1,
-
-        /// <summary>
-        /// The survey is not receiving result for now
-        /// </summary>
-        Expired = 0,
-
-        /// <summary>
-        /// The survey is active and receiving answers
-        /// </summary>
-        Active = 1,
-
-    }
-
-    /// <summary>
-    /// Survey's single step info with the answers
-    /// </summary>
-    public class SurveyStep
-    {
-        /// <summary>
-        /// Identifier of the step
-        /// </summary>
-        public int SurveyStepID;
-
-        /// <summary>
-        /// Type of the step
-        /// </summary>
-        public ApiTypes.SurveyStepType SurveyStepType;
-
-        /// <summary>
-        /// Type of the question
-        /// </summary>
-        public ApiTypes.QuestionType QuestionType;
-
-        /// <summary>
-        /// Answer's content
-        /// </summary>
-        public string Content;
-
-        /// <summary>
-        /// Is the answer required
-        /// </summary>
-        public bool Required;
-
-        /// <summary>
-        /// Sequence of the answers
-        /// </summary>
-        public int Sequence;
+        }
 
         /// <summary>
         /// 
         /// </summary>
-        public List<ApiTypes.SurveyStepAnswer> SurveyStepAnswers;
+        public enum TrackingType
+        {
+            /// <summary>
+            /// 
+            /// </summary>
+            Http = 0,
 
+            /// <summary>
+            /// 
+            /// </summary>
+            ExternalHttps = 1,
+
+        }
+
+        /// <summary>
+        /// Account usage
+        /// </summary>
+        public class Usage
+        {
+        }
+
+
+#pragma warning restore 0649
+        #endregion
     }
-
-    /// <summary>
-    /// Single step's answer object
-    /// </summary>
-    public class SurveyStepAnswer
-    {
-        /// <summary>
-        /// Identifier of the answer of the step
-        /// </summary>
-        public string SurveyStepAnswerID;
-
-        /// <summary>
-        /// Answer's content
-        /// </summary>
-        public string Content;
-
-        /// <summary>
-        /// Sequence of the answers
-        /// </summary>
-        public int Sequence;
-
-    }
-
-    /// <summary>
-    /// 
-    /// </summary>
-    public enum SurveyStepType
-    {
-        /// <summary>
-        /// 
-        /// </summary>
-        PageBreak = 1,
-
-        /// <summary>
-        /// 
-        /// </summary>
-        Question = 2,
-
-        /// <summary>
-        /// 
-        /// </summary>
-        TextMedia = 3,
-
-        /// <summary>
-        /// 
-        /// </summary>
-        ConfirmationPage = 4,
-
-        /// <summary>
-        /// 
-        /// </summary>
-        ExpiredPage = 5,
-
-    }
-
-    /// <summary>
-    /// Template
-    /// </summary>
-    public class Template
-    {
-        /// <summary>
-        /// ID number of template.
-        /// </summary>
-        public int TemplateID;
-
-        /// <summary>
-        /// 0 for API connections
-        /// </summary>
-        public ApiTypes.TemplateType TemplateType;
-
-        /// <summary>
-        /// Filename
-        /// </summary>
-        public string Name;
-
-        /// <summary>
-        /// Date of creation in YYYY-MM-DDThh:ii:ss format
-        /// </summary>
-        public DateTime DateAdded;
-
-        /// <summary>
-        /// CSS style
-        /// </summary>
-        public string Css;
-
-        /// <summary>
-        /// Default subject of email.
-        /// </summary>
-        public string Subject;
-
-        /// <summary>
-        /// Default From: email address.
-        /// </summary>
-        public string FromEmail;
-
-        /// <summary>
-        /// Default From: name.
-        /// </summary>
-        public string FromName;
-
-        /// <summary>
-        /// HTML code of email (needs escaping).
-        /// </summary>
-        public string BodyHtml;
-
-        /// <summary>
-        /// Text body of email.
-        /// </summary>
-        public string BodyText;
-
-        /// <summary>
-        /// ID number of original template.
-        /// </summary>
-        public int OriginalTemplateID;
-
-        /// <summary>
-        /// Enum: 0 - private, 1 - public, 2 - mockup
-        /// </summary>
-        public ApiTypes.TemplateScope TemplateScope;
-
-    }
-
-    /// <summary>
-    /// List of templates (including drafts)
-    /// </summary>
-    public class TemplateList
-    {
-        /// <summary>
-        /// List of templates
-        /// </summary>
-        public List<ApiTypes.Template> Templates;
-
-        /// <summary>
-        /// List of draft templates
-        /// </summary>
-        public List<ApiTypes.Template> DraftTemplate;
-
-    }
-
-    /// <summary>
-    /// 
-    /// </summary>
-    public enum TemplateScope
-    {
-        /// <summary>
-        /// Template is available for this account only.
-        /// </summary>
-        Private = 0,
-
-        /// <summary>
-        /// Template is available for this account and it's sub-accounts.
-        /// </summary>
-        Public = 1,
-
-    }
-
-    /// <summary>
-    /// 
-    /// </summary>
-    public enum TemplateType
-    {
-        /// <summary>
-        /// Template supports any valid HTML
-        /// </summary>
-        RawHTML = 0,
-
-        /// <summary>
-        /// Template is created and can only be modified in drag and drop editor
-        /// </summary>
-        DragDropEditor = 1,
-
-    }
-
-    /// <summary>
-    /// Information about tracking link and its clicks.
-    /// </summary>
-    public class TrackedLink
-    {
-        /// <summary>
-        /// URL clicked
-        /// </summary>
-        public string Link;
-
-        /// <summary>
-        /// Number of clicks
-        /// </summary>
-        public string Clicks;
-
-        /// <summary>
-        /// Percent of clicks
-        /// </summary>
-        public string Percent;
-
-    }
-
-    /// <summary>
-    /// 
-    /// </summary>
-    public enum TrackingType
-    {
-        /// <summary>
-        /// 
-        /// </summary>
-        Http = 0,
-
-        /// <summary>
-        /// 
-        /// </summary>
-        ExternalHttps = 1,
-
-    }
-
-    /// <summary>
-    /// Account usage
-    /// </summary>
-    public class Usage
-    {
-        /// <summary>
-        /// Proper email address.
-        /// </summary>
-        public string Email;
-
-        /// <summary>
-        /// True, if this account is a sub-account. Otherwise, false
-        /// </summary>
-        public bool IsSubAccount;
-
-        /// <summary>
-        /// 
-        /// </summary>
-        public List<ApiTypes.UsageData> List;
-
-    }
-
-    /// <summary>
-    /// Detailed data about daily usage
-    /// </summary>
-    public class UsageData
-    {
-        /// <summary>
-        /// Date in YYYY-MM-DDThh:ii:ss format
-        /// </summary>
-        public DateTime Date;
-
-        /// <summary>
-        /// Number of finished tasks
-        /// </summary>
-        public int JobCount;
-
-        /// <summary>
-        /// Overall number of recipients
-        /// </summary>
-        public int RecipientCount;
-
-        /// <summary>
-        /// Number of inbound emails
-        /// </summary>
-        public int InboundCount;
-
-        /// <summary>
-        /// Number of attachments sent
-        /// </summary>
-        public int AttachmentCount;
-
-        /// <summary>
-        /// Size of attachments sent
-        /// </summary>
-        public long AttachmentsSize;
-
-        /// <summary>
-        /// Calculated cost of sending
-        /// </summary>
-        public decimal Cost;
-
-        /// <summary>
-        /// Number of pricate IPs
-        /// </summary>
-        public int? PrivateIPCount;
-
-        /// <summary>
-        /// 
-        /// </summary>
-        public decimal PrivateIPCost;
-
-        /// <summary>
-        /// Number of SMS
-        /// </summary>
-        public int? SmsCount;
-
-        /// <summary>
-        /// Overall cost of SMS
-        /// </summary>
-        public decimal SmsCost;
-
-        /// <summary>
-        /// Cost of templates
-        /// </summary>
-        public decimal TemplateCost;
-
-        /// <summary>
-        /// Cost of email credits
-        /// </summary>
-        public int? EmailCreditsCost;
-
-        /// <summary>
-        /// Cost of template credit
-        /// </summary>
-        public int? TemplateCreditsCost;
-
-        /// <summary>
-        /// Cost of litmus credits
-        /// </summary>
-        public decimal LitmusCost;
-
-        /// <summary>
-        /// Cost of 1 litmus credit
-        /// </summary>
-        public decimal LitmusCreditsCost;
-
-        /// <summary>
-        /// Daily cost of Advanced Tools
-        /// </summary>
-        public decimal ContactCost;
-
-        /// <summary>
-        /// Number of contacts
-        /// </summary>
-        public long ContactCount;
-
-        /// <summary>
-        /// 
-        /// </summary>
-        public decimal SupportCost;
-
-    }
-
-
-    #pragma warning restore 0649
-    #endregion
-    }
-    }
+}

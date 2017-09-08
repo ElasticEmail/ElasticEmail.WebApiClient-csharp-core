@@ -49,8 +49,240 @@ namespace ElasticEmail.WebApiClient
 
     public class VoidApiResponse
     {
+    }    
+    
+    public static class ApiUtilities
+    {
+        public static async Task<ApiResponse<T>> PostAsync<T>(string requestAddress, Dictionary<string, string> values)
+        {
+            using (HttpClient client = new HttpClient())
+            {
+                using (var postContent = new FormUrlEncodedContent(values))
+                {
+                    using (HttpResponseMessage response = await client.PostAsync(Api.ApiUri + requestAddress, postContent))
+                    {
+                        await response.EnsureSuccessStatusCodeAsync();
+                        using (HttpContent content = response.Content)
+                        {
+                            string result = await content.ReadAsStringAsync();
+                            ApiResponse<T> apiResponse = ApiResponseValidator.Validate<T>(result);
+                            return apiResponse;
+                        }
+                    }
+                }
+            }
+        }
+  
+        public static async Task<byte[]> HttpPostFileAsync(string url, List<ApiTypes.FileData> fileData, Dictionary<string, string> parameters)
+        {
+            try
+            {
+                url = Api.ApiUri + url;
+                string boundary = DateTime.Now.Ticks.ToString("x");
+                byte[] boundarybytes = Encoding.ASCII.GetBytes("\r\n--" + boundary + "\r\n");
+
+                HttpWebRequest wr = (HttpWebRequest)WebRequest.Create(url);
+                wr.ContentType = "multipart/form-data; boundary=" + boundary;
+                wr.Method = "POST";
+                wr.Credentials = CredentialCache.DefaultCredentials;
+
+                Stream rs = await wr.GetRequestStreamAsync();
+
+                string formdataTemplate = "Content-Disposition: form-data; name=\"{0}\"\r\n\r\n{1}";
+                foreach (string key in parameters.Keys)
+                {
+                    rs.Write(boundarybytes, 0, boundarybytes.Length);
+                    string formitem = string.Format(formdataTemplate, key, parameters[key]);
+                    byte[] formitembytes = Encoding.UTF8.GetBytes(formitem);
+                    rs.Write(formitembytes, 0, formitembytes.Length);
+                }
+
+                if (fileData != null)
+                {
+                    foreach (var file in fileData)
+                    {
+                        rs.Write(boundarybytes, 0, boundarybytes.Length);
+                        string headerTemplate = "Content-Disposition: form-data; name=\"filefoobarname\"; filename=\"{0}\"\r\nContent-Type: {1}\r\n\r\n";
+                        string header = string.Format(headerTemplate, file.FileName, file.ContentType);
+                        byte[] headerbytes = Encoding.UTF8.GetBytes(header);
+                        rs.Write(headerbytes, 0, headerbytes.Length);
+                        rs.Write(file.Content, 0, file.Content.Length);
+                    }
+                }
+
+                byte[] trailer = Encoding.ASCII.GetBytes("\r\n--" + boundary + "--\r\n");
+                rs.Write(trailer, 0, trailer.Length);
+
+
+                using (WebResponse wresp = await wr.GetResponseAsync())
+                {
+                    MemoryStream response = new MemoryStream();
+                    wresp.GetResponseStream().CopyTo(response);
+                            return response.ToArray();
+                }
+            }
+            catch (WebException webError)
+            {
+                // Throw exception with actual error message from response
+                throw new WebException(((HttpWebResponse)webError.Response).StatusDescription, webError, webError.Status, webError.Response);
+            }
+        }
+
+        public static async Task<ApiTypes.FileData> HttpGetFileAsync(string url, Dictionary<string, string> parameters)
+        {
+            try
+            {
+                url = Api.ApiUri + url;
+                string queryString = BuildQueryString(parameters);
+
+                if (queryString.Length > 0) url += "?" + queryString.ToString();
+
+                HttpWebRequest wr = (HttpWebRequest)WebRequest.Create(url);
+                wr.Method = "GET";
+                wr.Credentials = CredentialCache.DefaultCredentials;
+
+                using (WebResponse wresp = await wr.GetResponseAsync())
+                {
+                    MemoryStream response = new MemoryStream();
+                    wresp.GetResponseStream().CopyTo(response);
+                    if (response.Length == 0) throw new FileNotFoundException();
+                    string cds = wresp.Headers["Content-Disposition"];
+                    if (cds == null)
+                    {
+                        // This is a special case for critical exceptions
+                        ApiResponse<string> apiRet = Newtonsoft.Json.JsonConvert.DeserializeObject<ApiResponse<string>>(Encoding.UTF8.GetString(response.ToArray()));
+                        if (!apiRet.success) throw new Exception(apiRet.error);
+                        return null;
+                    }
+                    else
+                    {
+                        ApiTypes.FileData fileData = new ApiTypes.FileData();
+                        fileData.Content = response.ToArray();
+                        fileData.ContentType = wresp.ContentType;
+                        fileData.FileName = GetFileNameFromContentDisposition(cds);
+                        return fileData;
+                    }
+                }
+            }
+            catch (WebException webError)
+            {
+                // Throw exception with actual error message from response
+                throw new WebException(((HttpWebResponse)webError.Response).StatusDescription, webError, webError.Status, webError.Response);
+            }
+        }
+
+        public static async Task<byte[]> HttpPutFileAsync(string url, ApiTypes.FileData fileData, Dictionary<string, string> parameters)
+        {
+            try
+            {
+                url = Api.ApiUri + url;
+                string queryString = BuildQueryString(parameters);
+
+                if (queryString.Length > 0) url += "?" + queryString.ToString();
+
+                HttpWebRequest wr = (HttpWebRequest)WebRequest.Create(url);
+                wr.ContentType = fileData.ContentType ?? "application/octet-stream";
+                wr.Method = "PUT";
+                
+                wr.Credentials = CredentialCache.DefaultCredentials;
+                wr.Headers[HttpRequestHeader.AcceptEncoding] = "gzip, deflate";
+                wr.Headers["Content-Disposition"] = "attachment; filename=\"" + fileData.FileName + "\"; size=" + fileData.Content.Length;
+
+                Stream rs = await wr.GetRequestStreamAsync();
+                rs.Write(fileData.Content, 0, fileData.Content.Length);
+
+                using (WebResponse wresp = await wr.GetResponseAsync())
+                {
+                    MemoryStream response = new MemoryStream();
+                    wresp.GetResponseStream().CopyTo(response);
+                    return response.ToArray();
+                }
+            }
+            catch (WebException webError)
+            {
+                // Throw exception with actual error message from response
+                throw new WebException(((HttpWebResponse)webError.Response).StatusDescription, webError, webError.Status, webError.Response);
+            }
+        }
+
+        static string BuildQueryString(Dictionary<string, string> parameters)
+        {
+            if (parameters == null || parameters.Count == 0)
+                return null;
+
+            StringBuilder query = new StringBuilder();
+            string amp = string.Empty;
+            foreach (KeyValuePair<string, string> kvp in parameters)
+            {
+                query.Append(amp);
+                query.Append(WebUtility.UrlEncode(kvp.Key));
+                query.Append(" = ");
+                query.Append(WebUtility.UrlEncode(kvp.Value));
+                amp = "&";
+            }
+
+            return query.ToString();
+        }
+
+        static string GetFileNameFromContentDisposition(string contentDisposition)
+        {
+            string[] chunks = contentDisposition.Split(';');
+            string searchPhrase = "filename=";
+            foreach (string chunk in chunks)
+            {
+                int index = contentDisposition.IndexOf(searchPhrase);
+                if (index > 0)
+                {
+                    return contentDisposition.Substring(index + searchPhrase.Length);
+                }
+            }
+            return "";
+        }
     }
-   #region MIME HELPER
+
+    public static class HttpResponseMessageExtensions
+    {
+        public static async Task EnsureSuccessStatusCodeAsync(this HttpResponseMessage response)
+        {
+            if (response.IsSuccessStatusCode)
+            {
+                return;
+            }
+
+            var content = await response.Content.ReadAsStringAsync();
+
+            if (response.Content != null)
+                response.Content.Dispose();
+            throw new SimpleHttpResponseException(response.StatusCode, content);
+        }
+    }
+
+    public class SimpleHttpResponseException : Exception
+    {
+        public HttpStatusCode StatusCode { get; private set; }
+
+        public SimpleHttpResponseException(HttpStatusCode statusCode, string content) : base(content)
+        {
+            StatusCode = statusCode;
+        }
+    }
+
+    public class ApiResponseValidator
+    {
+        public static ApiResponse<T> Validate<T>(string apiResponse)
+        {
+            ApiResponse<T> apiRet = Newtonsoft.Json.JsonConvert.DeserializeObject<ApiResponse<T>>(apiResponse);
+            if (!apiRet.success)
+            {
+                throw new Exception(apiRet.error);
+            }
+            return apiRet;
+        }
+    }
+
+    #endregion
+
+    #region MIME HELPER
     internal class MimeMapping
     {
         private static Dictionary<string, string> mimeMappings = null;
@@ -64,10 +296,10 @@ namespace ElasticEmail.WebApiClient
                 throw new ArgumentNullException("fileName");
             }
             EnsureMapping();
-        fileName = GetFileName(fileName); // strip off path separators
+            fileName = GetFileName(fileName); // strip off path separators
 
             // some MIME types have complex extensions (like ".exe.config"), so we need to work left-to-right
-            for (int i = 0; i<fileName.Length; i++)
+            for (int i = 0; i < fileName.Length; i++)
             {
                 if (fileName[i] == '.')
                 {
@@ -78,7 +310,7 @@ namespace ElasticEmail.WebApiClient
                         // found!
                         return mimeType;
                     }
-}
+                }
             }
 
             // If we reached this point, either we couldn't find an extension, or the extension we found
@@ -86,27 +318,27 @@ namespace ElasticEmail.WebApiClient
             return mimeMappings[".*"];
         }
         private static string GetFileName(string path)
-{
-    int pathSeparatorIndex = path.LastIndexOfAny(_pathSeparatorChars);
-    return (pathSeparatorIndex >= 0) ? path.Substring(pathSeparatorIndex) : path;
-}
-private static void EnsureMapping()
-{
-    // Ensure initialized only once
-    if (mimeMappings == null)
-    {
-        lock (locker)
         {
+            int pathSeparatorIndex = path.LastIndexOfAny(_pathSeparatorChars);
+            return (pathSeparatorIndex >= 0) ? path.Substring(pathSeparatorIndex) : path;
+        }
+        private static void EnsureMapping()
+        {
+            // Ensure initialized only once
             if (mimeMappings == null)
             {
-                PopulateMappings();
+                lock (locker)
+                {
+                    if (mimeMappings == null)
+                    {
+                        PopulateMappings();
+                    }
+                }
             }
         }
-    }
-}
-private static void PopulateMappings()
-{
-    mimeMappings = new Dictionary<string, string>()
+        private static void PopulateMappings()
+        {
+            mimeMappings = new Dictionary<string, string>()
             {
             { ".*", "application/octet-stream" },
             {".323", "text/h323"},
@@ -453,242 +685,9 @@ private static void PopulateMappings()
             {".z", "application/x-compress"},
             {".zip", "application/x-zip-compressed"},
         };
+        }
     }
-}
     #endregion MIME HELPER
-
-    
-    
-    public static class ApiUtilities
-    {
-        public static async Task<ApiResponse<T>> PostAsync<T>(string requestAddress, Dictionary<string, string> values)
-        {
-            using (HttpClient client = new HttpClient())
-            {
-                using (var postContent = new FormUrlEncodedContent(values))
-                {
-                    using (HttpResponseMessage response = await client.PostAsync(Api.ApiUri + requestAddress, postContent))
-                    {
-                        await response.EnsureSuccessStatusCodeAsync();
-                        using (HttpContent content = response.Content)
-                        {
-                            string result = await content.ReadAsStringAsync();
-                            ApiResponse<T> apiResponse = ApiResponseValidator.Validate<T>(result);
-                            return apiResponse;
-                        }
-                    }
-                }
-            }
-        }
-  
-        public static async Task<byte[]> HttpPostFileAsync(string url, List<ApiTypes.FileData> fileData, Dictionary<string, string> parameters)
-        {
-            try
-            {
-                url = Api.ApiUri + url;
-                string boundary = DateTime.Now.Ticks.ToString("x");
-                byte[] boundarybytes = Encoding.ASCII.GetBytes("\r\n--" + boundary + "\r\n");
-
-                HttpWebRequest wr = (HttpWebRequest)WebRequest.Create(url);
-                wr.ContentType = "multipart/form-data; boundary=" + boundary;
-                wr.Method = "POST";
-                wr.Credentials = CredentialCache.DefaultCredentials;
-
-                Stream rs = await wr.GetRequestStreamAsync();
-
-                string formdataTemplate = "Content-Disposition: form-data; name=\"{0}\"\r\n\r\n{1}";
-                foreach (string key in parameters.Keys)
-                {
-                    rs.Write(boundarybytes, 0, boundarybytes.Length);
-                    string formitem = string.Format(formdataTemplate, key, parameters[key]);
-                    byte[] formitembytes = Encoding.UTF8.GetBytes(formitem);
-                    rs.Write(formitembytes, 0, formitembytes.Length);
-                }
-
-                if (fileData != null)
-                {
-                    foreach (var file in fileData)
-                    {
-                        rs.Write(boundarybytes, 0, boundarybytes.Length);
-                        string headerTemplate = "Content-Disposition: form-data; name=\"filefoobarname\"; filename=\"{0}\"\r\nContent-Type: {1}\r\n\r\n";
-                        string header = string.Format(headerTemplate, file.FileName, file.ContentType);
-                        byte[] headerbytes = Encoding.UTF8.GetBytes(header);
-                        rs.Write(headerbytes, 0, headerbytes.Length);
-                        rs.Write(file.Content, 0, file.Content.Length);
-                    }
-                }
-
-                byte[] trailer = Encoding.ASCII.GetBytes("\r\n--" + boundary + "--\r\n");
-                rs.Write(trailer, 0, trailer.Length);
-
-
-                using (WebResponse wresp = await wr.GetResponseAsync())
-                {
-                    MemoryStream response = new MemoryStream();
-                    wresp.GetResponseStream().CopyTo(response);
-                            return response.ToArray();
-                }
-            }
-            catch (WebException webError)
-            {
-                // Throw exception with actual error message from response
-                throw new WebException(((HttpWebResponse)webError.Response).StatusDescription, webError, webError.Status, webError.Response);
-            }
-        }
-
-        public static async Task<ApiTypes.FileData> HttpGetFileAsync(string url, Dictionary<string, string> parameters)
-        {
-            try
-            {
-                url = Api.ApiUri + url;
-                string queryString = BuildQueryString(parameters);
-
-                if (queryString.Length > 0) url += "?" + queryString.ToString();
-
-                HttpWebRequest wr = (HttpWebRequest)WebRequest.Create(url);
-                wr.Method = "GET";
-                wr.Credentials = CredentialCache.DefaultCredentials;
-
-                using (WebResponse wresp = await wr.GetResponseAsync())
-                {
-                    MemoryStream response = new MemoryStream();
-                    wresp.GetResponseStream().CopyTo(response);
-                    if (response.Length == 0) throw new FileNotFoundException();
-                    string cds = wresp.Headers["Content-Disposition"];
-                    if (cds == null)
-                    {
-                        // This is a special case for critical exceptions
-                        ApiResponse<string> apiRet = Newtonsoft.Json.JsonConvert.DeserializeObject<ApiResponse<string>>(Encoding.UTF8.GetString(response.ToArray()));
-                        if (!apiRet.success) throw new Exception(apiRet.error);
-                        return null;
-                    }
-                    else
-                    {
-                        ApiTypes.FileData fileData = new ApiTypes.FileData();
-                        fileData.Content = response.ToArray();
-                        fileData.ContentType = wresp.ContentType;
-                        fileData.FileName = GetFileNameFromContentDisposition(cds);
-                        return fileData;
-                    }
-                }
-            }
-            catch (WebException webError)
-            {
-                // Throw exception with actual error message from response
-                throw new WebException(((HttpWebResponse)webError.Response).StatusDescription, webError, webError.Status, webError.Response);
-            }
-        }
-
-        public static async Task<byte[]> HttpPutFileAsync(string url, ApiTypes.FileData fileData, Dictionary<string, string> parameters)
-        {
-            try
-            {
-                url = Api.ApiUri + url;
-                string queryString = BuildQueryString(parameters);
-
-                if (queryString.Length > 0) url += "?" + queryString.ToString();
-
-                HttpWebRequest wr = (HttpWebRequest)WebRequest.Create(url);
-                wr.ContentType = fileData.ContentType ?? "application/octet-stream";
-                wr.Method = "PUT";
-                
-                wr.Credentials = CredentialCache.DefaultCredentials;
-                wr.Headers[HttpRequestHeader.AcceptEncoding] = "gzip, deflate";
-                wr.Headers["Content-Disposition"] = "attachment; filename=\"" + fileData.FileName + "\"; size=" + fileData.Content.Length;
-
-                Stream rs = await wr.GetRequestStreamAsync();
-                rs.Write(fileData.Content, 0, fileData.Content.Length);
-
-                using (WebResponse wresp = await wr.GetResponseAsync())
-                {
-                    MemoryStream response = new MemoryStream();
-                    wresp.GetResponseStream().CopyTo(response);
-                    return response.ToArray();
-                }
-            }
-            catch (WebException webError)
-            {
-                // Throw exception with actual error message from response
-                throw new WebException(((HttpWebResponse)webError.Response).StatusDescription, webError, webError.Status, webError.Response);
-            }
-        }
-
-        static string BuildQueryString(Dictionary<string, string> parameters)
-        {
-            if (parameters == null || parameters.Count == 0)
-                return null;
-
-            StringBuilder query = new StringBuilder();
-            string amp = string.Empty;
-            foreach (KeyValuePair<string, string> kvp in parameters)
-            {
-                query.Append(amp);
-                query.Append(WebUtility.UrlEncode(kvp.Key));
-                query.Append(" = ");
-                query.Append(WebUtility.UrlEncode(kvp.Value));
-                amp = "&";
-            }
-
-            return query.ToString();
-        }
-
-        static string GetFileNameFromContentDisposition(string contentDisposition)
-        {
-            string[] chunks = contentDisposition.Split(';');
-            string searchPhrase = "filename=";
-            foreach (string chunk in chunks)
-            {
-                int index = contentDisposition.IndexOf(searchPhrase);
-                if (index > 0)
-                {
-                    return contentDisposition.Substring(index + searchPhrase.Length);
-                }
-            }
-            return "";
-        }
-    }
-
-    public static class HttpResponseMessageExtensions
-    {
-        public static async Task EnsureSuccessStatusCodeAsync(this HttpResponseMessage response)
-        {
-            if (response.IsSuccessStatusCode)
-            {
-                return;
-            }
-
-            var content = await response.Content.ReadAsStringAsync();
-
-            if (response.Content != null)
-                response.Content.Dispose();
-            throw new SimpleHttpResponseException(response.StatusCode, content);
-        }
-    }
-
-    public class SimpleHttpResponseException : Exception
-    {
-        public HttpStatusCode StatusCode { get; private set; }
-
-        public SimpleHttpResponseException(HttpStatusCode statusCode, string content) : base(content)
-        {
-            StatusCode = statusCode;
-        }
-    }
-
-    public class ApiResponseValidator
-    {
-        public static ApiResponse<T> Validate<T>(string apiResponse)
-        {
-            ApiResponse<T> apiRet = Newtonsoft.Json.JsonConvert.DeserializeObject<ApiResponse<T>>(apiResponse);
-            if (!apiRet.success)
-            {
-                throw new Exception(apiRet.error);
-            }
-            return apiRet;
-        }
-    }
-
-    #endregion
 
     public static class Api
     {
