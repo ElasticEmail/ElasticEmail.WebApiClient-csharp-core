@@ -717,7 +717,7 @@ private static void PopulateMappings()
             /// <param name="sendActivation">True, if you want to send activation email to this account. Otherwise, false</param>
             /// <param name="returnUrl">URL to navigate to after account creation</param>
             /// <param name="sendingPermission">Sending permission setting for account</param>
-            /// <param name="enableContactFeatures">True, if you want to use Advanced Tools.  Otherwise, false</param>
+            /// <param name="enableContactFeatures">True, if you want to use Contact Delivery Tools.  Otherwise, false</param>
             /// <param name="poolName">Private IP required. Name of the custom IP Pool which Sub Account should use to send its emails. Leave empty for the default one or if no Private IPs have been bought</param>
             /// <param name="emailSizeLimit">Maximum size of email including attachments in MB's</param>
             /// <param name="dailySendLimit">Amount of emails account can send daily</param>
@@ -1143,6 +1143,17 @@ private static void PopulateMappings()
             }
 
             /// <summary>
+            /// Request premium support for your account
+            /// </summary>
+            /// <param name="apikey">ApiKey that gives you access to our SMTP and HTTP API's.</param>
+            public static async Task RequestPremiumSupportAsync()
+            {
+                Dictionary<string, string> values = new Dictionary<string, string>();
+                values.Add("apikey", Api.ApiKey);
+                ApiResponse<VoidApiResponse> apiResponse = await ApiUtilities.PostAsync<VoidApiResponse>("/account/requestpremiumsupport", values);
+            }
+
+            /// <summary>
             /// Request a private IP for your Account
             /// </summary>
             /// <param name="apikey">ApiKey that gives you access to our SMTP and HTTP API's.</param>
@@ -1186,7 +1197,7 @@ private static void PopulateMappings()
             /// <param name="inboundContactsOnly">True, if you want inbound email to only process contacts from your account. Otherwise, false</param>
             /// <param name="lowCreditNotification">True, if you want to receive low credit email notifications. Otherwise, false</param>
             /// <param name="enableUITooltips">True, if account has tooltips active. Otherwise, false</param>
-            /// <param name="enableContactFeatures">True, if you want to use Advanced Tools.  Otherwise, false</param>
+            /// <param name="enableContactFeatures">True, if you want to use Contact Delivery Tools.  Otherwise, false</param>
             /// <param name="notificationsEmails">Email addresses to send a copy of all notifications from our system. Separated by semicolon</param>
             /// <param name="unsubscribeNotificationsEmails">Emails, separated by semicolon, to which the notification about contact unsubscribing should be sent to</param>
             /// <param name="logoUrl">URL to your logo image.</param>
@@ -1334,7 +1345,7 @@ private static void PopulateMappings()
             /// <param name="subAccountEmail">Email address of sub-account</param>
             /// <param name="publicAccountID">Public key of sub-account to update. Use subAccountEmail or publicAccountID not both.</param>
             /// <param name="sendingPermission">Sending permission setting for account</param>
-            /// <param name="enableContactFeatures">True, if you want to use Advanced Tools.  Otherwise, false</param>
+            /// <param name="enableContactFeatures">True, if you want to use Contact Delivery Tools.  Otherwise, false</param>
             /// <param name="poolName">Name of your custom IP Pool to be used in the sending process</param>
             public static async Task UpdateSubAccountSettingsAsync(bool requiresEmailCredits = false, int monthlyRefillCredits = 0, bool requiresLitmusCredits = false, bool enableLitmusTest = false, int? dailySendLimit = null, int emailSizeLimit = 10, bool enablePrivateIPRequest = false, int maxContacts = 0, string subAccountEmail = null, string publicAccountID = null, ApiTypes.SendingPermission? sendingPermission = null, bool? enableContactFeatures = null, string poolName = null)
             {
@@ -1697,23 +1708,8 @@ private static void PopulateMappings()
             /// <param name="email">Proper email address.</param>
             /// <param name="publicListID">ID code of list</param>
             /// <param name="listName">Name of your list.</param>
-            /// <param name="title">Title</param>
             /// <param name="firstName">First name.</param>
             /// <param name="lastName">Last name.</param>
-            /// <param name="phone">Phone number</param>
-            /// <param name="mobileNumber">Mobile phone number</param>
-            /// <param name="notes">Free form field of notes</param>
-            /// <param name="gender">Your gender</param>
-            /// <param name="birthDate">Date of birth in YYYY-MM-DD format</param>
-            /// <param name="city">City.</param>
-            /// <param name="state">State or province.</param>
-            /// <param name="postalCode">Zip/postal code.</param>
-            /// <param name="country">Name of country.</param>
-            /// <param name="organizationName">Name of organization</param>
-            /// <param name="website">HTTP address of your website.</param>
-            /// <param name="annualRevenue">Annual revenue of contact</param>
-            /// <param name="industry">Industry contact works in</param>
-            /// <param name="numberOfEmployees">Number of employees</param>
             /// <param name="source">Specifies the way of uploading the contact</param>
             /// <param name="returnUrl">URL to navigate to after account creation</param>
             /// <param name="sourceUrl">URL from which request was sent.</param>
@@ -1725,19 +1721,13 @@ private static void PopulateMappings()
             /// <param name="field">Custom contact field like firstname, lastname, city etc. Request parameters prefixed by field_ like field_firstname, field_lastname </param>
             /// <param name="notifyEmail">Emails, separated by semicolon, to which the notification about contact subscribing should be sent to</param>
             /// <returns>string</returns>
-            public static async Task<string> AddAsync(string publicAccountID, string email, string[] publicListID = null, string[] listName = null, string title = null, string firstName = null, string lastName = null, string phone = null, string mobileNumber = null, string notes = null, string gender = null, DateTime? birthDate = null, string city = null, string state = null, string postalCode = null, string country = null, string organizationName = null, string website = null, int? annualRevenue = null, string industry = null, int? numberOfEmployees = null, ApiTypes.ContactSource source = ApiTypes.ContactSource.ContactApi, string returnUrl = null, string sourceUrl = null, string activationReturnUrl = null, string activationTemplate = null, bool sendActivation = true, DateTime? consentDate = null, string consentIP = null, Dictionary<string, string> field = null, string notifyEmail = null)
+            public static async Task<string> AddAsync(string publicAccountID, string email, IEnumerable<string> publicListID = null, string[] listName = null, string firstName = null, string lastName = null, ApiTypes.ContactSource source = ApiTypes.ContactSource.ContactApi, string returnUrl = null, string sourceUrl = null, string activationReturnUrl = null, string activationTemplate = null, bool sendActivation = true, DateTime? consentDate = null, string consentIP = null, Dictionary<string, string> field = null, string notifyEmail = null)
             {
                 Dictionary<string, string> values = new Dictionary<string, string>();
                 values.Add("apikey", Api.ApiKey);
                 values.Add("publicAccountID", publicAccountID);
                 values.Add("email", email);
-                if (publicListID != null)
-                {
-                    foreach (string _item in publicListID)
-                    {
-                        values.Add("publicListID", _item);
-                    }
-                }
+                if (publicListID != null) values.Add("publicListID", string.Join(",", publicListID));
                 if (listName != null)
                 {
                     foreach (string _item in listName)
@@ -1745,23 +1735,8 @@ private static void PopulateMappings()
                         values.Add("listName", _item);
                     }
                 }
-                if (title != null) values.Add("title", title);
                 if (firstName != null) values.Add("firstName", firstName);
                 if (lastName != null) values.Add("lastName", lastName);
-                if (phone != null) values.Add("phone", phone);
-                if (mobileNumber != null) values.Add("mobileNumber", mobileNumber);
-                if (notes != null) values.Add("notes", notes);
-                if (gender != null) values.Add("gender", gender);
-                if (birthDate != null) values.Add("birthDate", birthDate.Value.ToString("M/d/yyyy h:mm:ss tt"));
-                if (city != null) values.Add("city", city);
-                if (state != null) values.Add("state", state);
-                if (postalCode != null) values.Add("postalCode", postalCode);
-                if (country != null) values.Add("country", country);
-                if (organizationName != null) values.Add("organizationName", organizationName);
-                if (website != null) values.Add("website", website);
-                if (annualRevenue != null) values.Add("annualRevenue", annualRevenue.ToString());
-                if (industry != null) values.Add("industry", industry);
-                if (numberOfEmployees != null) values.Add("numberOfEmployees", numberOfEmployees.ToString());
                 if (source != ApiTypes.ContactSource.ContactApi) values.Add("source", source.ToString());
                 if (returnUrl != null) values.Add("returnUrl", returnUrl);
                 if (sourceUrl != null) values.Add("sourceUrl", sourceUrl);
@@ -1783,7 +1758,7 @@ private static void PopulateMappings()
             }
 
             /// <summary>
-            /// Manually add or update a contacts status to Abuse, Bounced or Unsubscribed status (blocked).
+            /// Manually add or update a contacts status to Abuse or Unsubscribed status (blocked).
             /// </summary>
             /// <param name="apikey">ApiKey that gives you access to our SMTP and HTTP API's.</param>
             /// <param name="email">Proper email address.</param>
@@ -1821,15 +1796,13 @@ private static void PopulateMappings()
             /// <param name="status">Name of status: Active, Engaged, Inactive, Abuse, Bounced, Unsubscribed.</param>
             /// <param name="rule">Query used for filtering.</param>
             /// <param name="emails">Comma delimited list of contact emails</param>
-            /// <param name="allContacts">True: Include every Contact in your Account. Otherwise, false</param>
-            public static async Task ChangeStatusAsync(ApiTypes.ContactStatus status, string rule = null, IEnumerable<string> emails = null, bool allContacts = false)
+            public static async Task ChangeStatusAsync(ApiTypes.ContactStatus status, string rule = null, IEnumerable<string> emails = null)
             {
                 Dictionary<string, string> values = new Dictionary<string, string>();
                 values.Add("apikey", Api.ApiKey);
                 values.Add("status", status.ToString());
                 if (rule != null) values.Add("rule", rule);
                 if (emails != null) values.Add("emails", string.Join(",", emails));
-                if (allContacts != false) values.Add("allContacts", allContacts.ToString());
                 ApiResponse<VoidApiResponse> apiResponse = await ApiUtilities.PostAsync<VoidApiResponse>("/contact/changestatus", values);
             }
 
@@ -1851,19 +1824,30 @@ private static void PopulateMappings()
             }
 
             /// <summary>
+            /// Returns count of unsubscribe reasons for unsubscribed and complaint contacts.
+            /// </summary>
+            /// <param name="apikey">ApiKey that gives you access to our SMTP and HTTP API's.</param>
+            /// <returns>ApiTypes.ContactUnsubscribeReasonCounts</returns>
+            public static async Task<ApiTypes.ContactUnsubscribeReasonCounts> CountByUnsubscribeReasonAsync()
+            {
+                Dictionary<string, string> values = new Dictionary<string, string>();
+                values.Add("apikey", Api.ApiKey);
+                ApiResponse<ApiTypes.ContactUnsubscribeReasonCounts> apiResponse = await ApiUtilities.PostAsync<ApiTypes.ContactUnsubscribeReasonCounts>("/contact/countbyunsubscribereason", values);
+                return apiResponse.Data;
+            }
+
+            /// <summary>
             /// Permanantly deletes the contacts provided.  You can provide either a qualified rule or a list of emails (comma separated string).
             /// </summary>
             /// <param name="apikey">ApiKey that gives you access to our SMTP and HTTP API's.</param>
             /// <param name="rule">Query used for filtering.</param>
             /// <param name="emails">Comma delimited list of contact emails</param>
-            /// <param name="allContacts">True: Include every Contact in your Account. Otherwise, false</param>
-            public static async Task DeleteAsync(string rule = null, IEnumerable<string> emails = null, bool allContacts = false)
+            public static async Task DeleteAsync(string rule = null, IEnumerable<string> emails = null)
             {
                 Dictionary<string, string> values = new Dictionary<string, string>();
                 values.Add("apikey", Api.ApiKey);
                 if (rule != null) values.Add("rule", rule);
                 if (emails != null) values.Add("emails", string.Join(",", emails));
-                if (allContacts != false) values.Add("allContacts", allContacts.ToString());
                 ApiResponse<VoidApiResponse> apiResponse = await ApiUtilities.PostAsync<VoidApiResponse>("/contact/delete", values);
             }
 
@@ -1874,18 +1858,16 @@ private static void PopulateMappings()
             /// <param name="fileFormat">Format of the exported file</param>
             /// <param name="rule">Query used for filtering.</param>
             /// <param name="emails">Comma delimited list of contact emails</param>
-            /// <param name="allContacts">True: Include every Contact in your Account. Otherwise, false</param>
             /// <param name="compressionFormat">FileResponse compression format. None or Zip.</param>
             /// <param name="fileName">Name of your file.</param>
             /// <returns>ApiTypes.ExportLink</returns>
-            public static async Task<ApiTypes.ExportLink> ExportAsync(ApiTypes.ExportFileFormats fileFormat = ApiTypes.ExportFileFormats.Csv, string rule = null, IEnumerable<string> emails = null, bool allContacts = false, ApiTypes.CompressionFormat compressionFormat = ApiTypes.CompressionFormat.None, string fileName = null)
+            public static async Task<ApiTypes.ExportLink> ExportAsync(ApiTypes.ExportFileFormats fileFormat = ApiTypes.ExportFileFormats.Csv, string rule = null, IEnumerable<string> emails = null, ApiTypes.CompressionFormat compressionFormat = ApiTypes.CompressionFormat.None, string fileName = null)
             {
                 Dictionary<string, string> values = new Dictionary<string, string>();
                 values.Add("apikey", Api.ApiKey);
                 if (fileFormat != ApiTypes.ExportFileFormats.Csv) values.Add("fileFormat", fileFormat.ToString());
                 if (rule != null) values.Add("rule", rule);
                 if (emails != null) values.Add("emails", string.Join(",", emails));
-                if (allContacts != false) values.Add("allContacts", allContacts.ToString());
                 if (compressionFormat != ApiTypes.CompressionFormat.None) values.Add("compressionFormat", compressionFormat.ToString());
                 if (fileName != null) values.Add("fileName", fileName);
                 ApiResponse<ApiTypes.ExportLink> apiResponse = await ApiUtilities.PostAsync<ApiTypes.ExportLink>("/contact/export", values);
@@ -1950,16 +1932,14 @@ private static void PopulateMappings()
             /// </summary>
             /// <param name="apikey">ApiKey that gives you access to our SMTP and HTTP API's.</param>
             /// <param name="rule">Query used for filtering.</param>
-            /// <param name="allContacts">True: Include every Contact in your Account. Otherwise, false</param>
             /// <param name="limit">Maximum of loaded items.</param>
             /// <param name="offset">How many items should be loaded ahead.</param>
             /// <returns>List(ApiTypes.Contact)</returns>
-            public static async Task<List<ApiTypes.Contact>> ListAsync(string rule = null, bool allContacts = false, int limit = 20, int offset = 0)
+            public static async Task<List<ApiTypes.Contact>> ListAsync(string rule = null, int limit = 20, int offset = 0)
             {
                 Dictionary<string, string> values = new Dictionary<string, string>();
                 values.Add("apikey", Api.ApiKey);
                 if (rule != null) values.Add("rule", rule);
-                if (allContacts != false) values.Add("allContacts", allContacts.ToString());
                 if (limit != 20) values.Add("limit", limit.ToString());
                 if (offset != 0) values.Add("offset", offset.ToString());
                 ApiResponse<List<ApiTypes.Contact>> apiResponse = await ApiUtilities.PostAsync<List<ApiTypes.Contact>>("/contact/list", values);
@@ -2028,40 +2008,34 @@ private static void PopulateMappings()
             /// <param name="emails">Comma delimited list of contact emails</param>
             /// <param name="firstName">First name.</param>
             /// <param name="lastName">Last name.</param>
-            /// <param name="title">Title</param>
-            /// <param name="organization">Name of organization</param>
-            /// <param name="industry">Industry contact works in</param>
-            /// <param name="city">City.</param>
-            /// <param name="country">Name of country.</param>
-            /// <param name="state">State or province.</param>
-            /// <param name="zip">Zip/postal code.</param>
             /// <param name="publicListID">ID code of list</param>
             /// <param name="listName">Name of your list.</param>
             /// <param name="status">Name of status: Active, Engaged, Inactive, Abuse, Bounced, Unsubscribed.</param>
             /// <param name="notes">Free form field of notes</param>
             /// <param name="consentDate">Date of consent to send this contact(s) your email. If not provided current date is used for consent.</param>
             /// <param name="consentIP">IP address of consent to send this contact(s) your email. If not provided your current public IP address is used for consent.</param>
+            /// <param name="field">Custom contact field like firstname, lastname, city etc. Request parameters prefixed by field_ like field_firstname, field_lastname </param>
             /// <param name="notifyEmail">Emails, separated by semicolon, to which the notification about contact subscribing should be sent to</param>
-            public static async Task QuickAddAsync(IEnumerable<string> emails, string firstName = null, string lastName = null, string title = null, string organization = null, string industry = null, string city = null, string country = null, string state = null, string zip = null, string publicListID = null, string listName = null, ApiTypes.ContactStatus status = ApiTypes.ContactStatus.Active, string notes = null, DateTime? consentDate = null, string consentIP = null, string notifyEmail = null)
+            public static async Task QuickAddAsync(IEnumerable<string> emails, string firstName = null, string lastName = null, string publicListID = null, string listName = null, ApiTypes.ContactStatus status = ApiTypes.ContactStatus.Active, string notes = null, DateTime? consentDate = null, string consentIP = null, Dictionary<string, string> field = null, string notifyEmail = null)
             {
                 Dictionary<string, string> values = new Dictionary<string, string>();
                 values.Add("apikey", Api.ApiKey);
                 values.Add("emails", string.Join(",", emails));
                 if (firstName != null) values.Add("firstName", firstName);
                 if (lastName != null) values.Add("lastName", lastName);
-                if (title != null) values.Add("title", title);
-                if (organization != null) values.Add("organization", organization);
-                if (industry != null) values.Add("industry", industry);
-                if (city != null) values.Add("city", city);
-                if (country != null) values.Add("country", country);
-                if (state != null) values.Add("state", state);
-                if (zip != null) values.Add("zip", zip);
                 if (publicListID != null) values.Add("publicListID", publicListID);
                 if (listName != null) values.Add("listName", listName);
                 if (status != ApiTypes.ContactStatus.Active) values.Add("status", status.ToString());
                 if (notes != null) values.Add("notes", notes);
                 if (consentDate != null) values.Add("consentDate", consentDate.Value.ToString("M/d/yyyy h:mm:ss tt"));
                 if (consentIP != null) values.Add("consentIP", consentIP);
+                if (field != null)
+                {
+                    foreach (KeyValuePair<string, string> _item in field)
+                    {
+                        values.Add("field_" + _item.Key, _item.Value);
+                    }
+                }
                 if (notifyEmail != null) values.Add("notifyEmail", notifyEmail);
                 ApiResponse<VoidApiResponse> apiResponse = await ApiUtilities.PostAsync<VoidApiResponse>("/contact/quickadd", values);
             }
@@ -2087,72 +2061,17 @@ private static void PopulateMappings()
             /// <param name="email">Proper email address.</param>
             /// <param name="firstName">First name.</param>
             /// <param name="lastName">Last name.</param>
-            /// <param name="organizationName">Name of organization</param>
-            /// <param name="title">Title</param>
-            /// <param name="city">City.</param>
-            /// <param name="state">State or province.</param>
-            /// <param name="country">Name of country.</param>
-            /// <param name="zip">Zip/postal code.</param>
-            /// <param name="birthDate">Date of birth in YYYY-MM-DD format</param>
-            /// <param name="gender">Your gender</param>
-            /// <param name="phone">Phone number</param>
-            /// <param name="activate">True, if Contact should be activated. Otherwise, false</param>
-            /// <param name="industry">Industry contact works in</param>
-            /// <param name="numberOfEmployees">Number of employees</param>
-            /// <param name="annualRevenue">Annual revenue of contact</param>
-            /// <param name="purchaseCount">Number of purchases contact has made</param>
-            /// <param name="firstPurchase">Date of first purchase in YYYY-MM-DD format</param>
-            /// <param name="lastPurchase">Date of last purchase in YYYY-MM-DD format</param>
-            /// <param name="notes">Free form field of notes</param>
-            /// <param name="websiteUrl">Website of contact</param>
-            /// <param name="mobileNumber">Mobile phone number</param>
-            /// <param name="faxNumber">Fax number</param>
-            /// <param name="linkedInBio">Biography for Linked-In</param>
-            /// <param name="linkedInConnections">Number of Linked-In connections</param>
-            /// <param name="twitterBio">Biography for Twitter</param>
-            /// <param name="twitterUsername">User name for Twitter</param>
-            /// <param name="twitterProfilePhoto">URL for Twitter photo</param>
-            /// <param name="twitterFollowerCount">Number of Twitter followers</param>
-            /// <param name="pageViews">Number of page views</param>
-            /// <param name="visits">Number of website visits</param>
             /// <param name="clearRestOfFields">States if the fields that were omitted in this request are to be reset or should they be left with their current value</param>
             /// <param name="field">Custom contact field like firstname, lastname, city etc. Request parameters prefixed by field_ like field_firstname, field_lastname </param>
+            /// <param name="customFields">Custom contact field like firstname, lastname, city etc. JSON serialized text like { "city":"london" } </param>
             /// <returns>ApiTypes.Contact</returns>
-            public static async Task<ApiTypes.Contact> UpdateAsync(string email, string firstName = null, string lastName = null, string organizationName = null, string title = null, string city = null, string state = null, string country = null, string zip = null, string birthDate = null, string gender = null, string phone = null, bool? activate = null, string industry = null, int numberOfEmployees = 0, string annualRevenue = null, int purchaseCount = 0, string firstPurchase = null, string lastPurchase = null, string notes = null, string websiteUrl = null, string mobileNumber = null, string faxNumber = null, string linkedInBio = null, int linkedInConnections = 0, string twitterBio = null, string twitterUsername = null, string twitterProfilePhoto = null, int twitterFollowerCount = 0, int pageViews = 0, int visits = 0, bool clearRestOfFields = true, Dictionary<string, string> field = null)
+            public static async Task<ApiTypes.Contact> UpdateAsync(string email, string firstName = null, string lastName = null, bool clearRestOfFields = true, Dictionary<string, string> field = null, string customFields = null)
             {
                 Dictionary<string, string> values = new Dictionary<string, string>();
                 values.Add("apikey", Api.ApiKey);
                 values.Add("email", email);
                 if (firstName != null) values.Add("firstName", firstName);
                 if (lastName != null) values.Add("lastName", lastName);
-                if (organizationName != null) values.Add("organizationName", organizationName);
-                if (title != null) values.Add("title", title);
-                if (city != null) values.Add("city", city);
-                if (state != null) values.Add("state", state);
-                if (country != null) values.Add("country", country);
-                if (zip != null) values.Add("zip", zip);
-                if (birthDate != null) values.Add("birthDate", birthDate);
-                if (gender != null) values.Add("gender", gender);
-                if (phone != null) values.Add("phone", phone);
-                if (activate != null) values.Add("activate", activate.ToString());
-                if (industry != null) values.Add("industry", industry);
-                if (numberOfEmployees != 0) values.Add("numberOfEmployees", numberOfEmployees.ToString());
-                if (annualRevenue != null) values.Add("annualRevenue", annualRevenue);
-                if (purchaseCount != 0) values.Add("purchaseCount", purchaseCount.ToString());
-                if (firstPurchase != null) values.Add("firstPurchase", firstPurchase);
-                if (lastPurchase != null) values.Add("lastPurchase", lastPurchase);
-                if (notes != null) values.Add("notes", notes);
-                if (websiteUrl != null) values.Add("websiteUrl", websiteUrl);
-                if (mobileNumber != null) values.Add("mobileNumber", mobileNumber);
-                if (faxNumber != null) values.Add("faxNumber", faxNumber);
-                if (linkedInBio != null) values.Add("linkedInBio", linkedInBio);
-                if (linkedInConnections != 0) values.Add("linkedInConnections", linkedInConnections.ToString());
-                if (twitterBio != null) values.Add("twitterBio", twitterBio);
-                if (twitterUsername != null) values.Add("twitterUsername", twitterUsername);
-                if (twitterProfilePhoto != null) values.Add("twitterProfilePhoto", twitterProfilePhoto);
-                if (twitterFollowerCount != 0) values.Add("twitterFollowerCount", twitterFollowerCount.ToString());
-                if (pageViews != 0) values.Add("pageViews", pageViews.ToString());
-                if (visits != 0) values.Add("visits", visits.ToString());
                 if (clearRestOfFields != true) values.Add("clearRestOfFields", clearRestOfFields.ToString());
                 if (field != null)
                 {
@@ -2161,6 +2080,7 @@ private static void PopulateMappings()
                         values.Add("field_" + _item.Key, _item.Value);
                     }
                 }
+                if (customFields != null) values.Add("customFields", customFields);
                 ApiResponse<ApiTypes.Contact> apiResponse = await ApiUtilities.PostAsync<ApiTypes.Contact>("/contact/update", values);
                 return apiResponse.Data;
             }
@@ -2388,11 +2308,11 @@ private static void PopulateMappings()
             /// <param name="headers">Optional Custom Headers. Request parameters prefixed by headers_ like headers_customheader1, headers_customheader2. Note: a space is required after the colon before the custom header value. headers_xmailer=xmailer: header-value1</param>
             /// <param name="postBack">Optional header returned in notifications.</param>
             /// <param name="merge">Request parameters prefixed by merge_ like merge_firstname, merge_lastname. If sending to a template you can send merge_ fields to merge data with the template. Template fields are entered with {firstname}, {lastname} etc.</param>
-            /// <param name="timeOffSetMinutes">Number of minutes in the future this email should be sent</param>
+            /// <param name="timeOffSetMinutes">Number of minutes in the future this email should be sent up to a maximum of 1 year (524160 minutes)</param>
             /// <param name="poolName">Name of your custom IP Pool to be used in the sending process</param>
             /// <param name="isTransactional">True, if email is transactional (non-bulk, non-marketing, non-commercial). Otherwise, false</param>
             /// <returns>ApiTypes.EmailSend</returns>
-            public static async Task<ApiTypes.EmailSend> SendAsync(string subject = null, string from = null, string fromName = null, string sender = null, string senderName = null, string msgFrom = null, string msgFromName = null, string replyTo = null, string replyToName = null, IEnumerable<string> to = null, string[] msgTo = null, string[] msgCC = null, string[] msgBcc = null, IEnumerable<string> lists = null, IEnumerable<string> segments = null, string mergeSourceFilename = null, string channel = null, string bodyHtml = null, string bodyText = null, string charset = null, string charsetBodyHtml = null, string charsetBodyText = null, ApiTypes.EncodingType encodingType = ApiTypes.EncodingType.None, string template = null, IEnumerable<ApiTypes.FileData> attachmentFiles = null, Dictionary<string, string> headers = null, string postBack = null, Dictionary<string, string> merge = null, string timeOffSetMinutes = null, string poolName = null, bool isTransactional = false)
+            public static async Task<ApiTypes.EmailSend> SendAsync(string subject = null, string from = null, string fromName = null, string sender = null, string senderName = null, string msgFrom = null, string msgFromName = null, string replyTo = null, string replyToName = null, IEnumerable<string> to = null, IEnumerable<string> msgTo = null, IEnumerable<string> msgCC = null, IEnumerable<string> msgBcc = null, IEnumerable<string> lists = null, IEnumerable<string> segments = null, string mergeSourceFilename = null, string channel = null, string bodyHtml = null, string bodyText = null, string charset = null, string charsetBodyHtml = null, string charsetBodyText = null, ApiTypes.EncodingType encodingType = ApiTypes.EncodingType.None, string template = null, IEnumerable<ApiTypes.FileData> attachmentFiles = null, Dictionary<string, string> headers = null, string postBack = null, Dictionary<string, string> merge = null, string timeOffSetMinutes = null, string poolName = null, bool isTransactional = false)
             {
                 Dictionary<string, string> values = new Dictionary<string, string>();
                 values.Add("apikey", Api.ApiKey);
@@ -2406,27 +2326,9 @@ private static void PopulateMappings()
                 if (replyTo != null) values.Add("replyTo", replyTo);
                 if (replyToName != null) values.Add("replyToName", replyToName);
                 if (to != null) values.Add("to", string.Join(",", to));
-                if (msgTo != null)
-                {
-                    foreach (string _item in msgTo)
-                    {
-                        values.Add("msgTo", _item);
-                    }
-                }
-                if (msgCC != null)
-                {
-                    foreach (string _item in msgCC)
-                    {
-                        values.Add("msgCC", _item);
-                    }
-                }
-                if (msgBcc != null)
-                {
-                    foreach (string _item in msgBcc)
-                    {
-                        values.Add("msgBcc", _item);
-                    }
-                }
+                if (msgTo != null) values.Add("msgTo", string.Join(",", msgTo));
+                if (msgCC != null) values.Add("msgCC", string.Join(",", msgCC));
+                if (msgBcc != null) values.Add("msgBcc", string.Join(",", msgBcc));
                 if (lists != null) values.Add("lists", string.Join(",", lists));
                 if (segments != null) values.Add("segments", string.Join(",", segments));
                 if (mergeSourceFilename != null) values.Add("mergeSourceFilename", mergeSourceFilename);
@@ -2778,7 +2680,8 @@ private static void PopulateMappings()
             /// <param name="emails">Comma delimited list of contact emails</param>
             /// <param name="moveAll">TRUE - moves all contacts; FALSE - moves contacts provided in the 'emails' parameter. This is ignored if the 'statuses' parameter has been provided</param>
             /// <param name="statuses">List of contact statuses which are eligible to move. This ignores the 'moveAll' parameter</param>
-            public static async Task MoveContactsAsync(string oldListName, string newListName, IEnumerable<string> emails = null, bool? moveAll = null, IEnumerable<ApiTypes.ContactStatus> statuses = null)
+            /// <param name="rule">Query used for filtering.</param>
+            public static async Task MoveContactsAsync(string oldListName, string newListName, IEnumerable<string> emails = null, bool? moveAll = null, IEnumerable<ApiTypes.ContactStatus> statuses = null, string rule = null)
             {
                 Dictionary<string, string> values = new Dictionary<string, string>();
                 values.Add("apikey", Api.ApiKey);
@@ -2787,6 +2690,7 @@ private static void PopulateMappings()
                 if (emails != null) values.Add("emails", string.Join(",", emails));
                 if (moveAll != null) values.Add("moveAll", moveAll.ToString());
                 if (statuses != null) values.Add("statuses", string.Join(",", statuses));
+                if (rule != null) values.Add("rule", rule);
                 ApiResponse<VoidApiResponse> apiResponse = await ApiUtilities.PostAsync<VoidApiResponse>("/list/movecontacts", values);
             }
 
@@ -3823,7 +3727,7 @@ private static void PopulateMappings()
         public decimal LitmusCredits;
 
         /// <summary>
-        /// Enable advanced tools on your Account.
+        /// Enable contact delivery and optimization tools on your Account.
         /// </summary>
         public bool EnableContactFeatures;
 
@@ -4057,7 +3961,7 @@ private static void PopulateMappings()
         public bool EnableUITooltips;
 
         /// <summary>
-        /// True, if you want to use Advanced Tools.  Otherwise, false
+        /// True, if you want to use Contact Delivery Tools.  Otherwise, false
         /// </summary>
         public bool EnableContactFeatures;
 
@@ -4627,6 +4531,33 @@ private static void PopulateMappings()
     }
 
     /// <summary>
+    /// 
+    /// </summary>
+    public enum CertificateValidationStatus
+    {
+        /// <summary>
+        /// 
+        /// </summary>
+        ErrorOccured = -2,
+
+        /// <summary>
+        /// 
+        /// </summary>
+        CertNotSet = 0,
+
+        /// <summary>
+        /// 
+        /// </summary>
+        Valid = 1,
+
+        /// <summary>
+        /// 
+        /// </summary>
+        NotValid = 2,
+
+    }
+
+    /// <summary>
     /// SMTP and HTTP API channel for grouping email delivery
     /// </summary>
     public class Channel
@@ -4741,51 +4672,6 @@ private static void PopulateMappings()
         public string LastName;
 
         /// <summary>
-        /// Title
-        /// </summary>
-        public string Title;
-
-        /// <summary>
-        /// Name of organization
-        /// </summary>
-        public string OrganizationName;
-
-        /// <summary>
-        /// City.
-        /// </summary>
-        public string City;
-
-        /// <summary>
-        /// Name of country.
-        /// </summary>
-        public string Country;
-
-        /// <summary>
-        /// State or province.
-        /// </summary>
-        public string State;
-
-        /// <summary>
-        /// Zip/postal code.
-        /// </summary>
-        public string Zip;
-
-        /// <summary>
-        /// Phone number
-        /// </summary>
-        public string Phone;
-
-        /// <summary>
-        /// Date of birth in YYYY-MM-DD format
-        /// </summary>
-        public DateTime? BirthDate;
-
-        /// <summary>
-        /// Your gender
-        /// </summary>
-        public string Gender;
-
-        /// <summary>
         /// Name of status: Active, Engaged, Inactive, Abuse, Bounced, Unsubscribed.
         /// </summary>
         public ApiTypes.ContactStatus Status;
@@ -4856,84 +4742,9 @@ private static void PopulateMappings()
         public string CreatedFromIP;
 
         /// <summary>
-        /// Yearly revenue for the contact
-        /// </summary>
-        public decimal Revenue;
-
-        /// <summary>
-        /// Number of purchases contact has made
-        /// </summary>
-        public int PurchaseCount;
-
-        /// <summary>
-        /// Mobile phone number
-        /// </summary>
-        public string MobileNumber;
-
-        /// <summary>
-        /// Fax number
-        /// </summary>
-        public string FaxNumber;
-
-        /// <summary>
-        /// Biography for Linked-In
-        /// </summary>
-        public string LinkedInBio;
-
-        /// <summary>
-        /// Number of Linked-In connections
-        /// </summary>
-        public int LinkedInConnections;
-
-        /// <summary>
-        /// Biography for Twitter
-        /// </summary>
-        public string TwitterBio;
-
-        /// <summary>
-        /// User name for Twitter
-        /// </summary>
-        public string TwitterUsername;
-
-        /// <summary>
-        /// URL for Twitter photo
-        /// </summary>
-        public string TwitterProfilePhoto;
-
-        /// <summary>
-        /// Number of Twitter followers
-        /// </summary>
-        public int TwitterFollowerCount;
-
-        /// <summary>
         /// Unsubscribed date in YYYY-MM-DD format
         /// </summary>
         public DateTime? UnsubscribedDate;
-
-        /// <summary>
-        /// Industry contact works in
-        /// </summary>
-        public string Industry;
-
-        /// <summary>
-        /// Number of employees
-        /// </summary>
-        public int NumberOfEmployees;
-
-        /// <summary>
-        /// Annual revenue of contact
-        /// </summary>
-        public decimal? AnnualRevenue;
-
-        /// <summary>
-        /// Date of first purchase in YYYY-MM-DD format
-        /// </summary>
-        public DateTime? FirstPurchase;
-
-        /// <summary>
-        /// Date of last purchase in YYYY-MM-DD format
-        /// </summary>
-        public DateTime? LastPurchase;
 
         /// <summary>
         /// Free form field of notes
@@ -4946,21 +4757,6 @@ private static void PopulateMappings()
         public string WebsiteUrl;
 
         /// <summary>
-        /// Number of page views
-        /// </summary>
-        public int PageViews;
-
-        /// <summary>
-        /// Number of website visits
-        /// </summary>
-        public int Visits;
-
-        /// <summary>
-        /// Number of messages sent last month
-        /// </summary>
-        public int? LastMonthSent;
-
-        /// <summary>
         /// Date this contact last opened an email
         /// </summary>
         public DateTime? LastOpened;
@@ -4971,9 +4767,9 @@ private static void PopulateMappings()
         public DateTime? LastClicked;
 
         /// <summary>
-        /// Your gravatar hash for image
+        /// Custom contact field like firstname, lastname, city etc. JSON serialized text like { "city":"london" } 
         /// </summary>
-        public string GravatarHash;
+        public Dictionary<string, string> CustomFields;
 
     }
 
@@ -5055,6 +4851,11 @@ private static void PopulateMappings()
         /// Country of the event.
         /// </summary>
         public string Country;
+
+        /// <summary>
+        /// Information about the event
+        /// </summary>
+        public string Data;
 
     }
 
@@ -5195,6 +4996,63 @@ private static void PopulateMappings()
     }
 
     /// <summary>
+    /// Number of Unsubscribed or Complaint Contacts, grouped by Unsubscribe Reason;
+    /// </summary>
+    public class ContactUnsubscribeReasonCounts
+    {
+        /// <summary>
+        /// 
+        /// </summary>
+        public long Unknown;
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public long NoLongerWant;
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public long IrrelevantContent;
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public long TooFrequent;
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public long NeverConsented;
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public long DeceptiveContent;
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public long AbuseReported;
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public long ThirdParty;
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public long ListUnsubscribe;
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public long FromJourney;
+
+    }
+
+    /// <summary>
     /// Type of credits
     /// </summary>
     public enum CreditType
@@ -5327,6 +5185,28 @@ private static void PopulateMappings()
         /// 
         /// </summary>
         public ApiTypes.TrackingType Type;
+
+        /// <summary>
+        /// 0 - NotValidated, 1 - Validated successfully, 2 - Invalid, 3 - Broken (tracking was frequnetly verfied in given period and still is invalid)
+        ///    For statuses: 0, 1, 3 tracking will be verified in normal periods
+        ///    For status 2 tracking will be verified in high frequent periods
+        /// </summary>
+        public ApiTypes.TrackingValidationStatus TrackingStatus;
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public ApiTypes.CertificateValidationStatus CertificateStatus;
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public string CertificateValidationError;
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public ApiTypes.TrackingType? TrackingTypeUserRequest;
 
     }
 
@@ -6353,9 +6233,24 @@ private static void PopulateMappings()
         public string Channel;
 
         /// <summary>
-        /// Date in YYYY-MM-DDThh:ii:ss format
+        /// Creation date
         /// </summary>
         public string Date;
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public string DateSent;
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public string DateOpened;
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public string DateClicked;
 
         /// <summary>
         /// Content of message, HTML encoded
@@ -6960,7 +6855,7 @@ private static void PopulateMappings()
         public int MaxContacts;
 
         /// <summary>
-        /// True, if you want to use Advanced Tools.  Otherwise, false
+        /// True, if you want to use Contact Delivery Tools.  Otherwise, false
         /// </summary>
         public bool EnableContactFeatures;
 
@@ -7032,7 +6927,7 @@ private static void PopulateMappings()
         public bool EnablePrivateIPRequest;
 
         /// <summary>
-        /// True, if you want to use Advanced Tools.  Otherwise, false
+        /// True, if you want to use Contact Delivery Tools.  Otherwise, false
         /// </summary>
         public bool EnableContactFeatures;
 
@@ -7464,12 +7359,59 @@ private static void PopulateMappings()
         /// <summary>
         /// 
         /// </summary>
+        None = -2,
+
+        /// <summary>
+        /// 
+        /// </summary>
+        Delete = -1,
+
+        /// <summary>
+        /// 
+        /// </summary>
         Http = 0,
 
         /// <summary>
         /// 
         /// </summary>
         ExternalHttps = 1,
+
+        /// <summary>
+        /// 
+        /// </summary>
+        InternalCertHttps = 2,
+
+        /// <summary>
+        /// 
+        /// </summary>
+        LetsEncryptCert = 3,
+
+    }
+
+    /// <summary>
+    /// Status of ValidDomain used by DomainValidationService to determine how often tracking validation should be performed.
+    /// </summary>
+    public enum TrackingValidationStatus
+    {
+        /// <summary>
+        /// 
+        /// </summary>
+        Validated = 0,
+
+        /// <summary>
+        /// 
+        /// </summary>
+        NotValidated = 1,
+
+        /// <summary>
+        /// 
+        /// </summary>
+        Invalid = 2,
+
+        /// <summary>
+        /// 
+        /// </summary>
+        Broken = 3,
 
     }
 
@@ -7581,7 +7523,7 @@ private static void PopulateMappings()
         public decimal LitmusCreditsCost;
 
         /// <summary>
-        /// Daily cost of Advanced Tools
+        /// Daily cost of Contact Delivery Tools
         /// </summary>
         public decimal ContactCost;
 
@@ -7594,6 +7536,11 @@ private static void PopulateMappings()
         /// 
         /// </summary>
         public decimal SupportCost;
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public decimal EmailCost;
 
     }
 
