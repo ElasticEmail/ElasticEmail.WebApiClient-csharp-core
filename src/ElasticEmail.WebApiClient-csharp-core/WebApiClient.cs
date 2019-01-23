@@ -690,7 +690,7 @@ namespace ElasticEmailClient
 
     #endregion
 
-    // API version 2.33.0
+    // API version 2.42.0
 
     public static class Api
     {
@@ -700,7 +700,7 @@ namespace ElasticEmailClient
 
         #region AccessToken functions
         /// <summary>
-        /// Managinf ApiKeys
+        /// Manage your AccessTokens (ApiKeys)
         /// </summary>
         public static class AccessToken
         {
@@ -735,33 +735,33 @@ namespace ElasticEmailClient
             }
 
             /// <summary>
+            /// Get AccessToken list.
+            /// </summary>
+            /// <param name="apikey">ApiKey that gives you access to our SMTP and HTTP API's.</param>
+            /// <returns>List(ApiTypes.AccessToken)</returns>
+            public static async Task<List<ApiTypes.AccessToken>> ListAsync()
+            {
+                Dictionary<string, string> values = new Dictionary<string, string>();
+                values.Add("apikey", Api.ApiKey);
+                ApiResponse<List<ApiTypes.AccessToken>> apiResponse = await ApiUtilities.PostAsync<List<ApiTypes.AccessToken>>("/accesstoken/list", values);
+                return apiResponse.Data;
+            }
+
+            /// <summary>
             /// Edit AccessToken.
             /// </summary>
             /// <param name="apikey">ApiKey that gives you access to our SMTP and HTTP API's.</param>
             /// <param name="tokenName"></param>
             /// <param name="accessLevel"></param>
             /// <param name="tokenNameNew"></param>
-            public static async Task EditAsync(string tokenName, ApiTypes.AccessLevel accessLevel, string tokenNameNew = null)
+            public static async Task UpdateAsync(string tokenName, ApiTypes.AccessLevel accessLevel, string tokenNameNew = null)
             {
                 Dictionary<string, string> values = new Dictionary<string, string>();
                 values.Add("apikey", Api.ApiKey);
                 values.Add("tokenName", tokenName);
                 values.Add("accessLevel", accessLevel.ToString());
                 if (tokenNameNew != null) values.Add("tokenNameNew", tokenNameNew);
-                ApiResponse<VoidApiResponse> apiResponse = await ApiUtilities.PostAsync<VoidApiResponse>("/accesstoken/edit", values);
-            }
-
-            /// <summary>
-            /// Get AccessToken list.
-            /// </summary>
-            /// <param name="apikey">ApiKey that gives you access to our SMTP and HTTP API's.</param>
-            /// <returns>List(ApiTypes.AccessToken)</returns>
-            public static async Task<List<ApiTypes.AccessToken>> GetListAsync()
-            {
-                Dictionary<string, string> values = new Dictionary<string, string>();
-                values.Add("apikey", Api.ApiKey);
-                ApiResponse<List<ApiTypes.AccessToken>> apiResponse = await ApiUtilities.PostAsync<List<ApiTypes.AccessToken>>("/accesstoken/getlist", values);
-                return apiResponse.Data;
+                ApiResponse<VoidApiResponse> apiResponse = await ApiUtilities.PostAsync<VoidApiResponse>("/accesstoken/update", values);
             }
 
         }
@@ -775,40 +775,51 @@ namespace ElasticEmailClient
         public static class Account
         {
             /// <summary>
+            /// Request premium support for your account
+            /// </summary>
+            /// <param name="apikey">ApiKey that gives you access to our SMTP and HTTP API's.</param>
+            /// <param name="supportPlan"></param>
+            public static async Task AddDedicatedSupportAsync(ApiTypes.SupportPlan supportPlan)
+            {
+                Dictionary<string, string> values = new Dictionary<string, string>();
+                values.Add("apikey", Api.ApiKey);
+                values.Add("supportPlan", supportPlan.ToString());
+                ApiResponse<VoidApiResponse> apiResponse = await ApiUtilities.PostAsync<VoidApiResponse>("/account/adddedicatedsupport", values);
+            }
+
+            /// <summary>
             /// Create new subaccount and provide most important data about it.
             /// </summary>
             /// <param name="apikey">ApiKey that gives you access to our SMTP and HTTP API's.</param>
             /// <param name="email">Proper email address.</param>
             /// <param name="password">Current password.</param>
             /// <param name="confirmPassword">Repeat new password.</param>
+            /// <param name="allow2fa"></param>
             /// <param name="requiresEmailCredits">True, if account needs credits to send emails. Otherwise, false</param>
-            /// <param name="enableLitmusTest">True, if account is able to send template tests to Litmus. Otherwise, false</param>
-            /// <param name="requiresLitmusCredits">True, if account needs credits to send emails. Otherwise, false</param>
             /// <param name="maxContacts">Maximum number of contacts the account can have</param>
             /// <param name="enablePrivateIPRequest">True, if account can request for private IP on its own. Otherwise, false</param>
             /// <param name="sendActivation">True, if you want to send activation email to this account. Otherwise, false</param>
             /// <param name="returnUrl">URL to navigate to after account creation</param>
             /// <param name="sendingPermission">Sending permission setting for account</param>
-            /// <param name="enableContactFeatures">True, if you want to use Contact Delivery Tools.  Otherwise, false</param>
-            /// <param name="poolName">Private IP required. Name of the custom IP Pool which Sub Account should use to send its emails. Leave empty for the default one or if no Private IPs have been bought</param>
+            /// <param name="enableContactFeatures">Private IP required. Name of the custom IP Pool which Sub Account should use to send its emails. Leave empty for the default one or if no Private IPs have been bought</param>
+            /// <param name="poolName">Name of your custom IP Pool to be used in the sending process</param>
             /// <param name="emailSizeLimit">Maximum size of email including attachments in MB's</param>
             /// <param name="dailySendLimit">Amount of emails account can send daily</param>
             /// <returns>string</returns>
-            public static async Task<string> AddSubAccountAsync(string email, string password, string confirmPassword, bool requiresEmailCredits = false, bool enableLitmusTest = false, bool requiresLitmusCredits = false, int maxContacts = 0, bool enablePrivateIPRequest = true, bool sendActivation = false, string returnUrl = null, ApiTypes.SendingPermission? sendingPermission = null, bool? enableContactFeatures = null, string poolName = null, int emailSizeLimit = 10, int? dailySendLimit = null)
+            public static async Task<string> AddSubAccountAsync(string email, string password, string confirmPassword, bool allow2fa = false, bool requiresEmailCredits = false, int maxContacts = 0, bool enablePrivateIPRequest = true, bool sendActivation = false, string returnUrl = null, ApiTypes.SendingPermission? sendingPermission = null, bool? enableContactFeatures = null, string poolName = null, int emailSizeLimit = 10, int? dailySendLimit = null)
             {
                 Dictionary<string, string> values = new Dictionary<string, string>();
                 values.Add("apikey", Api.ApiKey);
                 values.Add("email", email);
                 values.Add("password", password);
                 values.Add("confirmPassword", confirmPassword);
+                if (allow2fa != false) values.Add("allow2fa", allow2fa.ToString());
                 if (requiresEmailCredits != false) values.Add("requiresEmailCredits", requiresEmailCredits.ToString());
-                if (enableLitmusTest != false) values.Add("enableLitmusTest", enableLitmusTest.ToString());
-                if (requiresLitmusCredits != false) values.Add("requiresLitmusCredits", requiresLitmusCredits.ToString());
                 if (maxContacts != 0) values.Add("maxContacts", maxContacts.ToString());
                 if (enablePrivateIPRequest != true) values.Add("enablePrivateIPRequest", enablePrivateIPRequest.ToString());
                 if (sendActivation != false) values.Add("sendActivation", sendActivation.ToString());
                 if (returnUrl != null) values.Add("returnUrl", returnUrl);
-                if (sendingPermission != null) values.Add("sendingPermission", Newtonsoft.Json.JsonConvert.SerializeObject(sendingPermission));
+                if (sendingPermission != null) values.Add("sendingPermission", sendingPermission.ToString());
                 if (enableContactFeatures != null) values.Add("enableContactFeatures", enableContactFeatures.ToString());
                 if (poolName != null) values.Add("poolName", poolName);
                 if (emailSizeLimit != 10) values.Add("emailSizeLimit", emailSizeLimit.ToString());
@@ -839,6 +850,37 @@ namespace ElasticEmailClient
             }
 
             /// <summary>
+            /// Add notifications webhook
+            /// </summary>
+            /// <param name="apikey">ApiKey that gives you access to our SMTP and HTTP API's.</param>
+            /// <param name="webNotificationUrl">URL address to receive web notifications to parse and process.</param>
+            /// <param name="name">Filename</param>
+            /// <param name="notifyOncePerEmail"></param>
+            /// <param name="notificationForSent"></param>
+            /// <param name="notificationForOpened"></param>
+            /// <param name="notificationForClicked"></param>
+            /// <param name="notificationForUnsubscribed"></param>
+            /// <param name="notificationForAbuseReport"></param>
+            /// <param name="notificationForError"></param>
+            /// <returns>string</returns>
+            public static async Task<string> AddWebhookAsync(string webNotificationUrl, string name, bool? notifyOncePerEmail = null, bool? notificationForSent = null, bool? notificationForOpened = null, bool? notificationForClicked = null, bool? notificationForUnsubscribed = null, bool? notificationForAbuseReport = null, bool? notificationForError = null)
+            {
+                Dictionary<string, string> values = new Dictionary<string, string>();
+                values.Add("apikey", Api.ApiKey);
+                values.Add("webNotificationUrl", webNotificationUrl);
+                values.Add("name", name);
+                if (notifyOncePerEmail != null) values.Add("notifyOncePerEmail", notifyOncePerEmail.ToString());
+                if (notificationForSent != null) values.Add("notificationForSent", notificationForSent.ToString());
+                if (notificationForOpened != null) values.Add("notificationForOpened", notificationForOpened.ToString());
+                if (notificationForClicked != null) values.Add("notificationForClicked", notificationForClicked.ToString());
+                if (notificationForUnsubscribed != null) values.Add("notificationForUnsubscribed", notificationForUnsubscribed.ToString());
+                if (notificationForAbuseReport != null) values.Add("notificationForAbuseReport", notificationForAbuseReport.ToString());
+                if (notificationForError != null) values.Add("notificationForError", notificationForError.ToString());
+                ApiResponse<string> apiResponse = await ApiUtilities.PostAsync<string>("/account/addwebhook", values);
+                return apiResponse.Data;
+            }
+
+            /// <summary>
             /// Change your email address. Remember, that your email address is used as login!
             /// </summary>
             /// <param name="apikey">ApiKey that gives you access to our SMTP and HTTP API's.</param>
@@ -861,49 +903,62 @@ namespace ElasticEmailClient
             /// Create new password for your account. Password needs to be at least 6 characters long.
             /// </summary>
             /// <param name="apikey">ApiKey that gives you access to our SMTP and HTTP API's.</param>
-            /// <param name="currentPassword">Current password.</param>
             /// <param name="newPassword">New password for account.</param>
             /// <param name="confirmPassword">Repeat new password.</param>
-            public static async Task ChangePasswordAsync(string currentPassword, string newPassword, string confirmPassword)
+            /// <param name="currentPassword">Current password.</param>
+            public static async Task ChangePasswordAsync(string newPassword, string confirmPassword, string currentPassword = null)
             {
                 Dictionary<string, string> values = new Dictionary<string, string>();
                 values.Add("apikey", Api.ApiKey);
-                values.Add("currentPassword", currentPassword);
                 values.Add("newPassword", newPassword);
                 values.Add("confirmPassword", confirmPassword);
+                if (currentPassword != null) values.Add("currentPassword", currentPassword);
                 ApiResponse<VoidApiResponse> apiResponse = await ApiUtilities.PostAsync<VoidApiResponse>("/account/changepassword", values);
+            }
+
+            /// <summary>
+            /// Create new password for subaccount. Password needs to be at least 6 characters long.
+            /// </summary>
+            /// <param name="apikey">ApiKey that gives you access to our SMTP and HTTP API's.</param>
+            /// <param name="newPassword">New password for account.</param>
+            /// <param name="confirmPassword">Repeat new password.</param>
+            /// <param name="subAccountEmail">Email address of sub-account</param>
+            public static async Task ChangeSubAccountPasswordAsync(string newPassword, string confirmPassword, string subAccountEmail)
+            {
+                Dictionary<string, string> values = new Dictionary<string, string>();
+                values.Add("apikey", Api.ApiKey);
+                values.Add("newPassword", newPassword);
+                values.Add("confirmPassword", confirmPassword);
+                values.Add("subAccountEmail", subAccountEmail);
+                ApiResponse<VoidApiResponse> apiResponse = await ApiUtilities.PostAsync<VoidApiResponse>("/account/changesubaccountpassword", values);
             }
 
             /// <summary>
             /// Deletes specified Subaccount
             /// </summary>
             /// <param name="apikey">ApiKey that gives you access to our SMTP and HTTP API's.</param>
-            /// <param name="notify">True, if you want to send an email notification. Otherwise, false</param>
             /// <param name="subAccountEmail">Email address of sub-account</param>
             /// <param name="publicAccountID">Public key of sub-account to delete. Use subAccountEmail or publicAccountID not both.</param>
-            /// <param name="deleteDomains"></param>
-            public static async Task DeleteSubAccountAsync(bool notify = true, string subAccountEmail = null, string publicAccountID = null, bool deleteDomains = true)
+            public static async Task DeleteSubAccountAsync(string subAccountEmail = null, string publicAccountID = null)
             {
                 Dictionary<string, string> values = new Dictionary<string, string>();
                 values.Add("apikey", Api.ApiKey);
-                if (notify != true) values.Add("notify", notify.ToString());
                 if (subAccountEmail != null) values.Add("subAccountEmail", subAccountEmail);
                 if (publicAccountID != null) values.Add("publicAccountID", publicAccountID);
-                if (deleteDomains != true) values.Add("deleteDomains", deleteDomains.ToString());
                 ApiResponse<VoidApiResponse> apiResponse = await ApiUtilities.PostAsync<VoidApiResponse>("/account/deletesubaccount", values);
             }
 
             /// <summary>
-            /// Validate account's ability to send e-mail
+            /// Delete notifications webhook
             /// </summary>
             /// <param name="apikey">ApiKey that gives you access to our SMTP and HTTP API's.</param>
-            /// <returns>ApiTypes.AccountSendStatus</returns>
-            public static async Task<ApiTypes.AccountSendStatus> GetAccountAbilityToSendEmailAsync()
+            /// <param name="webhookID"></param>
+            public static async Task DeleteWebhookAsync(string webhookID)
             {
                 Dictionary<string, string> values = new Dictionary<string, string>();
                 values.Add("apikey", Api.ApiKey);
-                ApiResponse<ApiTypes.AccountSendStatus> apiResponse = await ApiUtilities.PostAsync<ApiTypes.AccountSendStatus>("/account/getaccountabilitytosendemail", values);
-                return apiResponse.Data;
+                values.Add("webhookID", webhookID);
+                ApiResponse<VoidApiResponse> apiResponse = await ApiUtilities.PostAsync<VoidApiResponse>("/account/deletewebhook", values);
             }
 
             /// <summary>
@@ -980,41 +1035,15 @@ namespace ElasticEmailClient
             }
 
             /// <summary>
-            /// Loads your account. Returns detailed information about your account.
+            /// Load inbound options of your account
             /// </summary>
             /// <param name="apikey">ApiKey that gives you access to our SMTP and HTTP API's.</param>
-            /// <returns>ApiTypes.Account</returns>
-            public static async Task<ApiTypes.Account> LoadInfoAsync()
+            /// <returns>ApiTypes.InboundOptions</returns>
+            public static async Task<ApiTypes.InboundOptions> LoadInboundOptionsAsync()
             {
                 Dictionary<string, string> values = new Dictionary<string, string>();
                 values.Add("apikey", Api.ApiKey);
-                ApiResponse<ApiTypes.Account> apiResponse = await ApiUtilities.PostAsync<ApiTypes.Account>("/account/loadinfo", values);
-                return apiResponse.Data;
-            }
-
-            /// <summary>
-            /// Lists litmus credits history
-            /// </summary>
-            /// <param name="apikey">ApiKey that gives you access to our SMTP and HTTP API's.</param>
-            /// <returns>List(ApiTypes.LitmusCredits)</returns>
-            public static async Task<List<ApiTypes.LitmusCredits>> LoadLitmusCreditsHistoryAsync()
-            {
-                Dictionary<string, string> values = new Dictionary<string, string>();
-                values.Add("apikey", Api.ApiKey);
-                ApiResponse<List<ApiTypes.LitmusCredits>> apiResponse = await ApiUtilities.PostAsync<List<ApiTypes.LitmusCredits>>("/account/loadlitmuscreditshistory", values);
-                return apiResponse.Data;
-            }
-
-            /// <summary>
-            /// Shows queue of newest notifications - very useful when you want to check what happened with mails that were not received.
-            /// </summary>
-            /// <param name="apikey">ApiKey that gives you access to our SMTP and HTTP API's.</param>
-            /// <returns>List(ApiTypes.NotificationQueue)</returns>
-            public static async Task<List<ApiTypes.NotificationQueue>> LoadNotificationQueueAsync()
-            {
-                Dictionary<string, string> values = new Dictionary<string, string>();
-                values.Add("apikey", Api.ApiKey);
-                ApiResponse<List<ApiTypes.NotificationQueue>> apiResponse = await ApiUtilities.PostAsync<List<ApiTypes.NotificationQueue>>("/account/loadnotificationqueue", values);
+                ApiResponse<ApiTypes.InboundOptions> apiResponse = await ApiUtilities.PostAsync<ApiTypes.InboundOptions>("/account/loadinboundoptions", values);
                 return apiResponse.Data;
             }
 
@@ -1147,36 +1176,47 @@ namespace ElasticEmailClient
             }
 
             /// <summary>
-            /// Lists litmus credits history for sub-account
-            /// </summary>
-            /// <param name="apikey">ApiKey that gives you access to our SMTP and HTTP API's.</param>
-            /// <param name="subAccountEmail">Email address of sub-account</param>
-            /// <param name="publicAccountID">Public key of sub-account to list history for. Use subAccountEmail or publicAccountID not both.</param>
-            /// <returns>List(ApiTypes.LitmusCredits)</returns>
-            public static async Task<List<ApiTypes.LitmusCredits>> LoadSubAccountsLitmusCreditsHistoryAsync(string subAccountEmail = null, string publicAccountID = null)
-            {
-                Dictionary<string, string> values = new Dictionary<string, string>();
-                values.Add("apikey", Api.ApiKey);
-                if (subAccountEmail != null) values.Add("subAccountEmail", subAccountEmail);
-                if (publicAccountID != null) values.Add("publicAccountID", publicAccountID);
-                ApiResponse<List<ApiTypes.LitmusCredits>> apiResponse = await ApiUtilities.PostAsync<List<ApiTypes.LitmusCredits>>("/account/loadsubaccountslitmuscreditshistory", values);
-                return apiResponse.Data;
-            }
-
-            /// <summary>
             /// Shows usage of your account in given time.
             /// </summary>
             /// <param name="apikey">ApiKey that gives you access to our SMTP and HTTP API's.</param>
             /// <param name="from">Starting date for search in YYYY-MM-DDThh:mm:ss format.</param>
             /// <param name="to">Ending date for search in YYYY-MM-DDThh:mm:ss format.</param>
+            /// <param name="loadSubaccountsUsage"></param>
             /// <returns>List(ApiTypes.Usage)</returns>
-            public static async Task<List<ApiTypes.Usage>> LoadUsageAsync(DateTime from, DateTime to)
+            public static async Task<List<ApiTypes.Usage>> LoadUsageAsync(DateTime from, DateTime to, bool loadSubaccountsUsage = true)
             {
                 Dictionary<string, string> values = new Dictionary<string, string>();
                 values.Add("apikey", Api.ApiKey);
                 values.Add("from", from.ToString("M/d/yyyy h:mm:ss tt"));
                 values.Add("to", to.ToString("M/d/yyyy h:mm:ss tt"));
+                if (loadSubaccountsUsage != true) values.Add("loadSubaccountsUsage", loadSubaccountsUsage.ToString());
                 ApiResponse<List<ApiTypes.Usage>> apiResponse = await ApiUtilities.PostAsync<List<ApiTypes.Usage>>("/account/loadusage", values);
+                return apiResponse.Data;
+            }
+
+            /// <summary>
+            /// Load notifications webhooks
+            /// </summary>
+            /// <param name="apikey">ApiKey that gives you access to our SMTP and HTTP API's.</param>
+            /// <returns>List(ApiTypes.Webhook)</returns>
+            public static async Task<List<ApiTypes.Webhook>> LoadWebhookAsync()
+            {
+                Dictionary<string, string> values = new Dictionary<string, string>();
+                values.Add("apikey", Api.ApiKey);
+                ApiResponse<List<ApiTypes.Webhook>> apiResponse = await ApiUtilities.PostAsync<List<ApiTypes.Webhook>>("/account/loadwebhook", values);
+                return apiResponse.Data;
+            }
+
+            /// <summary>
+            /// Load web notification options of your account
+            /// </summary>
+            /// <param name="apikey">ApiKey that gives you access to our SMTP and HTTP API's.</param>
+            /// <returns>ApiTypes.WebNotificationOptions</returns>
+            public static async Task<ApiTypes.WebNotificationOptions> LoadWebNotificationOptionsAsync()
+            {
+                Dictionary<string, string> values = new Dictionary<string, string>();
+                values.Add("apikey", Api.ApiKey);
+                ApiResponse<ApiTypes.WebNotificationOptions> apiResponse = await ApiUtilities.PostAsync<ApiTypes.WebNotificationOptions>("/account/loadwebnotificationoptions", values);
                 return apiResponse.Data;
             }
 
@@ -1284,20 +1324,8 @@ namespace ElasticEmailClient
             /// <param name="contentTransferEncoding">Type of content encoding</param>
             /// <param name="emailNotificationForError">True, if you want bounce notifications returned. Otherwise, false</param>
             /// <param name="emailNotificationEmail">Specific email address to send bounce email notifications to.</param>
-            /// <param name="webNotificationUrl">URL address to receive web notifications to parse and process.</param>
-            /// <param name="webNotificationNotifyOncePerEmail">True, if you want to receive notifications for each type only once per email. Otherwise, false</param>
-            /// <param name="webNotificationForSent">True, if you want to send web notifications for sent email. Otherwise, false</param>
-            /// <param name="webNotificationForOpened">True, if you want to send web notifications for opened email. Otherwise, false</param>
-            /// <param name="webNotificationForClicked">True, if you want to send web notifications for clicked email. Otherwise, false</param>
-            /// <param name="webNotificationForUnsubscribed">True, if you want to send web notifications for unsubscribed email. Otherwise, false</param>
-            /// <param name="webNotificationForAbuseReport">True, if you want to send web notifications for complaint email. Otherwise, false</param>
-            /// <param name="webNotificationForError">True, if you want to send web notifications for bounced email. Otherwise, false</param>
-            /// <param name="hubCallBackUrl">URL used for tracking action of inbound emails</param>
-            /// <param name="inboundDomain">Domain you use as your inbound domain</param>
-            /// <param name="inboundContactsOnly">True, if you want inbound email to only process contacts from your account. Otherwise, false</param>
             /// <param name="lowCreditNotification">True, if you want to receive low credit email notifications. Otherwise, false</param>
             /// <param name="enableUITooltips">True, if account has tooltips active. Otherwise, false</param>
-            /// <param name="enableContactFeatures">True, if you want to use Contact Delivery Tools.  Otherwise, false</param>
             /// <param name="notificationsEmails">Email addresses to send a copy of all notifications from our system. Separated by semicolon</param>
             /// <param name="unsubscribeNotificationsEmails">Emails, separated by semicolon, to which the notification about contact unsubscribing should be sent to</param>
             /// <param name="logoUrl">URL to your logo image.</param>
@@ -1309,7 +1337,7 @@ namespace ElasticEmailClient
             /// <param name="enableOpenTracking">True, if you want to track opens. Otherwise, false</param>
             /// <param name="consentTrackingOnUnsubscribe"></param>
             /// <returns>ApiTypes.AdvancedOptions</returns>
-            public static async Task<ApiTypes.AdvancedOptions> UpdateAdvancedOptionsAsync(bool? enableClickTracking = null, bool? enableLinkClickTracking = null, bool? manageSubscriptions = null, bool? manageSubscribedOnly = null, bool? transactionalOnUnsubscribe = null, bool? skipListUnsubscribe = null, bool? autoTextFromHtml = null, bool? allowCustomHeaders = null, string bccEmail = null, string contentTransferEncoding = null, bool? emailNotificationForError = null, string emailNotificationEmail = null, string webNotificationUrl = null, bool? webNotificationNotifyOncePerEmail = null, bool? webNotificationForSent = null, bool? webNotificationForOpened = null, bool? webNotificationForClicked = null, bool? webNotificationForUnsubscribed = null, bool? webNotificationForAbuseReport = null, bool? webNotificationForError = null, string hubCallBackUrl = "", string inboundDomain = null, bool? inboundContactsOnly = null, bool? lowCreditNotification = null, bool? enableUITooltips = null, bool? enableContactFeatures = null, string notificationsEmails = null, string unsubscribeNotificationsEmails = null, string logoUrl = null, bool? enableTemplateScripting = true, int? staleContactScore = null, int? staleContactInactiveDays = null, string deliveryReason = null, bool? tutorialsEnabled = null, bool? enableOpenTracking = null, bool? consentTrackingOnUnsubscribe = null)
+            public static async Task<ApiTypes.AdvancedOptions> UpdateAdvancedOptionsAsync(bool? enableClickTracking = null, bool? enableLinkClickTracking = null, bool? manageSubscriptions = null, bool? manageSubscribedOnly = null, bool? transactionalOnUnsubscribe = null, bool? skipListUnsubscribe = null, bool? autoTextFromHtml = null, bool? allowCustomHeaders = null, string bccEmail = null, string contentTransferEncoding = null, bool? emailNotificationForError = null, string emailNotificationEmail = null, bool? lowCreditNotification = null, bool? enableUITooltips = null, string notificationsEmails = null, string unsubscribeNotificationsEmails = null, string logoUrl = null, bool? enableTemplateScripting = true, int? staleContactScore = null, int? staleContactInactiveDays = null, string deliveryReason = null, bool? tutorialsEnabled = null, bool? enableOpenTracking = null, bool? consentTrackingOnUnsubscribe = null)
             {
                 Dictionary<string, string> values = new Dictionary<string, string>();
                 values.Add("apikey", Api.ApiKey);
@@ -1325,20 +1353,8 @@ namespace ElasticEmailClient
                 if (contentTransferEncoding != null) values.Add("contentTransferEncoding", contentTransferEncoding);
                 if (emailNotificationForError != null) values.Add("emailNotificationForError", emailNotificationForError.ToString());
                 if (emailNotificationEmail != null) values.Add("emailNotificationEmail", emailNotificationEmail);
-                if (webNotificationUrl != null) values.Add("webNotificationUrl", webNotificationUrl);
-                if (webNotificationNotifyOncePerEmail != null) values.Add("webNotificationNotifyOncePerEmail", webNotificationNotifyOncePerEmail.ToString());
-                if (webNotificationForSent != null) values.Add("webNotificationForSent", webNotificationForSent.ToString());
-                if (webNotificationForOpened != null) values.Add("webNotificationForOpened", webNotificationForOpened.ToString());
-                if (webNotificationForClicked != null) values.Add("webNotificationForClicked", webNotificationForClicked.ToString());
-                if (webNotificationForUnsubscribed != null) values.Add("webNotificationForUnsubscribed", webNotificationForUnsubscribed.ToString());
-                if (webNotificationForAbuseReport != null) values.Add("webNotificationForAbuseReport", webNotificationForAbuseReport.ToString());
-                if (webNotificationForError != null) values.Add("webNotificationForError", webNotificationForError.ToString());
-                if (hubCallBackUrl != "") values.Add("hubCallBackUrl", hubCallBackUrl);
-                if (inboundDomain != null) values.Add("inboundDomain", inboundDomain);
-                if (inboundContactsOnly != null) values.Add("inboundContactsOnly", inboundContactsOnly.ToString());
                 if (lowCreditNotification != null) values.Add("lowCreditNotification", lowCreditNotification.ToString());
                 if (enableUITooltips != null) values.Add("enableUITooltips", enableUITooltips.ToString());
-                if (enableContactFeatures != null) values.Add("enableContactFeatures", enableContactFeatures.ToString());
                 if (notificationsEmails != null) values.Add("notificationsEmails", notificationsEmails);
                 if (unsubscribeNotificationsEmails != null) values.Add("unsubscribeNotificationsEmails", unsubscribeNotificationsEmails);
                 if (logoUrl != null) values.Add("logoUrl", logoUrl);
@@ -1379,20 +1395,22 @@ namespace ElasticEmailClient
             }
 
             /// <summary>
-            /// Update http notification URL.
+            /// Update inbound notifications options of your account.
             /// </summary>
             /// <param name="apikey">ApiKey that gives you access to our SMTP and HTTP API's.</param>
-            /// <param name="url">URL of notification.</param>
-            /// <param name="notifyOncePerEmail">True, if you want to receive notifications for each type only once per email. Otherwise, false</param>
-            /// <param name="settings">Http notification settings serialized to JSON </param>
-            public static async Task UpdateHttpNotificationAsync(string url, bool notifyOncePerEmail = false, string settings = null)
+            /// <param name="inboundContactsOnly">True, if you want inbound email to only process contacts from your account. Otherwise, false</param>
+            /// <param name="hubCallBackUrl">URL used for tracking action of inbound emails</param>
+            /// <param name="inboundDomain">Domain you use as your inbound domain</param>
+            /// <returns>ApiTypes.InboundOptions</returns>
+            public static async Task<ApiTypes.InboundOptions> UpdateInboundNotificationsAsync(bool? inboundContactsOnly = null, string hubCallBackUrl = "", string inboundDomain = null)
             {
                 Dictionary<string, string> values = new Dictionary<string, string>();
                 values.Add("apikey", Api.ApiKey);
-                values.Add("url", url);
-                if (notifyOncePerEmail != false) values.Add("notifyOncePerEmail", notifyOncePerEmail.ToString());
-                if (settings != null) values.Add("settings", settings);
-                ApiResponse<VoidApiResponse> apiResponse = await ApiUtilities.PostAsync<VoidApiResponse>("/account/updatehttpnotification", values);
+                if (inboundContactsOnly != null) values.Add("inboundContactsOnly", inboundContactsOnly.ToString());
+                if (hubCallBackUrl != "") values.Add("hubCallBackUrl", hubCallBackUrl);
+                if (inboundDomain != null) values.Add("inboundDomain", inboundDomain);
+                ApiResponse<ApiTypes.InboundOptions> apiResponse = await ApiUtilities.PostAsync<ApiTypes.InboundOptions>("/account/updateinboundnotifications", values);
+                return apiResponse.Data;
             }
 
             /// <summary>
@@ -1439,9 +1457,8 @@ namespace ElasticEmailClient
             /// </summary>
             /// <param name="apikey">ApiKey that gives you access to our SMTP and HTTP API's.</param>
             /// <param name="requiresEmailCredits">True, if account needs credits to send emails. Otherwise, false</param>
+            /// <param name="allow2fa"></param>
             /// <param name="monthlyRefillCredits">Amount of credits added to account automatically</param>
-            /// <param name="requiresLitmusCredits">True, if account needs credits to send emails. Otherwise, false</param>
-            /// <param name="enableLitmusTest">True, if account is able to send template tests to Litmus. Otherwise, false</param>
             /// <param name="dailySendLimit">Amount of emails account can send daily</param>
             /// <param name="emailSizeLimit">Maximum size of email including attachments in MB's</param>
             /// <param name="enablePrivateIPRequest">True, if account can request for private IP on its own. Otherwise, false</param>
@@ -1451,24 +1468,54 @@ namespace ElasticEmailClient
             /// <param name="sendingPermission">Sending permission setting for account</param>
             /// <param name="enableContactFeatures">True, if you want to use Contact Delivery Tools.  Otherwise, false</param>
             /// <param name="poolName">Name of your custom IP Pool to be used in the sending process</param>
-            public static async Task UpdateSubAccountSettingsAsync(bool requiresEmailCredits = false, int monthlyRefillCredits = 0, bool requiresLitmusCredits = false, bool enableLitmusTest = false, int? dailySendLimit = null, int emailSizeLimit = 10, bool enablePrivateIPRequest = false, int maxContacts = 0, string subAccountEmail = null, string publicAccountID = null, ApiTypes.SendingPermission? sendingPermission = null, bool? enableContactFeatures = null, string poolName = null)
+            public static async Task UpdateSubAccountSettingsAsync(bool requiresEmailCredits = false, bool? allow2fa = null, int monthlyRefillCredits = 0, int? dailySendLimit = null, int emailSizeLimit = 10, bool enablePrivateIPRequest = false, int maxContacts = 0, string subAccountEmail = null, string publicAccountID = null, ApiTypes.SendingPermission? sendingPermission = null, bool? enableContactFeatures = null, string poolName = null)
             {
                 Dictionary<string, string> values = new Dictionary<string, string>();
                 values.Add("apikey", Api.ApiKey);
                 if (requiresEmailCredits != false) values.Add("requiresEmailCredits", requiresEmailCredits.ToString());
+                if (allow2fa != null) values.Add("allow2fa", allow2fa.ToString());
                 if (monthlyRefillCredits != 0) values.Add("monthlyRefillCredits", monthlyRefillCredits.ToString());
-                if (requiresLitmusCredits != false) values.Add("requiresLitmusCredits", requiresLitmusCredits.ToString());
-                if (enableLitmusTest != false) values.Add("enableLitmusTest", enableLitmusTest.ToString());
                 if (dailySendLimit != null) values.Add("dailySendLimit", dailySendLimit.ToString());
                 if (emailSizeLimit != 10) values.Add("emailSizeLimit", emailSizeLimit.ToString());
                 if (enablePrivateIPRequest != false) values.Add("enablePrivateIPRequest", enablePrivateIPRequest.ToString());
                 if (maxContacts != 0) values.Add("maxContacts", maxContacts.ToString());
                 if (subAccountEmail != null) values.Add("subAccountEmail", subAccountEmail);
                 if (publicAccountID != null) values.Add("publicAccountID", publicAccountID);
-                if (sendingPermission != null) values.Add("sendingPermission", Newtonsoft.Json.JsonConvert.SerializeObject(sendingPermission));
+                if (sendingPermission != null) values.Add("sendingPermission", sendingPermission.ToString());
                 if (enableContactFeatures != null) values.Add("enableContactFeatures", enableContactFeatures.ToString());
                 if (poolName != null) values.Add("poolName", poolName);
                 ApiResponse<VoidApiResponse> apiResponse = await ApiUtilities.PostAsync<VoidApiResponse>("/account/updatesubaccountsettings", values);
+            }
+
+            /// <summary>
+            /// Update notification webhook
+            /// </summary>
+            /// <param name="apikey">ApiKey that gives you access to our SMTP and HTTP API's.</param>
+            /// <param name="webhookID"></param>
+            /// <param name="name">Filename</param>
+            /// <param name="webNotificationUrl">URL address to receive web notifications to parse and process.</param>
+            /// <param name="notifyOncePerEmail"></param>
+            /// <param name="notificationForSent"></param>
+            /// <param name="notificationForOpened"></param>
+            /// <param name="notificationForClicked"></param>
+            /// <param name="notificationForUnsubscribed"></param>
+            /// <param name="notificationForAbuseReport"></param>
+            /// <param name="notificationForError"></param>
+            public static async Task UpdateWebhookAsync(string webhookID, string name = null, string webNotificationUrl = null, bool? notifyOncePerEmail = null, bool? notificationForSent = null, bool? notificationForOpened = null, bool? notificationForClicked = null, bool? notificationForUnsubscribed = null, bool? notificationForAbuseReport = null, bool? notificationForError = null)
+            {
+                Dictionary<string, string> values = new Dictionary<string, string>();
+                values.Add("apikey", Api.ApiKey);
+                values.Add("webhookID", webhookID);
+                if (name != null) values.Add("name", name);
+                if (webNotificationUrl != null) values.Add("webNotificationUrl", webNotificationUrl);
+                if (notifyOncePerEmail != null) values.Add("notifyOncePerEmail", notifyOncePerEmail.ToString());
+                if (notificationForSent != null) values.Add("notificationForSent", notificationForSent.ToString());
+                if (notificationForOpened != null) values.Add("notificationForOpened", notificationForOpened.ToString());
+                if (notificationForClicked != null) values.Add("notificationForClicked", notificationForClicked.ToString());
+                if (notificationForUnsubscribed != null) values.Add("notificationForUnsubscribed", notificationForUnsubscribed.ToString());
+                if (notificationForAbuseReport != null) values.Add("notificationForAbuseReport", notificationForAbuseReport.ToString());
+                if (notificationForError != null) values.Add("notificationForError", notificationForError.ToString());
+                ApiResponse<VoidApiResponse> apiResponse = await ApiUtilities.PostAsync<VoidApiResponse>("/account/updatewebhook", values);
             }
 
         }
@@ -1503,12 +1550,14 @@ namespace ElasticEmailClient
             /// </summary>
             /// <param name="apikey">ApiKey that gives you access to our SMTP and HTTP API's.</param>
             /// <param name="channelID">ID number of selected Channel.</param>
+            /// <param name="newCampaignName"></param>
             /// <returns>int</returns>
-            public static async Task<int> CopyAsync(int channelID)
+            public static async Task<int> CopyAsync(int channelID, string newCampaignName = null)
             {
                 Dictionary<string, string> values = new Dictionary<string, string>();
                 values.Add("apikey", Api.ApiKey);
                 values.Add("channelID", channelID.ToString());
+                if (newCampaignName != null) values.Add("newCampaignName", newCampaignName);
                 ApiResponse<int> apiResponse = await ApiUtilities.PostAsync<int>("/campaign/copy", values);
                 return apiResponse.Data;
             }
@@ -1640,6 +1689,26 @@ namespace ElasticEmailClient
             }
 
             /// <summary>
+            /// Export channels in CSV file format limiting the exported data
+            /// </summary>
+            /// <param name="apikey">ApiKey that gives you access to our SMTP and HTTP API's.</param>
+            /// <param name="compressionFormat">FileResponse compression format. None or Zip.</param>
+            /// <param name="filename">Name of your file.</param>
+            /// <param name="limit">Maximum of loaded items.</param>
+            /// <param name="offset">How many items should be loaded ahead.</param>
+            /// <returns>ApiTypes.FileData</returns>
+            public static async Task<ApiTypes.FileData> ExportCsvLimitedAsync(ApiTypes.CompressionFormat compressionFormat = ApiTypes.CompressionFormat.None, string filename = null, int limit = 0, int offset = 0)
+            {
+                Dictionary<string, string> values = new Dictionary<string, string>();
+                values.Add("apikey", Api.ApiKey);
+                if (compressionFormat != ApiTypes.CompressionFormat.None) values.Add("compressionFormat", compressionFormat.ToString());
+                if (filename != null) values.Add("filename", filename);
+                if (limit != 0) values.Add("limit", limit.ToString());
+                if (offset != 0) values.Add("offset", offset.ToString());
+                return await ApiUtilities.HttpGetFileAsync("/channel/exportcsvlimited", values);
+            }
+
+            /// <summary>
             /// Export channels in JSON file format.
             /// </summary>
             /// <param name="apikey">ApiKey that gives you access to our SMTP and HTTP API's.</param>
@@ -1676,14 +1745,18 @@ namespace ElasticEmailClient
             }
 
             /// <summary>
-            /// List all of your channels
+            /// Lists your channels
             /// </summary>
             /// <param name="apikey">ApiKey that gives you access to our SMTP and HTTP API's.</param>
+            /// <param name="limit">Maximum of loaded items.</param>
+            /// <param name="offset">How many items should be loaded ahead.</param>
             /// <returns>List(ApiTypes.Channel)</returns>
-            public static async Task<List<ApiTypes.Channel>> ListAsync()
+            public static async Task<List<ApiTypes.Channel>> ListAsync(int limit = 0, int offset = 0)
             {
                 Dictionary<string, string> values = new Dictionary<string, string>();
                 values.Add("apikey", Api.ApiKey);
+                if (limit != 0) values.Add("limit", limit.ToString());
+                if (offset != 0) values.Add("offset", offset.ToString());
                 ApiResponse<List<ApiTypes.Channel>> apiResponse = await ApiUtilities.PostAsync<List<ApiTypes.Channel>>("/channel/list", values);
                 return apiResponse.Data;
             }
@@ -1737,20 +1810,14 @@ namespace ElasticEmailClient
             /// <param name="alreadyActiveUrl"></param>
             /// <param name="consentTracking"></param>
             /// <returns>string</returns>
-            public static async Task<string> AddAsync(string publicAccountID, string email, IEnumerable<string> publicListID = null, string[] listName = null, string firstName = null, string lastName = null, ApiTypes.ContactSource source = ApiTypes.ContactSource.ContactApi, string returnUrl = null, string sourceUrl = null, string activationReturnUrl = null, string activationTemplate = null, bool sendActivation = true, DateTime? consentDate = null, string consentIP = null, Dictionary<string, string> field = null, string notifyEmail = null, string alreadyActiveUrl = null, ApiTypes.ConsentTracking consentTracking = ApiTypes.ConsentTracking.Unknown)
+            public static async Task<string> AddAsync(string publicAccountID, string email, IEnumerable<string> publicListID = null, IEnumerable<string> listName = null, string firstName = null, string lastName = null, ApiTypes.ContactSource source = ApiTypes.ContactSource.ContactApi, string returnUrl = null, string sourceUrl = null, string activationReturnUrl = null, string activationTemplate = null, bool sendActivation = true, DateTime? consentDate = null, string consentIP = null, Dictionary<string, string> field = null, string notifyEmail = null, string alreadyActiveUrl = null, ApiTypes.ConsentTracking consentTracking = ApiTypes.ConsentTracking.Unknown)
             {
                 Dictionary<string, string> values = new Dictionary<string, string>();
                 values.Add("apikey", Api.ApiKey);
                 values.Add("publicAccountID", publicAccountID);
                 values.Add("email", email);
                 if (publicListID != null) values.Add("publicListID", string.Join(",", publicListID));
-                if (listName != null)
-                {
-                    foreach (string _item in listName)
-                    {
-                        values.Add("listName", _item);
-                    }
-                }
+                if (listName != null) values.Add("listName", string.Join(",", listName));
                 if (firstName != null) values.Add("firstName", firstName);
                 if (lastName != null) values.Add("lastName", lastName);
                 if (source != ApiTypes.ContactSource.ContactApi) values.Add("source", source.ToString());
@@ -1829,14 +1896,12 @@ namespace ElasticEmailClient
             /// </summary>
             /// <param name="apikey">ApiKey that gives you access to our SMTP and HTTP API's.</param>
             /// <param name="rule">Query used for filtering.</param>
-            /// <param name="allContacts">True: Include every Contact in your Account. Otherwise, false</param>
             /// <returns>ApiTypes.ContactStatusCounts</returns>
-            public static async Task<ApiTypes.ContactStatusCounts> CountByStatusAsync(string rule = null, bool allContacts = false)
+            public static async Task<ApiTypes.ContactStatusCounts> CountByStatusAsync(string rule = null)
             {
                 Dictionary<string, string> values = new Dictionary<string, string>();
                 values.Add("apikey", Api.ApiKey);
                 if (rule != null) values.Add("rule", rule);
-                if (allContacts != false) values.Add("allContacts", allContacts.ToString());
                 ApiResponse<ApiTypes.ContactStatusCounts> apiResponse = await ApiUtilities.PostAsync<ApiTypes.ContactStatusCounts>("/contact/countbystatus", values);
                 return apiResponse.Data;
             }
@@ -1979,14 +2044,16 @@ namespace ElasticEmailClient
             /// <param name="rule">Query used for filtering.</param>
             /// <param name="limit">Maximum of loaded items.</param>
             /// <param name="offset">How many items should be loaded ahead.</param>
+            /// <param name="sort"></param>
             /// <returns>List(ApiTypes.Contact)</returns>
-            public static async Task<List<ApiTypes.Contact>> ListAsync(string rule = null, int limit = 20, int offset = 0)
+            public static async Task<List<ApiTypes.Contact>> ListAsync(string rule = null, int limit = 20, int offset = 0, ApiTypes.ContactSort? sort = null)
             {
                 Dictionary<string, string> values = new Dictionary<string, string>();
                 values.Add("apikey", Api.ApiKey);
                 if (rule != null) values.Add("rule", rule);
                 if (limit != 20) values.Add("limit", limit.ToString());
                 if (offset != 0) values.Add("offset", offset.ToString());
+                if (sort != null) values.Add("sort", sort.ToString());
                 ApiResponse<List<ApiTypes.Contact>> apiResponse = await ApiUtilities.PostAsync<List<ApiTypes.Contact>>("/contact/list", values);
                 return apiResponse.Data;
             }
@@ -2108,18 +2175,16 @@ namespace ElasticEmailClient
             /// <param name="email">Proper email address.</param>
             /// <param name="firstName">First name.</param>
             /// <param name="lastName">Last name.</param>
-            /// <param name="clearRestOfFields">States if the fields that were omitted in this request are to be reset or should they be left with their current value</param>
             /// <param name="field">Custom contact field like firstname, lastname, city etc. Request parameters prefixed by field_ like field_firstname, field_lastname </param>
             /// <param name="customFields">Custom contact field like firstname, lastname, city etc. JSON serialized text like { "city":"london" } </param>
             /// <returns>ApiTypes.Contact</returns>
-            public static async Task<ApiTypes.Contact> UpdateAsync(string email, string firstName = null, string lastName = null, bool clearRestOfFields = true, Dictionary<string, string> field = null, string customFields = null)
+            public static async Task<ApiTypes.Contact> UpdateAsync(string email, string firstName = null, string lastName = null, Dictionary<string, string> field = null, string customFields = null)
             {
                 Dictionary<string, string> values = new Dictionary<string, string>();
                 values.Add("apikey", Api.ApiKey);
                 values.Add("email", email);
                 if (firstName != null) values.Add("firstName", firstName);
                 if (lastName != null) values.Add("lastName", lastName);
-                if (clearRestOfFields != true) values.Add("clearRestOfFields", clearRestOfFields.ToString());
                 if (field != null)
                 {
                     foreach (KeyValuePair<string, string> _item in field)
@@ -2178,12 +2243,14 @@ namespace ElasticEmailClient
             /// <param name="apikey">ApiKey that gives you access to our SMTP and HTTP API's.</param>
             /// <param name="domain">Name of selected domain.</param>
             /// <param name="trackingType"></param>
-            public static async Task AddAsync(string domain, ApiTypes.TrackingType trackingType = ApiTypes.TrackingType.Http)
+            /// <param name="setAsDefault"></param>
+            public static async Task AddAsync(string domain, ApiTypes.TrackingType trackingType = ApiTypes.TrackingType.Http, bool setAsDefault = false)
             {
                 Dictionary<string, string> values = new Dictionary<string, string>();
                 values.Add("apikey", Api.ApiKey);
                 values.Add("domain", domain);
                 if (trackingType != ApiTypes.TrackingType.Http) values.Add("trackingType", trackingType.ToString());
+                if (setAsDefault != false) values.Add("setAsDefault", setAsDefault.ToString());
                 ApiResponse<VoidApiResponse> apiResponse = await ApiUtilities.PostAsync<VoidApiResponse>("/domain/add", values);
             }
 
@@ -2261,13 +2328,13 @@ namespace ElasticEmailClient
             /// </summary>
             /// <param name="apikey">ApiKey that gives you access to our SMTP and HTTP API's.</param>
             /// <param name="domain">Name of selected domain.</param>
-            /// <returns>string</returns>
-            public static async Task<string> VerifySpfAsync(string domain)
+            /// <returns>ApiTypes.ValidationStatus</returns>
+            public static async Task<ApiTypes.ValidationStatus> VerifySpfAsync(string domain)
             {
                 Dictionary<string, string> values = new Dictionary<string, string>();
                 values.Add("apikey", Api.ApiKey);
                 values.Add("domain", domain);
-                ApiResponse<string> apiResponse = await ApiUtilities.PostAsync<string>("/domain/verifyspf", values);
+                ApiResponse<ApiTypes.ValidationStatus> apiResponse = await ApiUtilities.PostAsync<ApiTypes.ValidationStatus>("/domain/verifyspf", values);
                 return apiResponse.Data;
             }
 
@@ -2294,7 +2361,7 @@ namespace ElasticEmailClient
 
         #region Email functions
         /// <summary>
-        /// 
+        /// Send your emails and see their statuses
         /// </summary>
         public static class Email
         {
@@ -2353,7 +2420,7 @@ namespace ElasticEmailClient
             /// <param name="lists">The name of a contact list you would like to send to. Separate multiple contact lists by commas or semicolons.</param>
             /// <param name="segments">The name of a segment you would like to send to. Separate multiple segments by comma or semicolon. Insert "0" for all Active contacts.</param>
             /// <param name="mergeSourceFilename">File name one of attachments which is a CSV list of Recipients.</param>
-            /// <param name="dataSource">Name or ID of the previously uploaded file which should be a CSV list of Recipients.</param>
+            /// <param name="dataSource">Name or ID of the previously uploaded file (via the File/Upload request) which should be a CSV list of Recipients.</param>
             /// <param name="channel">An ID field (max 191 chars) that can be used for reporting [will default to HTTP API or SMTP API]</param>
             /// <param name="bodyHtml">Html email body</param>
             /// <param name="bodyText">Text email body</param>
@@ -2362,18 +2429,22 @@ namespace ElasticEmailClient
             /// <param name="charsetBodyText">Sets charset for body text MIME part (overrides default value from charset parameter)</param>
             /// <param name="encodingType">0 for None, 1 for Raw7Bit, 2 for Raw8Bit, 3 for QuotedPrintable, 4 for Base64 (Default), 5 for Uue  note that you can also provide the text version such as "Raw7Bit" for value 1.  NOTE: Base64 or QuotedPrintable is recommended if you are validating your domain(s) with DKIM.</param>
             /// <param name="template">The ID of an email template you have created in your account.</param>
-            /// <param name="attachmentFiles">Attachment files. These files should be provided with the POST multipart file upload, not directly in the request's URL. Can also include merge CSV file</param>
+            /// <param name="attachmentFiles">Attachment files. These files should be provided with the POST multipart file upload and not directly in the request's URL. Can also include merge CSV file</param>
             /// <param name="headers">Optional Custom Headers. Request parameters prefixed by headers_ like headers_customheader1, headers_customheader2. Note: a space is required after the colon before the custom header value. headers_xmailer=xmailer: header-value1</param>
             /// <param name="postBack">Optional header returned in notifications.</param>
             /// <param name="merge">Request parameters prefixed by merge_ like merge_firstname, merge_lastname. If sending to a template you can send merge_ fields to merge data with the template. Template fields are entered with {firstname}, {lastname} etc.</param>
             /// <param name="timeOffSetMinutes">Number of minutes in the future this email should be sent up to a maximum of 1 year (524160 minutes)</param>
             /// <param name="poolName">Name of your custom IP Pool to be used in the sending process</param>
             /// <param name="isTransactional">True, if email is transactional (non-bulk, non-marketing, non-commercial). Otherwise, false</param>
-            /// <param name="attachments">Names or IDs of attachments previously uploaded to your account that should be sent with this e-mail.</param>
+            /// <param name="attachments">Names or IDs of attachments previously uploaded to your account (via the File/Upload request) that should be sent with this e-mail.</param>
             /// <param name="trackOpens">Should the opens be tracked? If no value has been provided, account's default setting will be used.</param>
             /// <param name="trackClicks">Should the clicks be tracked? If no value has been provided, account's default setting will be used.</param>
+            /// <param name="utmSource">The utm_source marketing parameter appended to each link in the campaign.</param>
+            /// <param name="utmMedium">The utm_medium marketing parameter appended to each link in the campaign.</param>
+            /// <param name="utmCampaign">The utm_campaign marketing parameter appended to each link in the campaign.</param>
+            /// <param name="utmContent">The utm_content marketing parameter appended to each link in the campaign.</param>
             /// <returns>ApiTypes.EmailSend</returns>
-            public static async Task<ApiTypes.EmailSend> SendAsync(string subject = null, string from = null, string fromName = null, string sender = null, string senderName = null, string msgFrom = null, string msgFromName = null, string replyTo = null, string replyToName = null, IEnumerable<string> to = null, IEnumerable<string> msgTo = null, IEnumerable<string> msgCC = null, IEnumerable<string> msgBcc = null, IEnumerable<string> lists = null, IEnumerable<string> segments = null, string mergeSourceFilename = null, string dataSource = null, string channel = null, string bodyHtml = null, string bodyText = null, string charset = null, string charsetBodyHtml = null, string charsetBodyText = null, ApiTypes.EncodingType encodingType = ApiTypes.EncodingType.None, string template = null, IEnumerable<ApiTypes.FileData> attachmentFiles = null, Dictionary<string, string> headers = null, string postBack = null, Dictionary<string, string> merge = null, string timeOffSetMinutes = null, string poolName = null, bool isTransactional = false, IEnumerable<string> attachments = null, bool? trackOpens = null, bool? trackClicks = null)
+            public static async Task<ApiTypes.EmailSend> SendAsync(string subject = null, string from = null, string fromName = null, string sender = null, string senderName = null, string msgFrom = null, string msgFromName = null, string replyTo = null, string replyToName = null, IEnumerable<string> to = null, IEnumerable<string> msgTo = null, IEnumerable<string> msgCC = null, IEnumerable<string> msgBcc = null, IEnumerable<string> lists = null, IEnumerable<string> segments = null, string mergeSourceFilename = null, string dataSource = null, string channel = null, string bodyHtml = null, string bodyText = null, string charset = null, string charsetBodyHtml = null, string charsetBodyText = null, ApiTypes.EncodingType encodingType = ApiTypes.EncodingType.None, string template = null, IEnumerable<ApiTypes.FileData> attachmentFiles = null, Dictionary<string, string> headers = null, string postBack = null, Dictionary<string, string> merge = null, string timeOffSetMinutes = null, string poolName = null, bool isTransactional = false, IEnumerable<string> attachments = null, bool? trackOpens = null, bool? trackClicks = null, string utmSource = null, string utmMedium = null, string utmCampaign = null, string utmContent = null)
             {
                 Dictionary<string, string> values = new Dictionary<string, string>();
                 values.Add("apikey", Api.ApiKey);
@@ -2423,6 +2494,10 @@ namespace ElasticEmailClient
                 if (attachments != null) values.Add("attachments", string.Join(",", attachments));
                 if (trackOpens != null) values.Add("trackOpens", trackOpens.ToString());
                 if (trackClicks != null) values.Add("trackClicks", trackClicks.ToString());
+                if (utmSource != null) values.Add("utmSource", utmSource);
+                if (utmMedium != null) values.Add("utmMedium", utmMedium);
+                if (utmCampaign != null) values.Add("utmCampaign", utmCampaign);
+                if (utmContent != null) values.Add("utmContent", utmContent);
                 byte[] apiResponse = await ApiUtilities.HttpPostFileAsync("/email/send", attachmentFiles == null ? null : attachmentFiles.ToList(), values);
                 ApiResponse<ApiTypes.EmailSend> apiRet = Newtonsoft.Json.JsonConvert.DeserializeObject<ApiResponse<ApiTypes.EmailSend>>(Encoding.UTF8.GetString(apiResponse));
                 if (!apiRet.success) throw new Exception(apiRet.error);
@@ -2448,12 +2523,14 @@ namespace ElasticEmailClient
             /// View email
             /// </summary>
             /// <param name="messageID">Message identifier</param>
+            /// <param name="enableTracking"></param>
             /// <returns>ApiTypes.EmailView</returns>
-            public static async Task<ApiTypes.EmailView> ViewAsync(string messageID)
+            public static async Task<ApiTypes.EmailView> ViewAsync(string messageID, bool enableTracking = false)
             {
                 Dictionary<string, string> values = new Dictionary<string, string>();
                 values.Add("apikey", Api.ApiKey);
                 values.Add("messageID", messageID);
+                if (enableTracking != false) values.Add("enableTracking", enableTracking.ToString());
                 ApiResponse<ApiTypes.EmailView> apiResponse = await ApiUtilities.PostAsync<ApiTypes.EmailView>("/email/view", values);
                 return apiResponse.Data;
             }
@@ -2464,7 +2541,7 @@ namespace ElasticEmailClient
 
         #region Export functions
         /// <summary>
-        /// 
+        /// Manage your exports
         /// </summary>
         public static class Export
         {
@@ -2472,7 +2549,7 @@ namespace ElasticEmailClient
             /// Check the current status of the export.
             /// </summary>
             /// <param name="apikey">ApiKey that gives you access to our SMTP and HTTP API's.</param>
-            /// <param name="publicExportID"></param>
+            /// <param name="publicExportID">ID of the exported file</param>
             /// <returns>ApiTypes.ExportStatus</returns>
             public static async Task<ApiTypes.ExportStatus> CheckStatusAsync(Guid publicExportID)
             {
@@ -2500,7 +2577,7 @@ namespace ElasticEmailClient
             /// Delete the specified export.
             /// </summary>
             /// <param name="apikey">ApiKey that gives you access to our SMTP and HTTP API's.</param>
-            /// <param name="publicExportID"></param>
+            /// <param name="publicExportID">ID of the exported file</param>
             public static async Task DeleteAsync(Guid publicExportID)
             {
                 Dictionary<string, string> values = new Dictionary<string, string>();
@@ -2617,13 +2694,15 @@ namespace ElasticEmailClient
             /// <param name="file"></param>
             /// <param name="name">Filename</param>
             /// <param name="expiresAfterDays">After how many days should the file be deleted.</param>
+            /// <param name="throwIfExists"></param>
             /// <returns>ApiTypes.File</returns>
-            public static async Task<ApiTypes.File> UploadAsync(ApiTypes.FileData file, string name = null, int? expiresAfterDays = 35)
+            public static async Task<ApiTypes.File> UploadAsync(ApiTypes.FileData file, string name = null, int? expiresAfterDays = 35, bool throwIfExists = false)
             {
                 Dictionary<string, string> values = new Dictionary<string, string>();
                 values.Add("apikey", Api.ApiKey);
                 if (name != null) values.Add("name", name);
                 if (expiresAfterDays != 35) values.Add("expiresAfterDays", expiresAfterDays.ToString());
+                if (throwIfExists != false) values.Add("throwIfExists", throwIfExists.ToString());
                 byte[] apiResponse = await ApiUtilities.HttpPostFileAsync("/file/upload", new List<ApiTypes.FileData>() { file }, values);
                 ApiResponse<ApiTypes.File> apiRet = Newtonsoft.Json.JsonConvert.DeserializeObject<ApiResponse<ApiTypes.File>>(Encoding.UTF8.GetString(apiResponse));
                 if (!apiRet.success) throw new Exception(apiRet.error);
@@ -2923,6 +3002,31 @@ namespace ElasticEmailClient
             }
 
             /// <summary>
+            /// Returns log of delivery events filtered by specified parameters.
+            /// </summary>
+            /// <param name="apikey">ApiKey that gives you access to our SMTP and HTTP API's.</param>
+            /// <param name="statuses">List of comma separated message statuses: 0 for all, 1 for ReadyToSend, 2 for InProgress, 4 for Bounced, 5 for Sent, 6 for Opened, 7 for Clicked, 8 for Unsubscribed, 9 for Abuse Report</param>
+            /// <param name="from">Starting date for search in YYYY-MM-DDThh:mm:ss format.</param>
+            /// <param name="to">Ending date for search in YYYY-MM-DDThh:mm:ss format.</param>
+            /// <param name="channelName">Name of selected channel.</param>
+            /// <param name="limit">Maximum of loaded items.</param>
+            /// <param name="offset">How many items should be loaded ahead.</param>
+            /// <returns>ApiTypes.EventLog</returns>
+            public static async Task<ApiTypes.EventLog> EventsAsync(IEnumerable<ApiTypes.LogEventStatus> statuses = null, DateTime? from = null, DateTime? to = null, string channelName = null, int limit = 0, int offset = 0)
+            {
+                Dictionary<string, string> values = new Dictionary<string, string>();
+                values.Add("apikey", Api.ApiKey);
+                if (statuses != null) values.Add("statuses", string.Join(",", statuses));
+                if (from != null) values.Add("from", from.Value.ToString("M/d/yyyy h:mm:ss tt"));
+                if (to != null) values.Add("to", to.Value.ToString("M/d/yyyy h:mm:ss tt"));
+                if (channelName != null) values.Add("channelName", channelName);
+                if (limit != 0) values.Add("limit", limit.ToString());
+                if (offset != 0) values.Add("offset", offset.ToString());
+                ApiResponse<ApiTypes.EventLog> apiResponse = await ApiUtilities.PostAsync<ApiTypes.EventLog>("/log/events", values);
+                return apiResponse.Data;
+            }
+
+            /// <summary>
             /// Export email log information to the specified file format.
             /// </summary>
             /// <param name="apikey">ApiKey that gives you access to our SMTP and HTTP API's.</param>
@@ -2954,6 +3058,33 @@ namespace ElasticEmailClient
                 if (fileName != null) values.Add("fileName", fileName);
                 if (email != null) values.Add("email", email);
                 ApiResponse<ApiTypes.ExportLink> apiResponse = await ApiUtilities.PostAsync<ApiTypes.ExportLink>("/log/export", values);
+                return apiResponse.Data;
+            }
+
+            /// <summary>
+            /// Export delivery events log information to the specified file format.
+            /// </summary>
+            /// <param name="apikey">ApiKey that gives you access to our SMTP and HTTP API's.</param>
+            /// <param name="statuses">List of comma separated message statuses: 0 for all, 1 for ReadyToSend, 2 for InProgress, 4 for Bounced, 5 for Sent, 6 for Opened, 7 for Clicked, 8 for Unsubscribed, 9 for Abuse Report</param>
+            /// <param name="from">Starting date for search in YYYY-MM-DDThh:mm:ss format.</param>
+            /// <param name="to">Ending date for search in YYYY-MM-DDThh:mm:ss format.</param>
+            /// <param name="channelName">Name of selected channel.</param>
+            /// <param name="fileFormat">Format of the exported file</param>
+            /// <param name="compressionFormat">FileResponse compression format. None or Zip.</param>
+            /// <param name="fileName">Name of your file.</param>
+            /// <returns>ApiTypes.ExportLink</returns>
+            public static async Task<ApiTypes.ExportLink> ExportEventsAsync(IEnumerable<ApiTypes.LogEventStatus> statuses = null, DateTime? from = null, DateTime? to = null, string channelName = null, ApiTypes.ExportFileFormats fileFormat = ApiTypes.ExportFileFormats.Csv, ApiTypes.CompressionFormat compressionFormat = ApiTypes.CompressionFormat.None, string fileName = null)
+            {
+                Dictionary<string, string> values = new Dictionary<string, string>();
+                values.Add("apikey", Api.ApiKey);
+                if (statuses != null) values.Add("statuses", string.Join(",", statuses));
+                if (from != null) values.Add("from", from.Value.ToString("M/d/yyyy h:mm:ss tt"));
+                if (to != null) values.Add("to", to.Value.ToString("M/d/yyyy h:mm:ss tt"));
+                if (channelName != null) values.Add("channelName", channelName);
+                if (fileFormat != ApiTypes.ExportFileFormats.Csv) values.Add("fileFormat", fileFormat.ToString());
+                if (compressionFormat != ApiTypes.CompressionFormat.None) values.Add("compressionFormat", compressionFormat.ToString());
+                if (fileName != null) values.Add("fileName", fileName);
+                ApiResponse<ApiTypes.ExportLink> apiResponse = await ApiUtilities.PostAsync<ApiTypes.ExportLink>("/log/exportevents", values);
                 return apiResponse.Data;
             }
 
@@ -3023,9 +3154,9 @@ namespace ElasticEmailClient
             /// <param name="includeSms">True: Search includes SMS. Otherwise, false.</param>
             /// <param name="messageCategory">ID of message category</param>
             /// <param name="email">Proper email address.</param>
-            /// <param name="useStatusChangeDate">True, if 'from' and 'to' parameters should resolve to the Status Change date. To resolve to the creation date - false</param>
+            /// <param name="ipaddress">Search for recipients that we sent through this IP address</param>
             /// <returns>ApiTypes.Log</returns>
-            public static async Task<ApiTypes.Log> LoadAsync(IEnumerable<ApiTypes.LogJobStatus> statuses, DateTime? from = null, DateTime? to = null, string channelName = null, int limit = 0, int offset = 0, bool includeEmail = true, bool includeSms = true, IEnumerable<ApiTypes.MessageCategory> messageCategory = null, string email = null, bool useStatusChangeDate = false)
+            public static async Task<ApiTypes.Log> LoadAsync(IEnumerable<ApiTypes.LogJobStatus> statuses, DateTime? from = null, DateTime? to = null, string channelName = null, int limit = 0, int offset = 0, bool includeEmail = true, bool includeSms = true, IEnumerable<ApiTypes.MessageCategory> messageCategory = null, string email = null, string ipaddress = null)
             {
                 Dictionary<string, string> values = new Dictionary<string, string>();
                 values.Add("apikey", Api.ApiKey);
@@ -3039,7 +3170,7 @@ namespace ElasticEmailClient
                 if (includeSms != true) values.Add("includeSms", includeSms.ToString());
                 if (messageCategory != null) values.Add("messageCategory", string.Join(",", messageCategory));
                 if (email != null) values.Add("email", email);
-                if (useStatusChangeDate != false) values.Add("useStatusChangeDate", useStatusChangeDate.ToString());
+                if (ipaddress != null) values.Add("ipaddress", ipaddress);
                 ApiResponse<ApiTypes.Log> apiResponse = await ApiUtilities.PostAsync<ApiTypes.Log>("/log/load", values);
                 return apiResponse.Data;
             }
@@ -3071,19 +3202,6 @@ namespace ElasticEmailClient
                 if (notificationType != ApiTypes.NotificationType.All) values.Add("notificationType", notificationType.ToString());
                 ApiResponse<ApiTypes.Log> apiResponse = await ApiUtilities.PostAsync<ApiTypes.Log>("/log/loadnotifications", values);
                 return apiResponse.Data;
-            }
-
-            /// <summary>
-            /// Retry sending of temporarily not delivered message.
-            /// </summary>
-            /// <param name="apikey">ApiKey that gives you access to our SMTP and HTTP API's.</param>
-            /// <param name="msgID">ID number of selected message.</param>
-            public static async Task RetryNowAsync(string msgID)
-            {
-                Dictionary<string, string> values = new Dictionary<string, string>();
-                values.Add("apikey", Api.ApiKey);
-                values.Add("msgID", msgID);
-                ApiResponse<VoidApiResponse> apiResponse = await ApiUtilities.PostAsync<VoidApiResponse>("/log/retrynow", values);
             }
 
             /// <summary>
@@ -3336,11 +3454,13 @@ namespace ElasticEmailClient
             /// Shows all your existing surveys
             /// </summary>
             /// <param name="apikey">ApiKey that gives you access to our SMTP and HTTP API's.</param>
+            /// <param name="loadSteps"></param>
             /// <returns>List(ApiTypes.Survey)</returns>
-            public static async Task<List<ApiTypes.Survey>> ListAsync()
+            public static async Task<List<ApiTypes.Survey>> ListAsync(bool loadSteps = false)
             {
                 Dictionary<string, string> values = new Dictionary<string, string>();
                 values.Add("apikey", Api.ApiKey);
+                if (loadSteps != false) values.Add("loadSteps", loadSteps.ToString());
                 ApiResponse<List<ApiTypes.Survey>> apiResponse = await ApiUtilities.PostAsync<List<ApiTypes.Survey>>("/survey/list", values);
                 return apiResponse.Data;
             }
@@ -3487,18 +3607,16 @@ namespace ElasticEmailClient
             }
 
             /// <summary>
-            /// Search for references to images and replaces them with base64 code.
+            /// Delete templates with the specified ID
             /// </summary>
             /// <param name="apikey">ApiKey that gives you access to our SMTP and HTTP API's.</param>
-            /// <param name="templateID">ID number of template.</param>
-            /// <returns>string</returns>
-            public static async Task<string> GetEmbeddedHtmlAsync(int templateID)
+            /// <param name="templateIDs"></param>
+            public static async Task DeleteBulkAsync(IEnumerable<int> templateIDs)
             {
                 Dictionary<string, string> values = new Dictionary<string, string>();
                 values.Add("apikey", Api.ApiKey);
-                values.Add("templateID", templateID.ToString());
-                ApiResponse<string> apiResponse = await ApiUtilities.PostAsync<string>("/template/getembeddedhtml", values);
-                return apiResponse.Data;
+                values.Add("templateIDs", string.Join(",", templateIDs));
+                ApiResponse<VoidApiResponse> apiResponse = await ApiUtilities.PostAsync<VoidApiResponse>("/template/deletebulk", values);
             }
 
             /// <summary>
@@ -3523,45 +3641,13 @@ namespace ElasticEmailClient
             /// </summary>
             /// <param name="apikey">ApiKey that gives you access to our SMTP and HTTP API's.</param>
             /// <param name="templateID">ID number of template.</param>
-            /// <param name="ispublic"></param>
             /// <returns>ApiTypes.Template</returns>
-            public static async Task<ApiTypes.Template> LoadTemplateAsync(int templateID, bool ispublic = false)
+            public static async Task<ApiTypes.Template> LoadTemplateAsync(int templateID)
             {
                 Dictionary<string, string> values = new Dictionary<string, string>();
                 values.Add("apikey", Api.ApiKey);
                 values.Add("templateID", templateID.ToString());
-                if (ispublic != false) values.Add("ispublic", ispublic.ToString());
                 ApiResponse<ApiTypes.Template> apiResponse = await ApiUtilities.PostAsync<ApiTypes.Template>("/template/loadtemplate", values);
-                return apiResponse.Data;
-            }
-
-            /// <summary>
-            /// Removes previously generated screenshot of template
-            /// </summary>
-            /// <param name="apikey">ApiKey that gives you access to our SMTP and HTTP API's.</param>
-            /// <param name="templateID">ID number of template.</param>
-            public static async Task RemoveScreenshotAsync(int templateID)
-            {
-                Dictionary<string, string> values = new Dictionary<string, string>();
-                values.Add("apikey", Api.ApiKey);
-                values.Add("templateID", templateID.ToString());
-                ApiResponse<VoidApiResponse> apiResponse = await ApiUtilities.PostAsync<VoidApiResponse>("/template/removescreenshot", values);
-            }
-
-            /// <summary>
-            /// Saves screenshot of chosen Template
-            /// </summary>
-            /// <param name="apikey">ApiKey that gives you access to our SMTP and HTTP API's.</param>
-            /// <param name="base64Image">Image, base64 coded.</param>
-            /// <param name="templateID">ID number of template.</param>
-            /// <returns>string</returns>
-            public static async Task<string> SaveScreenshotAsync(string base64Image, int templateID)
-            {
-                Dictionary<string, string> values = new Dictionary<string, string>();
-                values.Add("apikey", Api.ApiKey);
-                values.Add("base64Image", base64Image);
-                values.Add("templateID", templateID.ToString());
-                ApiResponse<string> apiResponse = await ApiUtilities.PostAsync<string>("/template/savescreenshot", values);
                 return apiResponse.Data;
             }
 
@@ -3596,6 +3682,27 @@ namespace ElasticEmailClient
                 byte[] apiResponse = await ApiUtilities.HttpPostFileAsync("/template/update", null, values);
                 ApiResponse<VoidApiResponse> apiRet = Newtonsoft.Json.JsonConvert.DeserializeObject<ApiResponse<VoidApiResponse>>(Encoding.UTF8.GetString(apiResponse));
                 if (!apiRet.success) throw new Exception(apiRet.error);
+            }
+
+            /// <summary>
+            /// Bulk change default options and the scope of your templates
+            /// </summary>
+            /// <param name="apikey">ApiKey that gives you access to our SMTP and HTTP API's.</param>
+            /// <param name="templateIDs"></param>
+            /// <param name="subject">Default subject of email.</param>
+            /// <param name="fromEmail">Default From: email address.</param>
+            /// <param name="fromName">Default From: name.</param>
+            /// <param name="templateScope">Enum: 0 - private, 1 - public, 2 - mockup</param>
+            public static async Task UpdateDefaultOptionsAsync(IEnumerable<int> templateIDs, string subject = null, string fromEmail = null, string fromName = null, ApiTypes.TemplateScope templateScope = ApiTypes.TemplateScope.Private)
+            {
+                Dictionary<string, string> values = new Dictionary<string, string>();
+                values.Add("apikey", Api.ApiKey);
+                values.Add("templateIDs", string.Join(",", templateIDs));
+                if (subject != null) values.Add("subject", subject);
+                if (fromEmail != null) values.Add("fromEmail", fromEmail);
+                if (fromName != null) values.Add("fromName", fromName);
+                if (templateScope != ApiTypes.TemplateScope.Private) values.Add("templateScope", templateScope.ToString());
+                ApiResponse<VoidApiResponse> apiResponse = await ApiUtilities.PostAsync<VoidApiResponse>("/template/updatedefaultoptions", values);
             }
 
         }
@@ -3672,7 +3779,7 @@ namespace ElasticEmailClient
 
         /// <summary>
         /// </summary>
-        public enum AccessLevel : Int64
+        public enum AccessLevel : long
         {
             /// <summary>
             /// </summary>
@@ -3812,15 +3919,35 @@ namespace ElasticEmailClient
 
             /// <summary>
             /// </summary>
-            ModifySupport = 8589934592,
-
-            /// <summary>
-            /// </summary>
             ViewSupport = 8589934592,
 
             /// <summary>
             /// </summary>
             SendHttp = 17179869184,
+
+            /// <summary>
+            /// </summary>
+            Modify2FA = 34359738368,
+
+            /// <summary>
+            /// </summary>
+            ModifySupport = 68719476736,
+
+            /// <summary>
+            /// </summary>
+            ViewCustomFields = 137438953472,
+
+            /// <summary>
+            /// </summary>
+            ModifyCustomFields = 274877906944,
+
+            /// <summary>
+            /// </summary>
+            ModifyWebNotifications = 549755813888,
+
+            /// <summary>
+            /// </summary>
+            ExtendedLogs = 1099511627776,
 
         }
 
@@ -3828,6 +3955,21 @@ namespace ElasticEmailClient
         /// </summary>
         public class AccessToken
         {
+            /// <summary>
+            /// Access which this Token grants
+            /// </summary>
+            public ApiTypes.AccessLevel AccessLevel { get; set; }
+
+            /// <summary>
+            /// Filename
+            /// </summary>
+            public string Name { get; set; }
+
+            /// <summary>
+            /// When was this AccessToken used last
+            /// </summary>
+            public DateTime? LastUse { get; set; }
+
         }
 
         /// <summary>
@@ -3851,14 +3993,14 @@ namespace ElasticEmailClient
             public string ApiKey { get; set; }
 
             /// <summary>
-            /// Second ApiKey that gives you access to our SMTP and HTTP API's.  Used mainly for changing ApiKeys without disrupting services.
-            /// </summary>
-            public string ApiKey2 { get; set; }
-
-            /// <summary>
             /// True, if account is a subaccount. Otherwise, false
             /// </summary>
             public bool IsSub { get; set; }
+
+            /// <summary>
+            /// 
+            /// </summary>
+            public bool IsUser { get; set; }
 
             /// <summary>
             /// The number of subaccounts this account has.
@@ -4051,11 +4193,6 @@ namespace ElasticEmailClient
             public string ContentTransferEncoding { get; set; }
 
             /// <summary>
-            /// Amount of Litmus credits
-            /// </summary>
-            public decimal LitmusCredits { get; set; }
-
-            /// <summary>
             /// Enable contact delivery and optimization tools on your Account.
             /// </summary>
             public bool EnableContactFeatures { get; set; }
@@ -4068,6 +4205,10 @@ namespace ElasticEmailClient
             /// <summary>
             /// </summary>
             public bool DisableGlobalContacts { get; set; }
+
+            /// <summary>
+            /// </summary>
+            public bool UntrustedDeviceAlertDisabled { get; set; }
 
         }
 
@@ -4134,33 +4275,6 @@ namespace ElasticEmailClient
         }
 
         /// <summary>
-        /// Account's ready to send e-mails Status
-        /// </summary>
-        public enum AccountSendStatus : Int32
-        {
-            /// <summary>
-            /// Account doesn't have enough credits
-            /// </summary>
-            NotEnoughCredits = 1,
-
-            /// <summary>
-            /// Account can send e-mails but only without the attachments
-            /// </summary>
-            CanSendEmailsNoAttachments = 2,
-
-            /// <summary>
-            /// Account has exceeded his daily send limit
-            /// </summary>
-            DailySendLimitExceeded = 3,
-
-            /// <summary>
-            /// Account is ready to send e-mails
-            /// </summary>
-            CanSendEmails = 4,
-
-        }
-
-        /// <summary>
         /// Lists advanced sending options of your account.
         /// </summary>
         public class AdvancedOptions
@@ -4191,49 +4305,9 @@ namespace ElasticEmailClient
             public bool EmailNotificationForError { get; set; }
 
             /// <summary>
-            /// True, if you want to send web notifications for sent email. Otherwise, false
-            /// </summary>
-            public bool WebNotificationForSent { get; set; }
-
-            /// <summary>
-            /// True, if you want to send web notifications for opened email. Otherwise, false
-            /// </summary>
-            public bool WebNotificationForOpened { get; set; }
-
-            /// <summary>
-            /// True, if you want to send web notifications for clicked email. Otherwise, false
-            /// </summary>
-            public bool WebNotificationForClicked { get; set; }
-
-            /// <summary>
-            /// True, if you want to send web notifications for unsubscribed email. Otherwise, false
-            /// </summary>
-            public bool WebnotificationForUnsubscribed { get; set; }
-
-            /// <summary>
-            /// True, if you want to send web notifications for complaint email. Otherwise, false
-            /// </summary>
-            public bool WebNotificationForAbuse { get; set; }
-
-            /// <summary>
-            /// True, if you want to send web notifications for bounced email. Otherwise, false
-            /// </summary>
-            public bool WebNotificationForError { get; set; }
-
-            /// <summary>
-            /// True, if you want to receive notifications for each type only once per email. Otherwise, false
-            /// </summary>
-            public bool WebNotificationNotifyOncePerEmail { get; set; }
-
-            /// <summary>
             /// True, if you want to receive low credit email notifications. Otherwise, false
             /// </summary>
             public bool LowCreditNotification { get; set; }
-
-            /// <summary>
-            /// True, if you want inbound email to only process contacts from your account. Otherwise, false
-            /// </summary>
-            public bool InboundContactsOnly { get; set; }
 
             /// <summary>
             /// True, if this account is a sub-account. Otherwise, false
@@ -4306,21 +4380,6 @@ namespace ElasticEmailClient
             public string UnsubscribeNotificationEmails { get; set; }
 
             /// <summary>
-            /// URL address to receive web notifications to parse and process.
-            /// </summary>
-            public string WebNotificationUrl { get; set; }
-
-            /// <summary>
-            /// URL used for tracking action of inbound emails
-            /// </summary>
-            public string HubCallbackUrl { get; set; }
-
-            /// <summary>
-            /// Domain you use as your inbound domain
-            /// </summary>
-            public string InboundDomain { get; set; }
-
-            /// <summary>
             /// True, if account has tooltips active. Otherwise, false
             /// </summary>
             public bool EnableUITooltips { get; set; }
@@ -4349,6 +4408,11 @@ namespace ElasticEmailClient
             /// Why your clients are receiving your emails.
             /// </summary>
             public string DeliveryReason { get; set; }
+
+            /// <summary>
+            /// True, if you want to enable Dashboard Tutotials
+            /// </summary>
+            public bool? TutorialsEnabled { get; set; }
 
         }
 
@@ -4512,9 +4576,14 @@ namespace ElasticEmailClient
             public int TriggerCount { get; set; }
 
             /// <summary>
-            /// ID number of transaction
+            /// Which Channel's event should trigger this Campaign
             /// </summary>
-            public int TriggerChannelID { get; set; }
+            public int? TriggerChannelID { get; set; }
+
+            /// <summary>
+            /// 
+            /// </summary>
+            public string TriggerChannelName { get; set; }
 
             /// <summary>
             /// Data for filtering event campaigns such as specific link addresses.
@@ -4604,6 +4673,11 @@ namespace ElasticEmailClient
             public int ParentChannelID { get; set; }
 
             /// <summary>
+            /// 
+            /// </summary>
+            public string ParentChannelName { get; set; }
+
+            /// <summary>
             /// List of Segment and List IDs, preceded with 'l' for Lists and 's' for Segments, comma separated
             /// </summary>
             public string[] Targets { get; set; }
@@ -4634,9 +4708,14 @@ namespace ElasticEmailClient
             public int TriggerCount { get; set; }
 
             /// <summary>
-            /// ID number of transaction
+            /// Which Channel's event should trigger this Campaign
             /// </summary>
             public int TriggerChannelID { get; set; }
+
+            /// <summary>
+            /// 
+            /// </summary>
+            public string TriggerChannelName { get; set; }
 
             /// <summary>
             /// Data for filtering event campaigns such as specific link addresses.
@@ -4662,6 +4741,11 @@ namespace ElasticEmailClient
             /// ID number of template.
             /// </summary>
             public int? TemplateID { get; set; }
+
+            /// <summary>
+            /// Name of template.
+            /// </summary>
+            public string TemplateName { get; set; }
 
             /// <summary>
             /// Default subject of email.
@@ -4709,12 +4793,12 @@ namespace ElasticEmailClient
             public int SentCount { get; set; }
 
             /// <summary>
-            /// Total emails sent.
+            /// Total emails failed.
             /// </summary>
             public int FailedCount { get; set; }
 
             /// <summary>
-            /// Total emails clicked
+            /// Total emails unsubscribed
             /// </summary>
             public int UnsubscribedCount { get; set; }
 
@@ -4738,12 +4822,32 @@ namespace ElasticEmailClient
             /// </summary>
             public bool? TrackClicks { get; set; }
 
+            /// <summary>
+            /// The utm_source marketing parameter appended to each link in the campaign.
+            /// </summary>
+            public string UtmSource { get; set; }
+
+            /// <summary>
+            /// The utm_medium marketing parameter appended to each link in the campaign.
+            /// </summary>
+            public string UtmMedium { get; set; }
+
+            /// <summary>
+            /// The utm_campaign marketing parameter appended to each link in the campaign.
+            /// </summary>
+            public string UtmCampaign { get; set; }
+
+            /// <summary>
+            /// The utm_content marketing parameter appended to each link in the campaign.
+            /// </summary>
+            public string UtmContent { get; set; }
+
         }
 
         /// <summary>
         /// 
         /// </summary>
-        public enum CampaignStatus : Int32
+        public enum CampaignStatus : int
         {
             /// <summary>
             /// Campaign is logically deleted and not returned by API or interface calls.
@@ -4793,9 +4897,14 @@ namespace ElasticEmailClient
         public class CampaignTemplate
         {
             /// <summary>
-            /// ID number of selected Channel.
+            /// 
             /// </summary>
-            public int? ChannelID { get; set; }
+            public int? CampaignTemplateID { get; set; }
+
+            /// <summary>
+            /// 
+            /// </summary>
+            public string CampaignTemplateName { get; set; }
 
             /// <summary>
             /// Name of campaign's status
@@ -4811,6 +4920,11 @@ namespace ElasticEmailClient
             /// ID number of template.
             /// </summary>
             public int? TemplateID { get; set; }
+
+            /// <summary>
+            /// Name of template.
+            /// </summary>
+            public string TemplateName { get; set; }
 
             /// <summary>
             /// Default subject of email.
@@ -4837,12 +4951,32 @@ namespace ElasticEmailClient
             /// </summary>
             public string TemplateReplyName { get; set; }
 
+            /// <summary>
+            /// The utm_source marketing parameter appended to each link in the campaign.
+            /// </summary>
+            public string UtmSource { get; set; }
+
+            /// <summary>
+            /// The utm_medium marketing parameter appended to each link in the campaign.
+            /// </summary>
+            public string UtmMedium { get; set; }
+
+            /// <summary>
+            /// The utm_campaign marketing parameter appended to each link in the campaign.
+            /// </summary>
+            public string UtmCampaign { get; set; }
+
+            /// <summary>
+            /// The utm_content marketing parameter appended to each link in the campaign.
+            /// </summary>
+            public string UtmContent { get; set; }
+
         }
 
         /// <summary>
         /// 
         /// </summary>
-        public enum CampaignTriggerType : Int32
+        public enum CampaignTriggerType : int
         {
             /// <summary>
             /// 
@@ -4873,7 +5007,7 @@ namespace ElasticEmailClient
 
         /// <summary>
         /// </summary>
-        public enum CertificateValidationStatus : Int32
+        public enum CertificateValidationStatus : int
         {
             /// <summary>
             /// </summary>
@@ -4963,7 +5097,7 @@ namespace ElasticEmailClient
         /// <summary>
         /// FileResponse compression format
         /// </summary>
-        public enum CompressionFormat : Int32
+        public enum CompressionFormat : int
         {
             /// <summary>
             /// No compression
@@ -4980,7 +5114,7 @@ namespace ElasticEmailClient
         /// <summary>
         /// 
         /// </summary>
-        public enum ConsentTracking : Int32
+        public enum ConsentTracking : int
         {
             /// <summary>
             /// 
@@ -5050,7 +5184,7 @@ namespace ElasticEmailClient
             public int TotalSent { get; set; }
 
             /// <summary>
-            /// Total emails sent.
+            /// Total emails failed.
             /// </summary>
             public int TotalFailed { get; set; }
 
@@ -5182,7 +5316,7 @@ namespace ElasticEmailClient
 
         /// <summary>
         /// </summary>
-        public enum ContactHistEventType : Int32
+        public enum ContactHistEventType : int
         {
             /// <summary>
             /// Contact opened an e-mail
@@ -5289,9 +5423,30 @@ namespace ElasticEmailClient
         }
 
         /// <summary>
+        /// </summary>
+        public enum ContactSort : int
+        {
+            /// <summary>
+            /// 
+            /// </summary>
+            Unknown = 0,
+
+            /// <summary>
+            /// Sort by date added ascending order
+            /// </summary>
+            DateAddedAsc = 1,
+
+            /// <summary>
+            /// Sort by date added descending order
+            /// </summary>
+            DateAddedDesc = 2,
+
+        }
+
+        /// <summary>
         /// 
         /// </summary>
-        public enum ContactSource : Int32
+        public enum ContactSource : int
         {
             /// <summary>
             /// Source of the contact is from sending an email via our SMTP or HTTP API's
@@ -5323,7 +5478,7 @@ namespace ElasticEmailClient
         /// <summary>
         /// 
         /// </summary>
-        public enum ContactStatus : Int32
+        public enum ContactStatus : int
         {
             /// <summary>
             /// Only transactional email can be sent to contacts with this status.
@@ -5479,17 +5634,12 @@ namespace ElasticEmailClient
         /// <summary>
         /// Type of credits
         /// </summary>
-        public enum CreditType : Int32
+        public enum CreditType : int
         {
             /// <summary>
             /// Used to send emails.  One credit = one email.
             /// </summary>
             Email = 9,
-
-            /// <summary>
-            /// Used to run a litmus test on a template.  1 credit = 1 test.
-            /// </summary>
-            Litmus = 11,
 
         }
 
@@ -5707,7 +5857,7 @@ namespace ElasticEmailClient
             public List<ApiTypes.EmailJobFailedStatus> Failed { get; set; }
 
             /// <summary>
-            /// Total emails sent.
+            /// Total emails failed.
             /// </summary>
             public int FailedCount { get; set; }
 
@@ -5767,7 +5917,7 @@ namespace ElasticEmailClient
             public List<string> Unsubscribed { get; set; }
 
             /// <summary>
-            /// Total emails clicked
+            /// Total emails unsubscribed
             /// </summary>
             public int UnsubscribedCount { get; set; }
 
@@ -5891,7 +6041,7 @@ namespace ElasticEmailClient
         /// <summary>
         /// Encoding type for the email headers
         /// </summary>
-        public enum EncodingType : Int32
+        public enum EncodingType : int
         {
             /// <summary>
             /// Encoding of the email is provided by the sender and not altered.
@@ -5931,12 +6081,34 @@ namespace ElasticEmailClient
         }
 
         /// <summary>
+        /// Event logs for selected date range
+        /// </summary>
+        public class EventLog
+        {
+            /// <summary>
+            /// Starting date for search in YYYY-MM-DDThh:mm:ss format.
+            /// </summary>
+            public DateTime? From { get; set; }
+
+            /// <summary>
+            /// Ending date for search in YYYY-MM-DDThh:mm:ss format.
+            /// </summary>
+            public DateTime? To { get; set; }
+
+            /// <summary>
+            /// Number of recipients
+            /// </summary>
+            public List<ApiTypes.RecipientEvent> Recipients { get; set; }
+
+        }
+
+        /// <summary>
         /// Record of exported data from the system.
         /// </summary>
         public class Export
         {
             /// <summary>
-            /// 
+            /// ID of the exported file
             /// </summary>
             public Guid PublicExportID { get; set; }
 
@@ -5985,7 +6157,7 @@ namespace ElasticEmailClient
         /// <summary>
         /// Type of export
         /// </summary>
-        public enum ExportFileFormats : Int32
+        public enum ExportFileFormats : int
         {
             /// <summary>
             /// Export in comma separated values format.
@@ -6013,12 +6185,17 @@ namespace ElasticEmailClient
             /// </summary>
             public string Link { get; set; }
 
+            /// <summary>
+            /// ID of the exported file
+            /// </summary>
+            public Guid PublicExportID { get; set; }
+
         }
 
         /// <summary>
         /// Current status of export
         /// </summary>
-        public enum ExportStatus : Int32
+        public enum ExportStatus : int
         {
             /// <summary>
             /// Export had an error and can not be downloaded.
@@ -6106,8 +6283,30 @@ namespace ElasticEmailClient
         }
 
         /// <summary>
+        /// Lists inbound options of your account.
         /// </summary>
-        public enum IntervalType : Int32
+        public class InboundOptions
+        {
+            /// <summary>
+            /// URL used for tracking action of inbound emails
+            /// </summary>
+            public string HubCallbackUrl { get; set; }
+
+            /// <summary>
+            /// Domain you use as your inbound domain
+            /// </summary>
+            public string InboundDomain { get; set; }
+
+            /// <summary>
+            /// True, if you want inbound email to only process contacts from your account. Otherwise, false
+            /// </summary>
+            public bool InboundContactsOnly { get; set; }
+
+        }
+
+        /// <summary>
+        /// </summary>
+        public enum IntervalType : int
         {
             /// <summary>
             /// Daily overview
@@ -6186,23 +6385,6 @@ namespace ElasticEmailClient
         }
 
         /// <summary>
-        /// Detailed information about litmus credits
-        /// </summary>
-        public class LitmusCredits
-        {
-            /// <summary>
-            /// Date in YYYY-MM-DDThh:ii:ss format
-            /// </summary>
-            public DateTime Date { get; set; }
-
-            /// <summary>
-            /// Amount of money in transaction
-            /// </summary>
-            public decimal Amount { get; set; }
-
-        }
-
-        /// <summary>
         /// Logs for selected date range
         /// </summary>
         public class Log
@@ -6226,7 +6408,58 @@ namespace ElasticEmailClient
 
         /// <summary>
         /// </summary>
-        public enum LogJobStatus : Int32
+        public enum LogEventStatus : int
+        {
+            /// <summary>
+            /// Email is queued for sending.
+            /// </summary>
+            ReadyToSend = 1,
+
+            /// <summary>
+            /// Email has soft bounced and is scheduled to retry.
+            /// </summary>
+            WaitingToRetry = 2,
+
+            /// <summary>
+            /// Email is currently sending.
+            /// </summary>
+            Sending = 3,
+
+            /// <summary>
+            /// Email has errored or bounced for some reason.
+            /// </summary>
+            Error = 4,
+
+            /// <summary>
+            /// Email has been successfully delivered.
+            /// </summary>
+            Sent = 5,
+
+            /// <summary>
+            /// Email has been opened by the recipient.
+            /// </summary>
+            Opened = 6,
+
+            /// <summary>
+            /// Email has had at least one link clicked by the recipient.
+            /// </summary>
+            Clicked = 7,
+
+            /// <summary>
+            /// Email has been unsubscribed by the recipient.
+            /// </summary>
+            Unsubscribed = 8,
+
+            /// <summary>
+            /// Email has been complained about or marked as spam by the recipient.
+            /// </summary>
+            AbuseReport = 9,
+
+        }
+
+        /// <summary>
+        /// </summary>
+        public enum LogJobStatus : int
         {
             /// <summary>
             /// All emails
@@ -6396,7 +6629,7 @@ namespace ElasticEmailClient
 
         /// <summary>
         /// </summary>
-        public enum MessageCategory : Int32
+        public enum MessageCategory : int
         {
             /// <summary>
             /// 
@@ -6486,45 +6719,8 @@ namespace ElasticEmailClient
         }
 
         /// <summary>
-        /// Queue of notifications
         /// </summary>
-        public class NotificationQueue
-        {
-            /// <summary>
-            /// Creation date.
-            /// </summary>
-            public string DateCreated { get; set; }
-
-            /// <summary>
-            /// Date of last status change.
-            /// </summary>
-            public string StatusChangeDate { get; set; }
-
-            /// <summary>
-            /// Actual status.
-            /// </summary>
-            public string NewStatus { get; set; }
-
-            /// <summary>
-            /// 
-            /// </summary>
-            public string Reference { get; set; }
-
-            /// <summary>
-            /// Error message.
-            /// </summary>
-            public string ErrorMessage { get; set; }
-
-            /// <summary>
-            /// Number of previous delivery attempts
-            /// </summary>
-            public string RetryCount { get; set; }
-
-        }
-
-        /// <summary>
-        /// </summary>
-        public enum NotificationType : Int32
+        public enum NotificationType : int
         {
             /// <summary>
             /// Both, email and web, notifications
@@ -6630,11 +6826,31 @@ namespace ElasticEmailClient
             /// </summary>
             public string TaxCode { get; set; }
 
+            /// <summary>
+            /// Why your clients are receiving your emails.
+            /// </summary>
+            public string DeliveryReason { get; set; }
+
+            /// <summary>
+            /// True if you want to receive newsletters from Elastic Email. Otherwise, false. Empty to leave the current value.
+            /// </summary>
+            public bool? MarketingConsent { get; set; }
+
+            /// <summary>
+            /// HTTP address of your website.
+            /// </summary>
+            public string Website { get; set; }
+
+            /// <summary>
+            /// URL to your logo image.
+            /// </summary>
+            public string LogoUrl { get; set; }
+
         }
 
         /// <summary>
         /// </summary>
-        public enum QuestionType : Int32
+        public enum QuestionType : int
         {
             /// <summary>
             /// 
@@ -6736,7 +6952,7 @@ namespace ElasticEmailClient
             /// <summary>
             /// ID of message category
             /// </summary>
-            public ApiTypes.MessageCategory MessageCategoryID { get; set; }
+            public ApiTypes.MessageCategory? MessageCategoryID { get; set; }
 
             /// <summary>
             /// Date of last status change.
@@ -6757,6 +6973,11 @@ namespace ElasticEmailClient
             /// Default From: email address.
             /// </summary>
             public string FromEmail { get; set; }
+
+            /// <summary>
+            /// 
+            /// </summary>
+            public string EnvelopeFrom { get; set; }
 
             /// <summary>
             /// ID of certain mail job
@@ -6782,6 +7003,73 @@ namespace ElasticEmailClient
             /// Recipient's last bounce error because of which this e-mail was suppressed
             /// </summary>
             public string ContactLastError { get; set; }
+
+            /// <summary>
+            /// 
+            /// </summary>
+            public string IPAddress { get; set; }
+
+        }
+
+        /// <summary>
+        /// Detailed information about message recipient
+        /// </summary>
+        public class RecipientEvent
+        {
+            /// <summary>
+            /// ID of certain mail job
+            /// </summary>
+            public string JobID { get; set; }
+
+            /// <summary>
+            /// ID number of selected message.
+            /// </summary>
+            public string MsgID { get; set; }
+
+            /// <summary>
+            /// Default From: email address.
+            /// </summary>
+            public string FromEmail { get; set; }
+
+            /// <summary>
+            /// Ending date for search in YYYY-MM-DDThh:mm:ss format.
+            /// </summary>
+            public string To { get; set; }
+
+            /// <summary>
+            /// Default subject of email.
+            /// </summary>
+            public string Subject { get; set; }
+
+            /// <summary>
+            /// Name of recipient's status: Submitted, ReadyToSend, WaitingToRetry, Sending, Bounced, Sent, Opened, Clicked, Unsubscribed, AbuseReport
+            /// </summary>
+            public string EventType { get; set; }
+
+            /// <summary>
+            /// Creation date
+            /// </summary>
+            public string EventDate { get; set; }
+
+            /// <summary>
+            /// Name of selected Channel.
+            /// </summary>
+            public string Channel { get; set; }
+
+            /// <summary>
+            /// ID number of selected Channel.
+            /// </summary>
+            public int? ChannelID { get; set; }
+
+            /// <summary>
+            /// Name of message category
+            /// </summary>
+            public string MessageCategory { get; set; }
+
+            /// <summary>
+            /// Date of next try
+            /// </summary>
+            public string NextTryOn { get; set; }
 
         }
 
@@ -7035,42 +7323,12 @@ namespace ElasticEmailClient
             /// </summary>
             public long Count { get; set; }
 
-            /// <summary>
-            /// 
-            /// </summary>
-            public long EngagedCount { get; set; }
-
-            /// <summary>
-            /// 
-            /// </summary>
-            public long ActiveCount { get; set; }
-
-            /// <summary>
-            /// 
-            /// </summary>
-            public long BouncedCount { get; set; }
-
-            /// <summary>
-            /// Total emails clicked
-            /// </summary>
-            public long UnsubscribedCount { get; set; }
-
-            /// <summary>
-            /// 
-            /// </summary>
-            public long AbuseCount { get; set; }
-
-            /// <summary>
-            /// 
-            /// </summary>
-            public long InactiveCount { get; set; }
-
         }
 
         /// <summary>
         /// 
         /// </summary>
-        public enum SendingPermission : Int32
+        public enum SendingPermission : int
         {
             /// <summary>
             /// Sending not allowed.
@@ -7186,7 +7444,7 @@ namespace ElasticEmailClient
         /// <summary>
         /// 
         /// </summary>
-        public enum SplitOptimization : Int32
+        public enum SplitOptimization : int
         {
             /// <summary>
             /// Number of opened messages
@@ -7251,31 +7509,6 @@ namespace ElasticEmailClient
             public double MonthlyRefillCredits { get; set; }
 
             /// <summary>
-            /// True, if account needs credits to buy templates. Otherwise, false
-            /// </summary>
-            public bool RequiresTemplateCredits { get; set; }
-
-            /// <summary>
-            /// Amount of Litmus credits
-            /// </summary>
-            public decimal LitmusCredits { get; set; }
-
-            /// <summary>
-            /// True, if account is able to send template tests to Litmus. Otherwise, false
-            /// </summary>
-            public bool EnableLitmusTest { get; set; }
-
-            /// <summary>
-            /// True, if account needs credits to send emails. Otherwise, false
-            /// </summary>
-            public bool RequiresLitmusCredits { get; set; }
-
-            /// <summary>
-            /// True, if account can buy templates on its own. Otherwise, false
-            /// </summary>
-            public bool EnablePremiumTemplates { get; set; }
-
-            /// <summary>
             /// True, if account can request for private IP on its own. Otherwise, false
             /// </summary>
             public bool EnablePrivateIPRequest { get; set; }
@@ -7326,14 +7559,17 @@ namespace ElasticEmailClient
             public int MaxContacts { get; set; }
 
             /// <summary>
-            /// True, if you want to use Contact Delivery Tools.  Otherwise, false
-            /// </summary>
-            public bool EnableContactFeatures { get; set; }
-
-            /// <summary>
             /// Sending permission setting for account
             /// </summary>
             public ApiTypes.SendingPermission SendingPermission { get; set; }
+
+            /// <summary>
+            /// </summary>
+            public bool HasModify2FA { get; set; }
+
+            /// <summary>
+            /// </summary>
+            public int ContactsCount { get; set; }
 
         }
 
@@ -7353,29 +7589,9 @@ namespace ElasticEmailClient
             public bool RequiresEmailCredits { get; set; }
 
             /// <summary>
-            /// True, if account needs credits to buy templates. Otherwise, false
-            /// </summary>
-            public bool RequiresTemplateCredits { get; set; }
-
-            /// <summary>
             /// Amount of credits added to account automatically
             /// </summary>
             public double MonthlyRefillCredits { get; set; }
-
-            /// <summary>
-            /// Amount of Litmus credits
-            /// </summary>
-            public decimal LitmusCredits { get; set; }
-
-            /// <summary>
-            /// True, if account is able to send template tests to Litmus. Otherwise, false
-            /// </summary>
-            public bool EnableLitmusTest { get; set; }
-
-            /// <summary>
-            /// True, if account needs credits to send emails. Otherwise, false
-            /// </summary>
-            public bool RequiresLitmusCredits { get; set; }
 
             /// <summary>
             /// Maximum size of email including attachments in MB's
@@ -7416,6 +7632,28 @@ namespace ElasticEmailClient
             /// Public key for limited access to your account such as contact/add so you can use it safely on public websites.
             /// </summary>
             public string PublicAccountID { get; set; }
+
+            /// <summary>
+            /// 
+            /// </summary>
+            public bool? Allow2FA { get; set; }
+
+        }
+
+        /// <summary>
+        /// Add-on support options for your account
+        /// </summary>
+        public enum SupportPlan : int
+        {
+            /// <summary>
+            /// In-app support option for $1/day
+            /// </summary>
+            Priority = 1,
+
+            /// <summary>
+            /// In-app real-time chat support option for $7/day
+            /// </summary>
+            Premium = 2,
 
         }
 
@@ -7566,7 +7804,7 @@ namespace ElasticEmailClient
         /// <summary>
         /// 
         /// </summary>
-        public enum SurveyStatus : Int32
+        public enum SurveyStatus : int
         {
             /// <summary>
             /// The survey is deleted
@@ -7651,7 +7889,7 @@ namespace ElasticEmailClient
 
         /// <summary>
         /// </summary>
-        public enum SurveyStepType : Int32
+        public enum SurveyStepType : int
         {
             /// <summary>
             /// 
@@ -7741,6 +7979,11 @@ namespace ElasticEmailClient
             public int OriginalTemplateID { get; set; }
 
             /// <summary>
+            /// 
+            /// </summary>
+            public string OriginalTemplateName { get; set; }
+
+            /// <summary>
             /// Enum: 0 - private, 1 - public, 2 - mockup
             /// </summary>
             public ApiTypes.TemplateScope TemplateScope { get; set; }
@@ -7758,16 +8001,26 @@ namespace ElasticEmailClient
             public List<ApiTypes.Template> Templates { get; set; }
 
             /// <summary>
+            /// Total of templates
+            /// </summary>
+            public int TemplatesCount { get; set; }
+
+            /// <summary>
             /// List of draft templates
             /// </summary>
             public List<ApiTypes.Template> DraftTemplate { get; set; }
+
+            /// <summary>
+            /// Total of draft templates
+            /// </summary>
+            public int DraftTemplatesCount { get; set; }
 
         }
 
         /// <summary>
         /// 
         /// </summary>
-        public enum TemplateScope : Int32
+        public enum TemplateScope : int
         {
             /// <summary>
             /// Template is available for this account only.
@@ -7779,12 +8032,17 @@ namespace ElasticEmailClient
             /// </summary>
             Public = 1,
 
+            /// <summary>
+            /// Template is a temporary draft, not to be used permanently.
+            /// </summary>
+            Draft = 2,
+
         }
 
         /// <summary>
         /// 
         /// </summary>
-        public enum TemplateType : Int32
+        public enum TemplateType : int
         {
             /// <summary>
             /// Template supports any valid HTML
@@ -7822,7 +8080,7 @@ namespace ElasticEmailClient
 
         /// <summary>
         /// </summary>
-        public enum TrackingType : Int32
+        public enum TrackingType : int
         {
             /// <summary>
             /// </summary>
@@ -7853,7 +8111,7 @@ namespace ElasticEmailClient
         /// <summary>
         /// Status of ValidDomain used by DomainValidationService to determine how often tracking validation should be performed.
         /// </summary>
-        public enum TrackingValidationStatus : Int32
+        public enum TrackingValidationStatus : int
         {
             /// <summary>
             /// </summary>
@@ -7956,29 +8214,9 @@ namespace ElasticEmailClient
             public decimal SmsCost { get; set; }
 
             /// <summary>
-            /// Cost of templates
-            /// </summary>
-            public decimal TemplateCost { get; set; }
-
-            /// <summary>
             /// Cost of email credits
             /// </summary>
             public int? EmailCreditsCost { get; set; }
-
-            /// <summary>
-            /// Cost of template credit
-            /// </summary>
-            public int? TemplateCreditsCost { get; set; }
-
-            /// <summary>
-            /// Cost of litmus credits
-            /// </summary>
-            public decimal LitmusCost { get; set; }
-
-            /// <summary>
-            /// Cost of 1 litmus credit
-            /// </summary>
-            public decimal LitmusCreditsCost { get; set; }
 
             /// <summary>
             /// Daily cost of Contact Delivery Tools
@@ -7999,6 +8237,145 @@ namespace ElasticEmailClient
             /// 
             /// </summary>
             public decimal EmailCost { get; set; }
+
+        }
+
+        /// <summary>
+        /// </summary>
+        public class ValidationError
+        {
+            /// <summary>
+            /// </summary>
+            public string TXTRecord { get; set; }
+
+            /// <summary>
+            /// </summary>
+            public string Error { get; set; }
+
+        }
+
+        /// <summary>
+        /// </summary>
+        public class ValidationStatus
+        {
+            /// <summary>
+            /// </summary>
+            public bool IsValid { get; set; }
+
+            /// <summary>
+            /// </summary>
+            public List<ApiTypes.ValidationError> Errors { get; set; }
+
+            /// <summary>
+            /// </summary>
+            public string Log { get; set; }
+
+        }
+
+        /// <summary>
+        /// Notification webhook setting
+        /// </summary>
+        public class Webhook
+        {
+            /// <summary>
+            /// Public webhook ID
+            /// </summary>
+            public string WebhookID { get; set; }
+
+            /// <summary>
+            /// Filename
+            /// </summary>
+            public string Name { get; set; }
+
+            /// <summary>
+            /// Creation date.
+            /// </summary>
+            public DateTime? DateCreated { get; set; }
+
+            /// <summary>
+            /// Last change date
+            /// </summary>
+            public DateTime? DateUpdated { get; set; }
+
+            /// <summary>
+            /// URL of notification.
+            /// </summary>
+            public string URL { get; set; }
+
+            /// <summary>
+            /// </summary>
+            public bool NotifyOncePerEmail { get; set; }
+
+            /// <summary>
+            /// </summary>
+            public bool NotificationForSent { get; set; }
+
+            /// <summary>
+            /// </summary>
+            public bool NotificationForOpened { get; set; }
+
+            /// <summary>
+            /// </summary>
+            public bool NotificationForClicked { get; set; }
+
+            /// <summary>
+            /// </summary>
+            public bool NotificationForUnsubscribed { get; set; }
+
+            /// <summary>
+            /// </summary>
+            public bool NotificationForAbuseReport { get; set; }
+
+            /// <summary>
+            /// </summary>
+            public bool NotificationForError { get; set; }
+
+        }
+
+        /// <summary>
+        /// Lists web notification options of your account.
+        /// </summary>
+        public class WebNotificationOptions
+        {
+            /// <summary>
+            /// URL address to receive web notifications to parse and process.
+            /// </summary>
+            public string WebNotificationUrl { get; set; }
+
+            /// <summary>
+            /// True, if you want to send web notifications for sent email. Otherwise, false
+            /// </summary>
+            public bool WebNotificationForSent { get; set; }
+
+            /// <summary>
+            /// True, if you want to send web notifications for opened email. Otherwise, false
+            /// </summary>
+            public bool WebNotificationForOpened { get; set; }
+
+            /// <summary>
+            /// True, if you want to send web notifications for clicked email. Otherwise, false
+            /// </summary>
+            public bool WebNotificationForClicked { get; set; }
+
+            /// <summary>
+            /// True, if you want to send web notifications for unsubscribed email. Otherwise, false
+            /// </summary>
+            public bool WebnotificationForUnsubscribed { get; set; }
+
+            /// <summary>
+            /// True, if you want to send web notifications for complaint email. Otherwise, false
+            /// </summary>
+            public bool WebNotificationForAbuse { get; set; }
+
+            /// <summary>
+            /// True, if you want to send web notifications for bounced email. Otherwise, false
+            /// </summary>
+            public bool WebNotificationForError { get; set; }
+
+            /// <summary>
+            /// True, if you want to receive notifications for each type only once per email. Otherwise, false
+            /// </summary>
+            public bool WebNotificationNotifyOncePerEmail { get; set; }
 
         }
 
