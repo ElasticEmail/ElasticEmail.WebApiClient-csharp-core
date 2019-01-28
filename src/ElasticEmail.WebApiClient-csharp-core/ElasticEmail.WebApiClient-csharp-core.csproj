@@ -4,28 +4,28 @@
     <Description>C# client library and examples for using ElasticEmail API to send mail, manage contacts and other functions.</Description>
     <Copyright>Copyright ©  Elastic Email, Inc. 2017</Copyright>
     <AssemblyTitle>ElasticEmail.WebApiClient</AssemblyTitle>
-    <VersionPrefix>1.3.102</VersionPrefix>
+    <VersionPrefix>1.3.106</VersionPrefix>
     <TargetFrameworks>netstandard1.6;net45;net46</TargetFrameworks>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <AssemblyName>ElasticEmail.WebApiClient</AssemblyName>    
-    <NetStandardImplicitPackageVersion>1.6.0</NetStandardImplicitPackageVersion>
+    <NetStandardImplicitPackageVersion>1.6.1</NetStandardImplicitPackageVersion>
     <PackageTargetFallback>$(PackageTargetFallback);dnxcore50</PackageTargetFallback>
     <GenerateAssemblyConfigurationAttribute>false</GenerateAssemblyConfigurationAttribute>
     <GenerateAssemblyCompanyAttribute>false</GenerateAssemblyCompanyAttribute>
     <GenerateAssemblyProductAttribute>false</GenerateAssemblyProductAttribute>
 	
 	<PackageId>ElasticEmail.WebApiClient</PackageId>
-	<PackageVersion>1.3.104</PackageVersion>
+	<PackageVersion>1.3.106</PackageVersion>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
     <PackageTags>elasticemail elastic email e-mail mail Web API SMTP transactional</PackageTags>
     <PackageLicenseUrl>https://elasticemail.com/files/license.txt</PackageLicenseUrl>
-    <PackageProjectUrl>https://github.com/ElasticEmail/ElasticEmail.WebApiClient-csharp</PackageProjectUrl>
+    <PackageProjectUrl>https://github.com/ElasticEmail/ElasticEmail.WebApiClient-csharp-core</PackageProjectUrl>
 	<PackageIconUrl>https://elasticemail.com/files/ee_int_cs_128x128.png</PackageIconUrl>
 	<Authors>ElasticEmail Dev Team</Authors>
 	<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
-	<AssemblyVersion>1.3.104.0</AssemblyVersion>
-	<FileVersion>1.3.104.0</FileVersion>
-	<Version>1.3.104</Version>
+	<AssemblyVersion>1.3.106.0</AssemblyVersion>
+	<FileVersion>1.3.106.0</FileVersion>
+	<Version>1.3.106</Version>
 	<RootNamespace>ElasticEmail.WebApiClient</RootNamespace>
 	<PackageReleaseNotes>API update.</PackageReleaseNotes>
   </PropertyGroup>
