@@ -15,7 +15,7 @@ We appreciate your continued support, thank you!
 
 # Installation #
 ## Prerequisites ##
-* .NET Core version 1.6 or higher
+* .NET Standard version 1.6 or higher
 * [An Elastic Email account](https://elasticemail.com/account/)
 ## Install Package ##
 To use ElasticEmail in your C# project, you can either [download the ElasticEmail C# .NET libraries directly from our Github repository](https://github.com/ElasticEmail/ElasticEmail.WebApiClient-csharp-core) or, if you have the NuGet package manager installed, you can grab them automatically.
