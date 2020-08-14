@@ -717,7 +717,7 @@ namespace ElasticEmailClient
             /// Add new AccessToken with appropriate AccessLevel (permission).
             /// </summary>
             /// <param name="apikey">ApiKey that gives you access to our SMTP and HTTP API's.</param>
-            /// <param name="tokenName">Name of the AccessToken for ease of reference.</param>
+            /// <param name="tokenName">Name of the AccessToken for ease of reference. If you want to create a SMTP access, then tokenname must be a valid email address</param>
             /// <param name="accessLevel">Level of access (permission) to our API.</param>
             /// <param name="restrictAccessToIPRange">Comma separated list of CIDR notated IP ranges that this token can connect from.</param>
             /// <param name="type"></param>
@@ -740,7 +740,7 @@ namespace ElasticEmailClient
             /// Permanently delete AccessToken from your Account.
             /// </summary>
             /// <param name="apikey">ApiKey that gives you access to our SMTP and HTTP API's.</param>
-            /// <param name="tokenName">Name of the AccessToken for ease of reference.</param>
+            /// <param name="tokenName">Name of the AccessToken for ease of reference. If you want to create a SMTP access, then tokenname must be a valid email address</param>
             /// <param name="type"></param>
             public static async Task DeleteAsync(string tokenName, ApiTypes.AccessTokenType? type = null)
             {
@@ -768,7 +768,7 @@ namespace ElasticEmailClient
             /// Update AccessToken with a new name or AccessLevel.
             /// </summary>
             /// <param name="apikey">ApiKey that gives you access to our SMTP and HTTP API's.</param>
-            /// <param name="tokenName">Name of the AccessToken for ease of reference.</param>
+            /// <param name="tokenName">Name of the AccessToken for ease of reference. If you want to create a SMTP access, then tokenname must be a valid email address</param>
             /// <param name="accessLevel">Level of access (permission) to our API.</param>
             /// <param name="expires"></param>
             /// <param name="newTokenName">New name of the AccessToken.</param>
@@ -1758,7 +1758,7 @@ namespace ElasticEmailClient
             /// </summary>
             /// <param name="publicAccountID"></param>
             /// <param name="email">Proper email address.</param>
-            /// <param name="publicListID">ID code of list</param>
+            /// <param name="publicListID">ID code of list. Please note that this is different from the listid field.</param>
             /// <param name="listName">Name of your list.</param>
             /// <param name="firstName">First name.</param>
             /// <param name="lastName">Last name.</param>
@@ -2100,7 +2100,7 @@ namespace ElasticEmailClient
             /// <param name="emails">Comma delimited list of contact emails</param>
             /// <param name="firstName">First name.</param>
             /// <param name="lastName">Last name.</param>
-            /// <param name="publicListID">ID code of list</param>
+            /// <param name="publicListID">ID code of list. Please note that this is different from the listid field.</param>
             /// <param name="listName">Name of your list.</param>
             /// <param name="status">Status of the given resource</param>
             /// <param name="notes">Free form field of notes</param>
@@ -2306,6 +2306,21 @@ namespace ElasticEmailClient
                 values.Add("apikey", Api.ApiKey);
                 values.Add("domain", domain);
                 ApiResponse<string> apiResponse = await ApiUtilities.PostAsync<string>("/domain/verifydkim", values);
+                return apiResponse.Data;
+            }
+
+            /// <summary>
+            /// Verifies proper DMARC DNS configuration for the domain.
+            /// </summary>
+            /// <param name="apikey">ApiKey that gives you access to our SMTP and HTTP API's.</param>
+            /// <param name="domain">Domain name to verify.</param>
+            /// <returns>string</returns>
+            public static async Task<string> VerifyDMARCAsync(string domain)
+            {
+                Dictionary<string, string> values = new Dictionary<string, string>();
+                values.Add("apikey", Api.ApiKey);
+                values.Add("domain", domain);
+                ApiResponse<string> apiResponse = await ApiUtilities.PostAsync<string>("/domain/verifydmarc", values);
                 return apiResponse.Data;
             }
 
@@ -3613,8 +3628,9 @@ namespace ElasticEmailClient
             /// <param name="limit">Maximum number of returned items.</param>
             /// <param name="offset">If provided, returns templates with these tags</param>
             /// <param name="templateOrder">Filters on template type</param>
+            /// <param name="search">Find templates containing given search string in their names</param>
             /// <returns>ApiTypes.TemplateList</returns>
-            public static async Task<ApiTypes.TemplateList> GetListAsync(IEnumerable<string> tags = null, IEnumerable<ApiTypes.TemplateType> templateTypes = null, int limit = 500, int offset = 0, ApiTypes.TemplateOrder templateOrder = ApiTypes.TemplateOrder.DateAddedDescending)
+            public static async Task<ApiTypes.TemplateList> GetListAsync(IEnumerable<string> tags = null, IEnumerable<ApiTypes.TemplateType> templateTypes = null, int limit = 500, int offset = 0, ApiTypes.TemplateOrder templateOrder = ApiTypes.TemplateOrder.DateAddedDescending, string search = null)
             {
                 Dictionary<string, string> values = new Dictionary<string, string>();
                 values.Add("apikey", Api.ApiKey);
@@ -3623,6 +3639,7 @@ namespace ElasticEmailClient
                 if (limit != 500) values.Add("limit", limit.ToString());
                 if (offset != 0) values.Add("offset", offset.ToString());
                 if (templateOrder != ApiTypes.TemplateOrder.DateAddedDescending) values.Add("templateOrder", templateOrder.ToString());
+                if (search != null) values.Add("search", search);
                 ApiResponse<ApiTypes.TemplateList> apiResponse = await ApiUtilities.PostAsync<ApiTypes.TemplateList>("/template/getlist", values);
                 return apiResponse.Data;
             }
@@ -4063,6 +4080,10 @@ namespace ElasticEmailClient
         /// </summary>
         VerifyEmails = 2199023255552,
 
+        /// <summary>
+        /// </summary>
+        ViewEmailVerifications = 4398046511104,
+
     }
 
     /// <summary>
@@ -4145,11 +4166,6 @@ namespace ElasticEmailClient
         /// 
         /// </summary>
         public string PublicAccountID { get; set; }
-
-        /// <summary>
-        /// ApiKey that gives you access to our SMTP and HTTP API's.
-        /// </summary>
-        public string ApiKey { get; set; }
 
         /// <summary>
         /// True, if Account is a Sub-Account. Otherwise, false
@@ -5247,14 +5263,54 @@ namespace ElasticEmailClient
         public int FailedCount { get; set; }
 
         /// <summary>
+        /// The number of emails that have been marked as abuse or complaint within this channel.
+        /// </summary>
+        public int FailedAbuse { get; set; }
+
+        /// <summary>
         /// The number of emails that have been unsubscribed within this channel.
         /// </summary>
         public int UnsubscribedCount { get; set; }
 
         /// <summary>
-        /// The number of emails that have been marked as abuse or complaint within this channel.
+        /// The number of emails that have been stopped.
         /// </summary>
-        public int FailedAbuse { get; set; }
+        public int SuppressedCount { get; set; }
+
+        /// <summary>
+        /// Percentage of delivered emails out of all emails
+        /// </summary>
+        public double DeliveredPercentage { get; set; }
+
+        /// <summary>
+        /// Percentage of opened emails out of delivered emails
+        /// </summary>
+        public double OpenedPercentage { get; set; }
+
+        /// <summary>
+        /// Percentage of clicked emails out of delivered emails
+        /// </summary>
+        public double ClickedPercentage { get; set; }
+
+        /// <summary>
+        /// Percentage of failed emails out of all emails
+        /// </summary>
+        public double FailedPercentage { get; set; }
+
+        /// <summary>
+        /// Percentage of emails marked as abuse out of delivered emails
+        /// </summary>
+        public double FailedAbusePercentage { get; set; }
+
+        /// <summary>
+        /// Percentage of emails marked as unsubscribed out of delivered emails
+        /// </summary>
+        public double UnsubscribedPercentage { get; set; }
+
+        /// <summary>
+        /// Percentage of suppressed (not delivered) emails out of all emails
+        /// </summary>
+        public double SuppressedPercentage { get; set; }
 
         /// <summary>
         /// The total cost for emails/attachments within this channel.
@@ -5889,6 +5945,46 @@ namespace ElasticEmailClient
         /// Number of messages flagged with 'Not Delivered'
         /// </summary>
         public int NotDelivered { get; set; }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public long Suppressed { get; set; }
+
+        /// <summary>
+        /// Percentage of delivered emails out of all emails
+        /// </summary>
+        public double DeliveredPercentage { get; set; }
+
+        /// <summary>
+        /// Percentage of opened emails out of delivered emails
+        /// </summary>
+        public double OpenedPercentage { get; set; }
+
+        /// <summary>
+        /// Percentage of clicked emails out of delivered emails
+        /// </summary>
+        public double ClickedPercentage { get; set; }
+
+        /// <summary>
+        /// Percentage of failed emails out of all emails
+        /// </summary>
+        public double BouncedPercentage { get; set; }
+
+        /// <summary>
+        /// Percentage of emails marked as abuse out of delivered emails
+        /// </summary>
+        public double ComplaintPercentage { get; set; }
+
+        /// <summary>
+        /// Percentage of emails marked as unsubscribed out of delivered emails
+        /// </summary>
+        public double UnsubscribedPercentage { get; set; }
+
+        /// <summary>
+        /// Percentage of suppressed (not delivered) emails out of all emails
+        /// </summary>
+        public double SuppressedPercentage { get; set; }
 
     }
 
@@ -6624,7 +6720,7 @@ namespace ElasticEmailClient
         public int Count { get; set; }
 
         /// <summary>
-        /// ID code of list
+        /// ID code of list. Please note that this is different from the listid field.
         /// </summary>
         public Guid? PublicListID { get; set; }
 
@@ -6865,9 +6961,49 @@ namespace ElasticEmailClient
         public long NotDelivered { get; set; }
 
         /// <summary>
+        /// 
+        /// </summary>
+        public long Suppressed { get; set; }
+
+        /// <summary>
         /// ID number of template used
         /// </summary>
         public bool TemplateChannel { get; set; }
+
+        /// <summary>
+        /// Percentage of delivered emails out of all emails
+        /// </summary>
+        public double DeliveredPercentage { get; set; }
+
+        /// <summary>
+        /// Percentage of opened emails out of delivered emails
+        /// </summary>
+        public double OpenedPercentage { get; set; }
+
+        /// <summary>
+        /// Percentage of clicked emails out of delivered emails
+        /// </summary>
+        public double ClickedPercentage { get; set; }
+
+        /// <summary>
+        /// Percentage of failed emails out of all emails
+        /// </summary>
+        public double FailedPercentage { get; set; }
+
+        /// <summary>
+        /// Percentage of emails marked as abuse out of delivered emails
+        /// </summary>
+        public double FailedAbusePercentage { get; set; }
+
+        /// <summary>
+        /// Percentage of emails marked as unsubscribed out of delivered emails
+        /// </summary>
+        public double UnsubscribedPercentage { get; set; }
+
+        /// <summary>
+        /// Percentage of suppressed (not delivered) emails out of all emails
+        /// </summary>
+        public double SuppressedPercentage { get; set; }
 
     }
 
@@ -7692,11 +7828,6 @@ namespace ElasticEmailClient
         /// 
         /// </summary>
         public string PublicAccountID { get; set; }
-
-        /// <summary>
-        /// ApiKey that gives you access to our SMTP and HTTP API's.
-        /// </summary>
-        public string ApiKey { get; set; }
 
         /// <summary>
         /// Proper email address.
