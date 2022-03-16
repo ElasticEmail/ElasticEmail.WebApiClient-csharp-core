@@ -1,3 +1,7 @@
+**LEGACY**
+
+New version of API - https://github.com/ElasticEmail/elasticemail-csharp
+
 **This library allows you to quickly and easily use the Elastic Email Web API v2 via C# with .NET Core.**
 
 Version 1.X.X+ of this library provides full support for all Elastic Email Web API v2 endpoints.
